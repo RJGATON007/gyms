@@ -621,6 +621,9 @@ def create_visitors_frame(frame_5):
     # Widgets
 
 
+# new frame named
+
+
 def center_window(window, width, height):
     screen_width=window.winfo_screenwidth()
     screen_height=window.winfo_screenheight()
@@ -631,6 +634,10 @@ def center_window(window, width, height):
 
 # Create the login system
 def create_login_window():
+    # Default username and password
+    default_username="1"
+    default_password="1"
+
     def login():
         username=user_entry.get()
         password=user_pass.get()
@@ -639,14 +646,7 @@ def create_login_window():
             messagebox.showerror(title="Login Failed", message="Please enter both username and password")
             return
 
-        # Check if the user exists in the database
-        conn=sqlite3.connect("user_db.db")
-        cursor=conn.cursor()
-        cursor.execute("SELECT * FROM users WHERE username = ? AND password = ?", (username, password))
-        user=cursor.fetchone()
-        conn.close()
-
-        if user:
+        if username == default_username and password == default_password:
             messagebox.showinfo(title="Login Successful", message="You have logged in Successfully")
             login_window.destroy()
             app=MainApp()
@@ -660,29 +660,6 @@ def create_login_window():
             user_pass.configure(show="*")
         else:
             user_pass.configure(show="")
-
-    def register():
-        username=user_entry.get()
-        password=user_pass.get()
-
-        if username == "" or password == "":
-            messagebox.showerror(title="Registration Failed", message="Please enter both username and password")
-            return
-
-        # Check if the user already exists in the database
-        conn=sqlite3.connect("user_db.db")
-        cursor=conn.cursor()
-        cursor.execute("SELECT * FROM users WHERE username = ?", (username,))
-        existing_user=cursor.fetchone()
-
-        if existing_user:
-            messagebox.showwarning(title="Registration Failed", message="Username already exists")
-            conn.close()
-        else:
-            cursor.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, password))
-            conn.commit()
-            conn.close()
-            messagebox.showinfo(title="Registration Successful", message="You have registered successfully")
 
     login_window=ctk.CTk()
     login_window.geometry("400x550")
@@ -717,11 +694,6 @@ def create_login_window():
 
     login_button=ctk.CTkButton(master=frame, text='Login', command=login)
     login_button.pack(pady=12, padx=10)
-
-    register_button=ctk.CTkButton(master=frame, text='Register User', fg_color="dodgerblue2",
-                                  text_color=("gray10", "gray90"),
-                                  hover_color=("dodgerblue3", "dodgerblue4"), command=register)
-    register_button.pack(pady=12, padx=10)
 
     login_window.mainloop()
 
