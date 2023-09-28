@@ -1,9 +1,9 @@
 import customtkinter as ctk
 import tkinter as tk
-from tkinter import messagebox, ttk
+from tkinter import messagebox
 from PIL import Image, ImageTk
+from tkcalendar import DateEntry
 import os
-import sqlite3
 
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("green")
@@ -365,7 +365,9 @@ class RegistrationFrame(ctk.CTkFrame):
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
 
-        label=ctk.CTkLabel(self, text="Member Registration", font=("Arial bold", 28))
+        # STEP 1: PERSONAL INFORMATION
+        # Define and configure widgets within the frame
+        label=ctk.CTkLabel(self, text="Step 1: Personal Information", font=("Arial bold", 28))
         label.pack(pady=20, padx=10)
 
         # Add registration form fields here
@@ -378,101 +380,76 @@ class RegistrationFrame(ctk.CTkFrame):
         # Set the fixed width for the frame
         fields_frame.configure(width=fixed_width)
 
-        # Name
-        name_label=ctk.CTkLabel(fields_frame, text="Name:")
-        name_label.grid(row=2, column=0, padx=10, pady=10, sticky="w")
-        self.name_entry=ctk.CTkEntry(fields_frame, placeholder_text="Enter your name")
-        self.name_entry.grid(row=2, column=1, padx=10, pady=10, sticky="e")
+        # Create a custom font for labels
+        label_font=ctk.CTkFont(family="Arial bold", size=16)  # Adjust the size as needed
 
-        # Email
-        email_label=ctk.CTkLabel(fields_frame, text="Email:")
-        email_label.grid(row=3, column=0, padx=10, pady=10, sticky="w")
-        self.email_entry=ctk.CTkEntry(fields_frame, placeholder_text="Enter your email")
-        self.email_entry.grid(row=3, column=1, padx=10, pady=10, sticky="e")
+        # Member ID
+        member_id_label=ctk.CTkLabel(fields_frame, text="Member ID:", font=label_font)
+        member_id_label.grid(row=1, column=0, padx=20, pady=5, sticky="w")
+        self.member_id_entry=ctk.CTkEntry(fields_frame, placeholder_text="DG-XXX")
+        self.member_id_entry.grid(row=1, column=1, padx=20, pady=5)
+
+        # Name
+        first_name_label=ctk.CTkLabel(fields_frame, text="First Name:", font=label_font)
+        first_name_label.grid(row=2, column=0, padx=20, pady=5, sticky="w")
+        self.first_name_entry=ctk.CTkEntry(fields_frame, placeholder_text="Enter your first name")
+        self.first_name_entry.grid(row=2, column=1, padx=20, pady=5)
+
+        middle_name_label=ctk.CTkLabel(fields_frame, text="Middle Name:", font=label_font)
+        middle_name_label.grid(row=3, column=0, padx=20, pady=5, sticky="w")
+        self.middle_name_entry=ctk.CTkEntry(fields_frame, placeholder_text="Enter your middle name")
+        self.middle_name_entry.grid(row=3, column=1, padx=20, pady=5)
+
+        last_name_label=ctk.CTkLabel(fields_frame, text="Last Name:", font=label_font)
+        last_name_label.grid(row=4, column=0, padx=20, pady=5, sticky="w")
+        self.last_name_entry=ctk.CTkEntry(fields_frame, placeholder_text="Enter your last name")
+        self.last_name_entry.grid(row=4, column=1, padx=20, pady=5)
 
         # Age
-        age_label=ctk.CTkLabel(fields_frame, text="Age:")
-        age_label.grid(row=4, column=0, padx=10, pady=10, sticky="w")
+        age_label=ctk.CTkLabel(fields_frame, text="Age:", font=label_font)
+        age_label.grid(row=5, column=0, padx=20, pady=5, sticky="w")
         self.age_entry=ctk.CTkEntry(fields_frame, placeholder_text="Enter your age")
-        self.age_entry.grid(row=4, column=1, padx=10, pady=10, sticky="e")
+        self.age_entry.grid(row=5, column=1, padx=20, pady=5)
 
-        # Address
-        address_label=ctk.CTkLabel(fields_frame, text="Address:")
-        address_label.grid(row=5, column=0, padx=10, pady=10, sticky="w")
-        self.address_entry=ctk.CTkEntry(fields_frame, placeholder_text="Enter your address")
-        self.address_entry.grid(row=5, column=1, padx=10, pady=10, sticky="e")
+        # Sex
+        sex_label=ctk.CTkLabel(fields_frame, text="Sex:", font=label_font)
+        sex_label.grid(row=6, column=0, padx=20, pady=5, sticky="w")
+        self.sex_entry=ctk.CTkComboBox(fields_frame, values=["Male", "Female", "Other"])
+        self.sex_entry.grid(row=6, column=1, padx=20, pady=5)
 
-        # Contact Number
-        contact_label=ctk.CTkLabel(fields_frame, text="Contact Number:")
-        contact_label.grid(row=6, column=0, padx=10, pady=10, sticky="w")
-        self.contact_entry=ctk.CTkEntry(fields_frame, placeholder_text="Enter your contact number")
-        self.contact_entry.grid(row=6, column=1, padx=10, pady=10, sticky="e")
-
-        # Subscription Type
-        self.subscription_var=tk.StringVar()
-        self.subscription_var.set("Weekly")  # Set the default value
-        subscription_label=ctk.CTkLabel(fields_frame, text="Subscription Type:")
-        subscription_label.grid(row=7, column=0, padx=10, pady=10, sticky="w")
-
-        subscription_options=["Weekly", "Monthly", "Yearly"]
-        subscription_menu=ctk.CTkOptionMenu(fields_frame, variable=self.subscription_var,
-                                            values=subscription_options)
-        subscription_menu.grid(row=7, column=1, padx=10, pady=10, sticky="e")
+        # Create a DateEntry widget for the birthdate
+        birth_date_label=ctk.CTkLabel(fields_frame, text="Birth Date:", font=label_font)
+        birth_date_label.grid(row=7, column=0, padx=20, pady=5, sticky="w")
+        # Create a DateEntry widget for the birthdate
+        self.birth_date_entry=DateEntry(fields_frame, width=20, date_pattern="yyyy-mm-dd")
+        self.birth_date_entry.grid(row=7, column=1, padx=20, pady=15, sticky="w")
 
         # Add a "Register" button to submit the registration form
-        register_button=ctk.CTkButton(self, text="Register", command=self.register_button_event)
-        register_button.pack(pady=10)
+        next_button=ctk.CTkButton(self, text="Next", command=self.next_button_event)
+        next_button.pack(pady=10)
 
         # Create a "Back" button to return to the previous frame
         back_button=ctk.CTkButton(self, text="Back", fg_color="Red", text_color=("gray10", "gray90"),
                                   hover_color=("red3", "red4"), command=self.back_button_event)
-        back_button.pack(pady=20, side=tk.BOTTOM)
+        back_button.pack(pady=20, side=tk.TOP)
 
-    def register_button_event(self):
-        # Retrieve data from the registration form fields
-        name=self.name_entry.get()
-        email=self.email_entry.get()
-        age=self.age_entry.get()
-        address=self.address_entry.get()
-        contact_number=self.contact_entry.get()
-        subscription_type=self.subscription_var.get()
-
-        # Validate the data (you can add more validation if needed)
-
-        if not name or not email or not age or not address or not contact_number:
-            messagebox.showerror(title="Registration Failed", message="Please fill in all fields.")
-            return
-
-        try:
-            age=int(age)
-        except ValueError:
-            messagebox.showerror(title="Registration Failed", message="Age must be a number.")
-            return
-
-        # Insert data into the database
-        conn=sqlite3.connect("registration_db.db")
-        cursor=conn.cursor()
-        cursor.execute("""
-        INSERT INTO registrations (name, email, age, address, contact_number, subscription_type)
-        VALUES (?, ?, ?, ?, ?, ?)
-        """, (name, email, age, address, contact_number, subscription_type))
-        conn.commit()
-        conn.close()
-
-        # Show a success message
-        messagebox.showinfo(title="Registration Successful", message="Member registered successfully")
-
-        # Clear the form fields
-        self.name_entry.delete(0, tk.END)
-        self.email_entry.delete(0, tk.END)
-        self.age_entry.delete(0, tk.END)
-        self.address_entry.delete(0, tk.END)
-        self.contact_entry.delete(0, tk.END)
-        self.subscription_var.set("Weekly")  # Reset subscription type to the default
+    def next_button_event(self):
+        pass
 
     def back_button_event(self):
-        # Switch back to the previous frame (e.g., the gym membership frame)
         self.destroy()
+
+    def register_button_event(self):
+        # Implement the registration logic
+        # You can access the form data using self.first_name_entry.get(), self.middle_name_entry.get(), etc.
+        # Validate and save the data as needed
+        # After successful registration, you can display a message or redirect as required
+        pass
+
+
+def back_button_event(self):
+    # Switch back to the previous frame (e.g., the gym membership frame)
+    self.destroy()
 
 
 class ViewFrame(ctk.CTkFrame):
@@ -483,112 +460,14 @@ class ViewFrame(ctk.CTkFrame):
         label=ctk.CTkLabel(self, text="Members List", font=("Arial bold", 28))
         label.pack(pady=20, padx=10)
 
-        # Create a Treeview widget for displaying the table
-        self.tree=ttk.Treeview(self, columns=("Name", "Email", "Age", "Address", "Contact", "Subscription"),
-                               style="Treeview")
-        self.tree.heading("#1", text="Name")
-        self.tree.heading("#2", text="Email")
-        self.tree.heading("#3", text="Age")
-        self.tree.heading("#4", text="Address")
-        self.tree.heading("#5", text="Contact")
-        self.tree.heading("#6", text="Subscription")
-        self.tree.pack(padx=20, pady=10, fill="both", expand=True)
-
-        # Configure column widths
-        self.tree.column("#1", width=200, anchor="center")
-        self.tree.column("#2", width=250, anchor="center")
-        self.tree.column("#3", width=50, anchor="center")
-        self.tree.column("#4", width=200, anchor="center")
-        self.tree.column("#5", width=150, anchor="center")
-        self.tree.column("#6", width=150, anchor="center")
-
-        style=ttk.Style()
-        style.theme_use("default")
-
-        style.configure("Treeview",
-                        background="#2a2d2e",
-                        foreground="white",
-                        rowheight=50,
-                        fieldbackground="#343638",
-                        bordercolor="#343638",
-                        borderwidth=10)
-        style.map('Treeview', background=[('selected', '#22559b')])
-
-        style.configure("Treeview.Heading",
-                        background="#565b5e",
-                        foreground="white",
-                        relief="solid")
-        style.map("Treeview.Heading",
-                  background=[('active', '#3484F0')])
-
         # Add a "Back" button to return to the previous frame
         back_button=ctk.CTkButton(self, text="Back", fg_color="Red", text_color=("gray10", "gray90"),
                                   hover_color=("red3", "red4"), command=self.back_button_event)
         back_button.pack(pady=20, side=tk.BOTTOM)
 
-        # Load member data and populate the table
-        self.load_member_data()
-
     def back_button_event(self):
         # Switch back to the previous frame (e.g., the gym membership frame)
         self.destroy()
-
-    def load_member_data(self):
-        # Connect to the database and fetch member data
-        conn=sqlite3.connect("registration_db.db")
-        cursor=conn.cursor()
-        cursor.execute("SELECT name, email, age, address, contact_number, subscription_type FROM registrations")
-        member_data=cursor.fetchall()
-        conn.close()
-
-        # Clear existing data in the table
-        self.tree.delete(*self.tree.get_children())
-
-        # Populate the table with member data
-        for member in member_data:
-            self.tree.insert("", "end", values=(member[0], member[1], member[2], member[3], member[4], member[5]))
-
-
-# Function to create the "login users" table in the database if it doesn't exist
-def create_users_table():
-    conn=sqlite3.connect("user_db.db")
-    cursor=conn.cursor()
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY,
-        username TEXT NOT NULL,
-        password TEXT NOT NULL
-    )
-    """)
-    conn.commit()
-    conn.close()
-
-
-# Call create_users_table() to ensure the table exists
-create_users_table()
-
-
-# Function to create the "registration" table in the database if it doesn't exist
-def create_registration_table():
-    conn=sqlite3.connect("registration_db.db")
-    cursor=conn.cursor()
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS registrations (
-        id INTEGER PRIMARY KEY,
-        name TEXT NOT NULL,
-        email TEXT NOT NULL,
-        age INTEGER NOT NULL,
-        address TEXT NOT NULL,
-        contact_number TEXT NOT NULL,
-        subscription_type TEXT NOT NULL
-    )
-    """)
-    conn.commit()
-    conn.close()
-
-
-# Call create_registration_table() to ensure the table exists
-create_registration_table()
 
 
 # ------------- FRAME 3 -----------------------#
