@@ -201,6 +201,8 @@ class MainApp(ctk.CTk):
         create_gym_equipment_frame(self.third_frame)
         create_trainers_frame(self.fourth_frame)
         create_visitors_frame(self.fifth_frame)
+        create_products_frame(self.sixth_frame)
+        create_employee_frame(self.seventh_frame)
 
     def select_frame_by_name(self, name):
         # set button color for selected button
@@ -367,12 +369,33 @@ class RegistrationFrame(ctk.CTkFrame):
 
         # STEP 1: PERSONAL INFORMATION
         # Define and configure widgets within the frame
-        label=ctk.CTkLabel(self, text="Step 1: Personal Information", font=("Arial bold", 28))
-        label.pack(pady=20, padx=10)
+        label=ctk.CTkLabel(self, text="Member Registration", font=("Arial bold", 28))
+        label.pack(pady=10, padx=10)
 
-        # Add registration form fields here
-        fields_frame=ctk.CTkFrame(self)
-        fields_frame.pack(pady=10, padx=20)
+        # Create a CTkTabview widget
+        tab_view=ctk.CTkTabview(self)
+        tab_view.pack(fill='both', expand=True, padx=10, pady=10)
+
+        # Create tabs for different sections of the registration form
+        personal_info_tab=tab_view.add("Personal Info")
+        contact_info_tab=tab_view.add("Contact Info")
+        subscription_info_tab=tab_view.add("Subscription Info")
+
+        # Add registration form fields to the respective tabs
+        self.create_personal_info_form(personal_info_tab)
+        self.create_contact_info_form(contact_info_tab)
+        self.create_subscription_info_form(subscription_info_tab)
+
+        # Create a "Back" button to return to the previous frame
+        back_button=ctk.CTkButton(self, text="Back", fg_color="Red", text_color=("gray10", "gray90"),
+                                  hover_color=("red3", "red4"), command=self.back_button_event)
+        back_button.pack(pady=20, side=tk.TOP)
+
+    @staticmethod
+    def create_personal_info_form(tab):
+        # Create a frame to hold the form fields
+        fields_frame=ctk.CTkFrame(tab)
+        fields_frame.pack(padx=30, pady=10)
 
         # Configure the fixed width for the frame (adjust the value as needed)
         fixed_width=500  # Set the desired width
@@ -381,57 +404,104 @@ class RegistrationFrame(ctk.CTkFrame):
         fields_frame.configure(width=fixed_width)
 
         # Create a custom font for labels
-        label_font=ctk.CTkFont(family="Arial bold", size=16)  # Adjust the size as needed
+        label_font=ctk.CTkFont(family="Arial bold", size=16)  # Adjust the size as
 
         # Member ID
         member_id_label=ctk.CTkLabel(fields_frame, text="Member ID:", font=label_font)
         member_id_label.grid(row=1, column=0, padx=20, pady=5, sticky="w")
-        self.member_id_entry=ctk.CTkEntry(fields_frame, placeholder_text="DG-XXX")
-        self.member_id_entry.grid(row=1, column=1, padx=20, pady=5)
+        member_id_entry=ctk.CTkEntry(fields_frame, placeholder_text="DG-XXX")
+        member_id_entry.grid(row=1, column=1, padx=20, pady=5)
 
         # Name
         first_name_label=ctk.CTkLabel(fields_frame, text="First Name:", font=label_font)
         first_name_label.grid(row=2, column=0, padx=20, pady=5, sticky="w")
-        self.first_name_entry=ctk.CTkEntry(fields_frame, placeholder_text="Enter your first name")
-        self.first_name_entry.grid(row=2, column=1, padx=20, pady=5)
+        first_name_entry=ctk.CTkEntry(fields_frame, placeholder_text="Enter your first name")
+        first_name_entry.grid(row=2, column=1, padx=20, pady=5)
 
         middle_name_label=ctk.CTkLabel(fields_frame, text="Middle Name:", font=label_font)
         middle_name_label.grid(row=3, column=0, padx=20, pady=5, sticky="w")
-        self.middle_name_entry=ctk.CTkEntry(fields_frame, placeholder_text="Enter your middle name")
-        self.middle_name_entry.grid(row=3, column=1, padx=20, pady=5)
+        middle_name_entry=ctk.CTkEntry(fields_frame, placeholder_text="Enter your middle name")
+        middle_name_entry.grid(row=3, column=1, padx=20, pady=5)
 
         last_name_label=ctk.CTkLabel(fields_frame, text="Last Name:", font=label_font)
         last_name_label.grid(row=4, column=0, padx=20, pady=5, sticky="w")
-        self.last_name_entry=ctk.CTkEntry(fields_frame, placeholder_text="Enter your last name")
-        self.last_name_entry.grid(row=4, column=1, padx=20, pady=5)
+        last_name_entry=ctk.CTkEntry(fields_frame, placeholder_text="Enter your last name")
+        last_name_entry.grid(row=4, column=1, padx=20, pady=5)
 
         # Age
         age_label=ctk.CTkLabel(fields_frame, text="Age:", font=label_font)
         age_label.grid(row=5, column=0, padx=20, pady=5, sticky="w")
-        self.age_entry=ctk.CTkEntry(fields_frame, placeholder_text="Enter your age")
-        self.age_entry.grid(row=5, column=1, padx=20, pady=5)
+        age_entry=ctk.CTkEntry(fields_frame, placeholder_text="Enter your age")
+        age_entry.grid(row=5, column=1, padx=20, pady=5)
 
         # Sex
         sex_label=ctk.CTkLabel(fields_frame, text="Sex:", font=label_font)
         sex_label.grid(row=6, column=0, padx=20, pady=5, sticky="w")
-        self.sex_entry=ctk.CTkComboBox(fields_frame, values=["Male", "Female", "Other"])
-        self.sex_entry.grid(row=6, column=1, padx=20, pady=5)
+        sex_entry=ctk.CTkComboBox(fields_frame, values=["Male", "Female", "Other"])
+        sex_entry.grid(row=6, column=1, padx=20, pady=5)
 
         # Create a DateEntry widget for the birthdate
-        birth_date_label=ctk.CTkLabel(fields_frame, text="Birth Date:", font=label_font)
+        birth_date_label=ctk.CTkLabel(fields_frame, text="Date of Birth:", font=label_font)
         birth_date_label.grid(row=7, column=0, padx=20, pady=5, sticky="w")
         # Create a DateEntry widget for the birthdate
-        self.birth_date_entry=DateEntry(fields_frame, width=20, date_pattern="yyyy-mm-dd")
-        self.birth_date_entry.grid(row=7, column=1, padx=20, pady=15, sticky="w")
+        birth_date_entry=DateEntry(fields_frame, width=20, date_pattern="yyyy-mm-dd")
+        birth_date_entry.grid(row=7, column=1, padx=20, pady=15, sticky="w")
 
-        # Add a "Register" button to submit the registration form
-        next_button=ctk.CTkButton(self, text="Next", command=self.next_button_event)
-        next_button.pack(pady=10)
+        # Address
+        address_label=ctk.CTkLabel(fields_frame, text="Address:", font=label_font)
+        address_label.grid(row=8, column=0, padx=20, pady=5, sticky="w")
+        address_entry=ctk.CTkEntry(fields_frame, placeholder_text="Enter your address")
+        address_entry.grid(row=8, column=1, padx=20, pady=5)
 
-        # Create a "Back" button to return to the previous frame
-        back_button=ctk.CTkButton(self, text="Back", fg_color="Red", text_color=("gray10", "gray90"),
-                                  hover_color=("red3", "red4"), command=self.back_button_event)
-        back_button.pack(pady=20, side=tk.TOP)
+    @staticmethod
+    def create_contact_info_form(tab):
+
+        # Create a frame to hold the form fields
+        fields_frame=ctk.CTkFrame(tab)
+        fields_frame.pack(padx=30, pady=10)
+
+        # Configure the fixed width for the frame (adjust the value as needed)
+        fixed_width=500  # Set the desired width
+
+        # Set the fixed width for the frame
+        fields_frame.configure(width=fixed_width)
+
+        # Create a custom font for labels
+        label_font=ctk.CTkFont(family="Arial bold", size=16)  # Adjust the size as
+
+        # Assuming you have a list of nationalities
+        nationalities_list=["Select Nationality", "Filipino", "American", "Chinese", "Japanese", "Korean", "Indian",
+                            "British", "Australian", "Canadian", "French", "German", "Italian", "Spanish", "Other"]
+
+        # Nationality Label
+        nationality_label=ctk.CTkLabel(fields_frame, text="Nationality:", font=label_font)
+        nationality_label.pack(pady=5, padx=10, anchor="w")
+
+        # Create a CTkComboBox widget for nationalities
+        nationality_combo=ctk.CTkComboBox(fields_frame, values=nationalities_list)
+        nationality_combo.pack(pady=5, padx=10, fill="x")
+        nationality_combo.set("Select Nationality")  # Set a default selection
+
+        # Contact No
+        contact_no_label=ctk.CTkLabel(fields_frame, text="Contact No:", font=label_font)
+        contact_no_label.pack(pady=5, padx=10, anchor="w")
+        contact_no_entry=ctk.CTkEntry(fields_frame, placeholder_text="+63 9123456789")
+        contact_no_entry.pack(pady=5, padx=10, fill="x")
+
+        # Email Address
+        email_label=ctk.CTkLabel(fields_frame, text="Email Address:", font=label_font)
+        email_label.pack(pady=5, padx=10, anchor="w")
+        email_entry=ctk.CTkEntry(fields_frame, placeholder_text="example@gmail.com")
+        email_entry.pack(pady=5, padx=10, fill="x")
+
+        # Emergency Contact No
+        emergency_contact_label=ctk.CTkLabel(fields_frame, text="Emergency Contact No:", font=label_font)
+        emergency_contact_label.pack(pady=5, padx=10, anchor="w")
+        emergency_contact_entry=ctk.CTkEntry(fields_frame, placeholder_text="+63 9123456789")
+        emergency_contact_entry.pack(pady=5, padx=10, fill="x")
+
+    def create_subscription_info_form(self, tab):
+        pass
 
     def next_button_event(self):
         pass
@@ -499,8 +569,25 @@ def create_visitors_frame(frame_5):
 
     # Widgets
 
+# ------------------- FRAME 6 ------------------#
 
-# new frame named
+
+def create_products_frame(frame_6):
+    # Create and configure UI elements within frame
+    label=ctk.CTkLabel(frame_6, text="PRODUCTS", font=("Arial bold", 34))
+    label.pack(pady=10, padx=10)
+
+    # Widgets
+
+
+# ------------------- FRAME 7 ------------------#
+
+def create_employee_frame(frame_7):
+    # Create and configure UI elements within frame
+    label=ctk.CTkLabel(frame_7, text="EMPLOYEES", font=("Arial bold", 34))
+    label.pack(pady=10, padx=10)
+
+    # Widgets
 
 
 def center_window(window, width, height):
