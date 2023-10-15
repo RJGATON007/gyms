@@ -8,6 +8,7 @@ import os
 import sqlite3
 import random
 import string
+from tkintermapview import TkinterMapView
 
 # import tkintermapview
 
@@ -150,7 +151,7 @@ class MainApp(ctk.CTk):
 
         self.frame_8_button=ctk.CTkButton(
             self.navigation_frame, corner_radius=0, height=40, border_spacing=10,
-            text="Account Management",
+            text="Account",
             fg_color="transparent", text_color=("gray10", "gray90"),
             hover_color=("gray70", "gray30"),
             image=self.add_user_image, anchor="w", command=self.frame_8_button_event)
@@ -647,25 +648,90 @@ def create_employee_frame(frame_6):
 
 
 def create_location_frame(frame_7):
-    # Create and configure UI elements within frame
-    label=ctk.CTkLabel(frame_7, text="LOCATION", font=("Arial bold", 34))
-    label.pack(pady=10, padx=10)
+    location_frame=LocationFrame(frame_7)
+    location_frame.pack(fill='both', expand=True, padx=10, pady=10)
 
-    frame_right=ctk.CTkFrame(master=frame_7, corner_radius=0)
-    frame_right.grid(row=0, column=1, rowspan=1, pady=0, padx=0, sticky="nsew")
+
+class LocationFrame(ctk.CTkFrame):
+    def __init__(self, master, **kwargs):
+        super().__init__(master, **kwargs)
+
+        # Create a frame to hold the map
+        map_frame = ctk.CTkFrame(self, corner_radius=0, fg_color="transparent")
+        map_frame.pack(fill='both', expand=True, padx=10, pady=10)
+
+        # Create a frame to hold the search bar
+        search_frame = ctk.CTkFrame(map_frame, corner_radius=0, fg_color="transparent")
+        search_frame.pack(fill='x', padx=10, pady=10)
+
+        search_frame.grid_rowconfigure(0, weight=1)
+        search_frame.grid_columnconfigure(0, weight=1)
+        search_frame.grid_columnconfigure(1, weight=0)
+
+        search_entry = ctk.CTkEntry(search_frame, placeholder_text="Type address")
+        search_entry.grid(row=0, column=0, sticky="we", padx=(12, 0), pady=12)
+        search_entry.bind("<Return>", self.search_event)  # Bind the Enter key to trigger the search_event
+
+        search_button = ctk.CTkButton(search_frame, text="Search", width=90, command=self.search_event)
+        search_button.grid(row=0, column=1, sticky="w", padx=(12, 0), pady=12)
+        self.search_entry = search_entry  # Store the search_entry widget as an instance variable
+
+        # Create a frame to hold the buttons
+        button_frame = ctk.CTkFrame(map_frame, corner_radius=0, fg_color="transparent")
+        button_frame.pack(fill='x', padx=10, pady=10)
+
+        set_marker_button = ctk.CTkButton(button_frame, text="Set Marker", command=self.set_marker_event)
+        set_marker_button.grid(row=0, column=0, padx=(10, 10), pady=(5, 5))
+
+        clear_marker_button = ctk.CTkButton(button_frame, text="Clear Markers", command=self.clear_marker_event)
+        clear_marker_button.grid(row=0, column=1, padx=(10, 100), pady=(5, 5))
+
+        map_option_menu = ctk.CTkOptionMenu(button_frame, values=["OpenStreetMap", "Google normal", "Google satellite"], command=self.change_map)
+        map_option_menu.grid(row=0, column=3, padx=(450, 100), pady=(5, 5))
+
+        # Create a map widget inside the existing map_frame
+        self.map_widget = TkinterMapView(map_frame, corner_radius=0)
+        self.map_widget.pack(fill='both', expand=True)  # Use pack manager here
+
+        # Set default values
+        self.map_widget.set_address("Matnog, Sorsogon, Philippines")
+        self.map_widget.set_zoom(30)
+
+        # Initialize the marker_list as an instance variable
+        self.marker_list = []
+
+    def search_event(self):
+        address = self.search_entry.get()
+        self.map_widget.set_address(address)
+
+    def set_marker_event(self):
+        current_position = self.map_widget.get_position()
+        self.marker_list.append(self.map_widget.set_marker(current_position[0], current_position[1]))
+
+    def clear_marker_event(self):
+        for marker in self.marker_list:
+            marker.delete()
+
+    def change_map(self, new_map: str):
+        if new_map == "OpenStreetMap":
+            self.map_widget.set_tile_server("https://a.tile.openstreetmap.org/{z}/{x}/{y}.png")
+        elif new_map == "Google normal":
+            self.map_widget.set_tile_server("https://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}&s=Ga", max_zoom=22)
+        elif new_map == "Google satellite":
+            self.map_widget.set_tile_server("https://mt0.google.com/vt/lyrs=s&hl=en&x={x}&y={y}&z={z}&s=Ga", max_zoom=22)
 
 
 # ------------------- FRAME 8 ------------------#
 
 def create_account_management_frame(frame_8):
-    label=ctk.CTkLabel(frame_8, text="ACCOUNT MANAGEMENT", font=("Arial bold", 34))
+    label=ctk.CTkLabel(frame_8, text="MANAGE ACCOUNT", font=("Arial bold", 34))
     label.pack(pady=30, padx=10)
 
     fields_frame=ctk.CTkFrame(frame_8)
     fields_frame.pack(padx=30, pady=30)
 
-    label=ctk.CTkLabel(fields_frame, text="Create New Account?", font=("Arial bold", 28),
-                       text_color="medium spring green", fg_color="transparent")
+    label=ctk.CTkLabel(fields_frame, text="Create Account", font=("Arial bold", 28),
+                       fg_color="transparent")
     label.pack(pady=10, padx=10)
 
     label_font=ctk.CTkFont(family="Arial bold", size=16)  # Adjust the size as needed
