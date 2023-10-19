@@ -80,3 +80,141 @@
 #
 #     def back_button_event(self):
 #         self.destroy()
+
+def display_table(self) -> None:
+    """Display the table of medicines."""
+
+    check_box_var=ctk.StringVar()
+
+    for pos, text in enumerate(self.col_headers):
+        col_cell=ctk.CTkLabel(
+            self.scrollable_frame,
+            text=text.capitalize(),
+            font=self.text_font,
+            width=self.column_widths[pos],
+            height=50,
+        )
+        col_cell.grid(
+            row=1, column=(pos + 1), pady=(10, 20), ipady=1, padx=5
+        )
+
+        col=ctk.CTkEntry(
+            self.scrollable_frame,
+            width=self.column_widths[pos],
+            height=50,
+            font=self.text_font,
+        )
+
+        col.insert(ctk.END, text.capitalize())
+        col.configure(state=ctk.DISABLED)
+
+        col.grid(row=1, column=(pos + 1), pady=(10, 20), ipady=1, padx=5)
+
+    order_entry=ctk.CTkEntry(
+        self.scrollable_frame, height=50, font=self.text_font, width=80
+    )
+    order_entry.insert(ctk.END, "Order")
+    order_entry.grid(row=1, column=6, pady=(10, 20), ipady=1, padx=5)
+
+    row=2
+    for i in self.dataset:
+
+        for j in range(0, len(i)):
+            entry=ctk.CTkEntry(
+                self.scrollable_frame,
+                width=self.column_widths[j],
+                font=self.small_text_font,
+            )
+            entry.grid(row=row, column=(j + 1), padx=5)
+
+            try:
+                entry.insert(ctk.END, i[j].capitalize())
+            except AttributeError:
+                entry.insert(ctk.END, i[j])
+
+            entry.configure(state=ctk.DISABLED)
+
+        order_checkbox=ctk.CTkCheckBox(
+            self.scrollable_frame,
+            text="",
+            variable=check_box_var,
+            onvalue=i[0],
+            offvalue=i[0],
+            command=lambda: self.order_check_button(check_box_var.get()),
+            width=70,
+        )
+
+        if i[-1].lower() == "no":
+            ctk.CTkLabel(
+                self.scrollable_frame,
+                text="  -",
+                font=self.small_text_font,
+                anchor=ctk.W,
+                width=70,
+            ).grid(row=row, column=6, padx=5)
+        else:
+            order_checkbox.grid(row=row, column=6, padx=5)
+
+        row+=1
+
+
+def display_mrec(self) -> None:
+    """Display the medicine records of the user."""
+
+    mrec=self.db_object.get_medicine_record(self.user_id)
+
+    if mrec == []:
+        ctk.CTkLabel(
+            self.mrec_frame,
+            text="No records found",
+            font=self.text_font,
+        ).grid(row=1, column=0, padx=20, pady=20, sticky=ctk.NSEW)
+    else:
+        mrec_col_headers=[
+            "Mid",
+            "Name",
+            "Treatment",
+            "Price",
+            "Time of Purchase",
+        ]
+
+        mrec_col_widths=[80, 150, 450, 80, 220]
+
+        for i in range(0, len(mrec_col_headers)):
+            col_cell=ctk.CTkEntry(
+                self.mrec_frame,
+                width=mrec_col_widths[i],
+                font=self.text_font,
+            )
+            col_cell.insert(ctk.END, mrec_col_headers[i].capitalize())
+            col_cell.configure(state=ctk.DISABLED)
+            col_cell.grid(row=1, column=i, pady=(10, 20), ipady=1, padx=5)
+
+        for i in range(0, len(mrec)):
+            m_row=self.db_object.get_medicine_details(mrec[i][1])
+            for j in range(0, len(m_row) - 1):
+                entry=ctk.CTkEntry(
+                    self.mrec_frame,
+                    width=self.column_widths[j],
+                    font=self.small_text_font,
+                )
+                try:
+                    entry.insert(ctk.END, m_row[j].capitalize())
+                except AttributeError:
+                    entry.insert(ctk.END, m_row[j])
+                entry.configure(state=ctk.DISABLED)
+                entry.grid(row=(i + 2), column=j, padx=5)
+
+        for i in range(len(mrec)):
+            e=ctk.CTkEntry(
+                self.mrec_frame,
+                width=mrec_col_widths[4],
+                font=self.small_text_font,
+            )
+            e.insert(ctk.END, mrec[i][2])
+            e.configure(state=ctk.DISABLED)
+            e.grid(row=(i + 2), column=4, padx=5)
+
+    self.mrec_frame.pack(
+        fill=ctk.BOTH, expand=True, padx=(0, 20), pady=(0, 20)
+    )
