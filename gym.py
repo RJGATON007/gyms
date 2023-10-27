@@ -11,8 +11,6 @@ import string
 import qrcode
 from tkintermapview import TkinterMapView
 
-# import tkintermapview
-
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("green")
 
@@ -426,8 +424,7 @@ class RegistrationFrame(ctk.CTkFrame):
         label_font=ctk.CTkFont(family="Arial bold", size=16)  # Adjust the size as
 
         # Assuming you have a list of nationalities
-        nationalities_list=["Select Nationality", "Filipino", "American", "Chinese", "Japanese", "Korean", "Indian",
-                            "British", "Australian", "Canadian", "French", "German", "Italian", "Spanish", "Other"]
+        nationalities_list=["Select Nationality", "Filipino", "American", "Chinese", "Japanese", "Korean", "Other"]
 
         # Nationality Label
         nationality_label=ctk.CTkLabel(contact_frame, text="Nationality:", font=label_font)
@@ -469,20 +466,18 @@ class RegistrationFrame(ctk.CTkFrame):
         subscription_id_entry=ctk.CTkEntry(subscription_frame, placeholder_text="DG-XXX")
         subscription_id_entry.grid(row=1, column=1, padx=20, pady=15)
 
-        # Selected subscription plan (weekly, monthly, yearly)
+        # Create the widgets for subscription plan, start date, and end date
         subscription_plan_label=ctk.CTkLabel(subscription_frame, text="Subscription Plan:", font=label_font)
         subscription_plan_label.grid(row=2, column=0, padx=20, pady=10, sticky="w")
         subscription_plan_options=["Weekly", "Monthly", "Yearly"]
         subscription_plan_entry=ctk.CTkComboBox(subscription_frame, values=subscription_plan_options)
         subscription_plan_entry.grid(row=2, column=1, padx=20, pady=15)
 
-        # Start timestamp (when the subscription begins)
         start_timestamp_label=ctk.CTkLabel(subscription_frame, text="Start:", font=label_font)
         start_timestamp_label.grid(row=3, column=0, padx=20, pady=10, sticky="w")
         start_timestamp_entry=DateEntry(subscription_frame, width=20, date_pattern="yyyy-mm-dd")
         start_timestamp_entry.grid(row=3, column=1, padx=20, pady=15, sticky="w")
 
-        # End timestamp (when the subscription expires)
         end_timestamp_label=ctk.CTkLabel(subscription_frame, text="End:", font=label_font)
         end_timestamp_label.grid(row=4, column=0, padx=20, pady=10, sticky="w")
         end_timestamp_entry=DateEntry(subscription_frame, width=20, date_pattern="yyyy-mm-dd")
@@ -506,8 +501,125 @@ class RegistrationFrame(ctk.CTkFrame):
                                   hover_color=("red3", "red4"), command=self.back_button_event)
         back_button.pack(pady=20, side=tk.TOP)
 
+        # Store the Entry fields and other widgets as instance attributes
+        self.first_name_entry=first_name_entry
+        self.middle_name_entry=middle_name_entry
+        self.last_name_entry=last_name_entry
+        self.age_entry=age_entry
+        self.sex_entry=sex_entry
+        self.birth_date_entry=birth_date_entry
+        self.address_entry=address_entry
+        self.nationality_combo=nationality_combo
+        self.contact_no_entry=contact_no_entry
+        self.email_entry=email_entry
+        self.emergency_contact_entry=emergency_contact_entry
+        self.subscription_id_entry=subscription_id_entry
+        self.subscription_plan_entry=subscription_plan_entry
+        self.start_timestamp_entry=start_timestamp_entry
+        self.end_timestamp_entry=end_timestamp_entry
+        self.user_reference_entry=user_reference_entry
+
+        # Create a connection to the database (or create it if it doesn't exist)
+        conn=sqlite3.connect('registration_form.db')
+
+        # Create a cursor object to interact with the database
+        cursor=conn.cursor()
+
+        # Create a table to store registration information
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS registration (
+                id INTEGER PRIMARY KEY,
+                first_name TEXT,
+                middle_name TEXT,
+                last_name TEXT,
+                age INTEGER,
+                sex TEXT,
+                birth_date DATE,
+                address TEXT,
+                nationality TEXT,
+                contact_no TEXT,
+                email TEXT,
+                emergency_contact_no TEXT,
+                subscription_id TEXT,
+                subscription_plan TEXT,
+                start_date DATE,
+                end_date DATE,
+                user_reference TEXT
+            )
+        ''')
+
+        # Commit the changes and close the database connection
+        conn.commit()
+        conn.close()
+
     def register_subscription(self):
-        pass
+        # Gather data from the form fields
+        first_name=self.first_name_entry.get()
+        middle_name=self.middle_name_entry.get()
+        last_name=self.last_name_entry.get()
+        age=self.age_entry.get()
+        sex=self.sex_entry.get()
+        birth_date=self.birth_date_entry.get()
+        address=self.address_entry.get()
+        nationality=self.nationality_combo.get()
+        contact_no=self.contact_no_entry.get()
+        email=self.email_entry.get()
+        emergency_contact_no=self.emergency_contact_entry.get()
+        subscription_id=self.subscription_id_entry.get()
+        subscription_plan=self.subscription_plan_entry.get()
+        start_date=self.start_timestamp_entry.get()
+        end_date=self.end_timestamp_entry.get()
+        user_reference=self.user_reference_entry.get()
+
+        # Validate the data (you can add your validation logic here)
+
+        # Validate the data
+        if not (first_name and last_name and age and sex and birth_date and address and
+                nationality and contact_no and email and emergency_contact_no and
+                subscription_id and subscription_plan and start_date and end_date and user_reference):
+            messagebox.showerror("Validation Error", "All fields are required.")
+            return
+
+        try:
+            age=int(age)
+        except ValueError:
+            messagebox.showerror("Validation Error", "Age must be a valid integer.")
+            return
+
+        # Create a connection to the database
+        conn=sqlite3.connect('registration_form.db')
+        cursor=conn.cursor()
+
+        # Insert the data into the database
+        cursor.execute('''
+                   INSERT INTO registration (first_name, middle_name, last_name, age, sex, birth_date, address,
+                                            nationality, contact_no, email, emergency_contact_no, subscription_id,
+                                            subscription_plan, start_date, end_date, user_reference)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+               ''', (first_name, middle_name, last_name, age, sex, birth_date, address, nationality, contact_no,
+                     email, emergency_contact_no, subscription_id, subscription_plan, start_date, end_date,
+                     user_reference))
+
+        # Commit the changes and close the database connection
+        conn.commit()
+        conn.close()
+
+        messagebox.showinfo("Registration Successful", "User registered successfully!")
+
+        # Clear all form fields
+        for entry in [self.first_name_entry, self.middle_name_entry, self.last_name_entry, self.age_entry,
+                      self.address_entry, self.contact_no_entry, self.email_entry,
+                      self.emergency_contact_entry, self.subscription_id_entry,
+                      self.user_reference_entry]:
+            entry.delete(0, tk.END)
+
+        # Set ComboBox and DateEntry widgets to default or empty values
+        self.sex_entry.set("Male")
+        self.birth_date_entry.set_date("")
+        self.nationality_combo.set("Select Nationality")
+        self.subscription_plan_entry.set("Weekly")
+        self.start_timestamp_entry.set_date("")
+        self.end_timestamp_entry.set_date("")
 
     def back_button_event(self):
         self.destroy()
@@ -526,28 +638,315 @@ class ViewFrame(ctk.CTkFrame):
         label=ctk.CTkLabel(self, text="Members List", font=("Arial bold", 28))
         label.pack(pady=20, padx=10)
 
-        # Create a scrollable frame that holds the list of members
-        scrollable_frame=ctk.CTkScrollableFrame(self)
-        scrollable_frame.pack(fill='both', expand=True, padx=10, pady=10)
+        # Create a connection to the database
+        conn=sqlite3.connect('registration_form.db')
+        cursor=conn.cursor()
 
-        # Add a "Back" button to return to the previous frame
-        back_button=ctk.CTkButton(self, text="Back", fg_color="Red", text_color=("gray10", "gray90"),
-                                  hover_color=("red3", "red4"), command=self.back_button_event)
-        back_button.pack(pady=20, side=tk.BOTTOM)
+        # Get only the specific columns from the database
+        cursor.execute(
+            "SELECT first_name, middle_name, last_name, subscription_id, subscription_plan, start_date, end_date FROM registration")
+        records=cursor.fetchall()
+
+        # Create a frame that holds the table
+        table_frame=ctk.CTkFrame(self)
+        table_frame.pack(pady=10, padx=10)
+
+        style=ttk.Style()
+
+        style.theme_use("default")
+
+        style.configure("Treeview",
+                        background="#2a2d2e",
+                        foreground="white",
+                        rowheight=50,
+                        fieldbackground="#343638",
+                        bordercolor="#343638",
+                        borderwidth=0,
+                        anchor="center")
+        style.map('Treeview', background=[('selected', '#22559b')])
+
+        style.configure("Treeview.Heading",
+                        background="#565b5e",
+                        foreground="white",
+                        relief="flat")
+        style.map("Treeview.Heading",
+                  background=[('active', '#3484F0')])
+
+        # Create a table to display the records
+        self.table=ttk.Treeview(table_frame, columns=(
+            "First Name", "Middle Name", "Last Name", "Subscription ID", "Subscription Plan",
+            "Start Date", "End Date"), show="headings", height=10)
+        self.table.grid(row=0, column=0, padx=10, pady=10)
+
+        # Configure the columns
+        self.table.heading("First Name", text="First Name")
+        self.table.heading("Middle Name", text="Middle Name")
+        self.table.heading("Last Name", text="Last Name")
+        self.table.heading("Subscription ID", text="Subscription ID")
+        self.table.heading("Subscription Plan", text="Subscription Plan")
+        self.table.heading("Start Date", text="Start Date")
+        self.table.heading("End Date", text="End Date")
+
+        # Define the column headings and their alignment
+        columns=[
+            ("First Name", "center"),
+            ("Middle Name", "center"),
+            ("Last Name", "center"),
+            ("Subscription ID", "center"),
+            ("Subscription Plan", "center"),
+            ("Start Date", "center"),
+            ("End Date", "center")
+        ]
+
+        for col, align in columns:
+            self.table.heading(col, text=col, anchor=align)
+            self.table.column(col, anchor=align)
+
+        self.table.pack(side=tk.LEFT)
+
+        # Add the records to the table
+        for record in records:
+            self.table.insert("", tk.END, values=record)
+
+        button_frame=ctk.CTkFrame(self)
+        button_frame.pack(padx=10)
+
+        # Create a "Return" button in the first column
+        return_button=ctk.CTkButton(button_frame, text="Return", command=self.back_button_event)
+        return_button.grid(row=0, column=0, padx=10, pady=40)
+
+        # Create an "Edit" button in the second column
+        edit_button=ctk.CTkButton(button_frame, text="Edit", command=self.edit_record)
+        edit_button.grid(row=0, column=1, padx=10, pady=20)
+
+        # Create a "Delete" button in the third column
+        delete_button=ctk.CTkButton(button_frame, text="Delete", command=self.delete_record)
+        delete_button.grid(row=0, column=2, padx=10, pady=20)
 
     def back_button_event(self):
         # Switch back to the previous frame (e.g., the gym membership frame)
         self.destroy()
+
+    def edit_record(self):
+        # Get the selected item (record) from the Treeview
+        selected_item=self.table.selection()
+        if selected_item:
+            # Retrieve the data of the selected record
+            record_data=self.table.item(selected_item)["values"]
+
+            # Open a registration form with the selected record's data
+            edit_form=EditForm(self, record_data)
+
+    def delete_record(self):
+        # Get the selected item (record) from the Treeview
+        selected_item=self.table.selection()
+        if selected_item:
+            # Prompt the user for confirmation
+            confirm=messagebox.askyesno("Delete Record", "Are you sure you want to delete this record?")
+            if confirm:
+                # Retrieve the data of the selected record from the Treeview
+                record_data=self.table.item(selected_item)['values']
+
+                # Delete the selected record from the database based on the 'id' column
+                if record_data:  # Check if data is available
+                    unique_record_identifier=record_data[
+                        0]  # Assuming the 'id' column is the first in the 'values' list
+                    conn=sqlite3.connect('registration_form.db')
+                    cursor=conn.cursor()
+                    try:
+                        cursor.execute("DELETE FROM registration WHERE id=?", (unique_record_identifier,))
+                        conn.commit()  # Commit the changes
+                        print("Record deleted successfully.")  # Add this for debugging
+                    except sqlite3.Error as e:
+                        messagebox.showerror("Error", f"Error deleting record: {e}")
+                        print(f"Error deleting record: {e}")  # Add this for debugging
+                    finally:
+                        conn.close()
+
+                    # Remove the selected item from the Treeview
+                    self.table.delete(selected_item)
+                else:
+                    print("No record data found.")  # Add this for debugging
+            else:
+                print("Deletion canceled by user.")  # Add this for debugging
+        else:
+            print("No record selected for deletion.")  # Add this for debugging
+
+
+class EditForm(ctk.CTkToplevel):
+    def __init__(self, parent, record_data):
+        super().__init__(parent)
+
+        self.title("Edit Information")
+        self.geometry("800x600")
+
+        # Define and configure widgets within the frame
+        label=ctk.CTkLabel(self, text="EDIT INFORMATION", font=("Arial bold", 26))
+        label.pack(pady=20, padx=10)
+
+        # create frame to hold all the widget frames
+        widget_frames=ctk.CTkFrame(self)
+        widget_frames.pack(pady=10, padx=10)
+
+        # Create a frame to hold the form fields
+        personal_info_frame=ctk.CTkFrame(widget_frames)
+        personal_info_frame.grid(row=0, column=0, padx=10, pady=10)
+
+        # Create a custom font for labels
+        label_font=ctk.CTkFont(family="Arial bold", size=16)  # Adjust the size as
+
+        # Name
+        first_name_label=ctk.CTkLabel(personal_info_frame, text="First Name:", font=label_font)
+        first_name_label.grid(row=2, column=0, padx=20, pady=5, sticky="w")
+        first_name_entry=ctk.CTkEntry(personal_info_frame, placeholder_text="Enter your first name")
+        first_name_entry.grid(row=2, column=1, padx=20, pady=5)
+        first_name_entry.insert(0, record_data[0])
+
+        middle_name_label=ctk.CTkLabel(personal_info_frame, text="Middle Name:", font=label_font)
+        middle_name_label.grid(row=3, column=0, padx=20, pady=5, sticky="w")
+        middle_name_entry=ctk.CTkEntry(personal_info_frame, placeholder_text="Enter your middle name")
+        middle_name_entry.grid(row=3, column=1, padx=20, pady=5)
+        middle_name_entry.insert(0, record_data[1])
+
+        last_name_label=ctk.CTkLabel(personal_info_frame, text="Last Name:", font=label_font)
+        last_name_label.grid(row=4, column=0, padx=20, pady=5, sticky="w")
+        last_name_entry=ctk.CTkEntry(personal_info_frame, placeholder_text="Enter your last name")
+        last_name_entry.grid(row=4, column=1, padx=20, pady=5)
+        last_name_entry.insert(0, record_data[2])
+
+        # Age
+        age_label=ctk.CTkLabel(personal_info_frame, text="Age:", font=label_font)
+        age_label.grid(row=5, column=0, padx=20, pady=5, sticky="w")
+        age_entry=ctk.CTkEntry(personal_info_frame, placeholder_text="Enter your age")
+        age_entry.grid(row=5, column=1, padx=20, pady=5)
+        age_entry.insert(0, record_data[3])
+
+        # Sex
+        sex_label=ctk.CTkLabel(personal_info_frame, text="Sex:", font=label_font)
+        sex_label.grid(row=6, column=0, padx=20, pady=5, sticky="w")
+        sex_entry=ctk.CTkComboBox(personal_info_frame, values=["Male", "Female", "Other"])
+        sex_entry.grid(row=6, column=1, padx=20, pady=5)
+        sex_entry.set(record_data[4])
+
+        # Create a DateEntry widget for the birthdate
+        birth_date_label=ctk.CTkLabel(personal_info_frame, text="Date of Birth:", font=label_font)
+        birth_date_label.grid(row=7, column=0, padx=20, pady=5, sticky="w")
+        birth_date_entry=DateEntry(personal_info_frame, width=20, date_pattern="yyyy-mm-dd")
+        birth_date_entry.grid(row=7, column=1, padx=20, pady=15, sticky="w")
+        birth_date_entry.set_date(record_data[5])
+
+        # Address
+        address_label=ctk.CTkLabel(personal_info_frame, text="Address:", font=label_font)
+        address_label.grid(row=8, column=0, padx=20, pady=5, sticky="w")
+        address_entry=ctk.CTkEntry(personal_info_frame, placeholder_text="Enter your address")
+        address_entry.grid(row=8, column=1, padx=20, pady=5)
+        address_entry.insert(0, record_data[6])
+
+        contact_frame=ctk.CTkFrame(widget_frames)
+        contact_frame.grid(row=0, column=1, padx=10, pady=10)
+
+        # Create a custom font for labels
+        label_font=ctk.CTkFont(family="Arial bold", size=16)  # Adjust the size as
+
+        # Assuming you have a list of nationalities
+        nationalities_list=["Select Nationality", "Filipino", "American", "Chinese", "Japanese", "Korean", "Other"]
+
+        # Nationality Label
+        nationality_label=ctk.CTkLabel(contact_frame, text="Nationality:", font=label_font)
+        nationality_label.pack(pady=5, padx=10, anchor="w")
+
+        # Create a CTkComboBox widget for nationalities
+        nationality_combo=ctk.CTkComboBox(contact_frame, values=nationalities_list)
+        nationality_combo.pack(pady=5, padx=10, fill="x")
+        nationality_combo.set("Select Nationality")  # Set a default selection
+        nationality_combo.set(record_data[7])
+
+        # Contact No
+        contact_no_label=ctk.CTkLabel(contact_frame, text="Contact No:", font=label_font)
+        contact_no_label.pack(pady=3, padx=10, anchor="w")
+        contact_no_entry=ctk.CTkEntry(contact_frame, placeholder_text="+63 9123456789")
+        contact_no_entry.pack(pady=0, padx=10, fill="x")
+        contact_no_entry.insert(0, record_data[8])
+
+        # Email Address
+        email_label=ctk.CTkLabel(contact_frame, text="Email Address:", font=label_font)
+        email_label.pack(pady=0, padx=10, anchor="w")
+        email_entry=ctk.CTkEntry(contact_frame, placeholder_text="example@gmail.com")
+        email_entry.pack(pady=0, padx=10, fill="x")
+        email_entry.insert(0, record_data[9])
+
+        # Emergency Contact No
+        emergency_contact_label=ctk.CTkLabel(contact_frame, text="Emergency Contact No:", font=label_font)
+        emergency_contact_label.pack(pady=0, padx=10, anchor="w")
+        emergency_contact_entry=ctk.CTkEntry(contact_frame, placeholder_text="+63 9123456789")
+        emergency_contact_entry.pack(pady=10, padx=10, fill="x")
+        emergency_contact_entry.insert(0, record_data[10])
+
+        # Create a frame to hold the form fields
+        subscription_frame=ctk.CTkFrame(widget_frames)
+        subscription_frame.grid(row=0, column=2, padx=10, pady=10)
+
+        # Create a custom font for labels
+        label_font=ctk.CTkFont(family="Arial bold", size=16)  # Adjust the size as needed
+
+        # Subscription ID
+        subscription_id_label=ctk.CTkLabel(subscription_frame, text="Subscription ID:", font=label_font)
+        subscription_id_label.grid(row=1, column=0, padx=20, pady=15, sticky="w")
+        subscription_id_entry=ctk.CTkEntry(subscription_frame, placeholder_text="DG-XXX")
+        subscription_id_entry.grid(row=1, column=1, padx=20, pady=15)
+        subscription_id_entry.insert(0, record_data[11])
+
+        # Create the widgets for subscription plan, start date, and end date
+        subscription_plan_label=ctk.CTkLabel(subscription_frame, text="Subscription Plan:", font=label_font)
+        subscription_plan_label.grid(row=2, column=0, padx=20, pady=10, sticky="w")
+        subscription_plan_options=["Weekly", "Monthly", "Yearly"]
+        subscription_plan_entry=ctk.CTkComboBox(subscription_frame, values=subscription_plan_options)
+        subscription_plan_entry.grid(row=2, column=1, padx=20, pady=15)
+        subscription_plan_entry.set(record_data[12])
+
+        start_timestamp_label=ctk.CTkLabel(subscription_frame, text="Start:", font=label_font)
+        start_timestamp_label.grid(row=3, column=0, padx=20, pady=10, sticky="w")
+        start_timestamp_entry=DateEntry(subscription_frame, width=20, date_pattern="yyyy-mm-dd")
+        start_timestamp_entry.grid(row=3, column=1, padx=20, pady=15, sticky="w")
+        start_timestamp_entry.set_date(record_data[13])
+
+        end_timestamp_label=ctk.CTkLabel(subscription_frame, text="End:", font=label_font)
+        end_timestamp_label.grid(row=4, column=0, padx=20, pady=10, sticky="w")
+        end_timestamp_entry=DateEntry(subscription_frame, width=20, date_pattern="yyyy-mm-dd")
+        end_timestamp_entry.grid(row=4, column=1, padx=20, pady=15, sticky="w")
+        end_timestamp_entry.set_date(record_data[14])
+
+        # Reference to the user who owns the subscription
+        user_reference_label=ctk.CTkLabel(subscription_frame, text="User Reference:", font=label_font)
+        user_reference_label.grid(row=5, column=0, padx=20, pady=15, sticky="w")
+        user_reference_entry=ctk.CTkEntry(subscription_frame, placeholder_text="User ID or Name")
+        user_reference_entry.grid(row=5, column=1, padx=20, pady=15)
+        user_reference_entry.insert(0, record_data[15])
+
+        # Create an "Edit" button to save changes to the database
+        save_button=ctk.CTkButton(self, text="Save", command=self.save_changes)
+        save_button.pack(pady=10)
+
+    def save_changes(self):
+        pass
 
 
 # ------------- FRAME 3 -----------------------#
 
 def create_take_attendance_frame(frame_3):
     # Create and configure UI elements within frame
-    label=ctk.CTkLabel(frame_3, text="Membership Attendance", font=("Arial bold", 34))
+    label=ctk.CTkLabel(frame_3, text="", font=("Arial bold", 34))
     label.pack(pady=10, padx=10)
 
-    # Widgets
+    attendance_frame=ctk.CTkFrame(frame_3, corner_radius=0, fg_color="transparent")
+    attendance_frame.pack(pady=10, padx=10)
+
+    qr_frame=ctk.CTkFrame(attendance_frame, corner_radius=0, fg_color="transparent")
+    qr_frame.grid(row=0, column=0, padx=10, pady=10)
+
+    # create a frame to hold qr code scanner
+    qr_code_frame=ctk.CTkFrame(qr_frame, corner_radius=0, fg_color="transparent")
+    qr_code_frame.pack(pady=10, padx=10)
 
 
 def create_gym_equipment_frame(frame_4):
@@ -763,7 +1162,8 @@ class ManageEmployeeFrame(ctk.CTkFrame):
             contact_no_entry.delete(0, 'end')
 
         # Button to register details and save QR code
-        register_button = ctk.CTkButton(fields_frame, text="Register Employee", command=lambda: register_and_save_qr_code(self))
+        register_button=ctk.CTkButton(fields_frame, text="Register Employee",
+                                      command=lambda: register_and_save_qr_code(self))
         register_button.grid(row=11, column=0, padx=10, pady=5)
 
         # Button to clear all entries
@@ -819,7 +1219,7 @@ class ManageEmployeeFrame(ctk.CTkFrame):
         self.tree.pack(side=tk.LEFT)
 
         # Define the column headings and their alignment
-        columns = [
+        columns=[
             ("First Name", "center"),
             ("Middle Name", "center"),
             ("Last Name", "center"),
