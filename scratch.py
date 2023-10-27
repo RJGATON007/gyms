@@ -218,3 +218,177 @@ def display_mrec(self) -> None:
     self.mrec_frame.pack(
         fill=ctk.BOTH, expand=True, padx=(0, 20), pady=(0, 20)
     )
+
+
+
+ # Get data from the form fields using self.
+        first_name=self.first_name_entry.get()
+        middle_name=self.middle_name_entry.get()
+        last_name=self.last_name_entry.get()
+        age=self.age_entry.get()
+        sex=self.sex_entry.get()
+        birth_date=self.birth_date_entry.get()
+        address=self.address_entry.get()
+        nationality=self.nationality_combo.get()
+        contact_no=self.contact_no_entry.get()
+        email=self.email_entry.get()
+        emergency_contact=self.emergency_contact_entry.get()
+        subscription_id=self.subscription_id_entry.get()
+        subscription_plan=self.subscription_plan_entry.get()
+        start_timestamp=self.start_timestamp_entry.get()
+        end_timestamp=self.end_timestamp_entry.get()
+        user_reference=self.user_reference_entry.get()
+
+        # Create or connect to the SQLite database
+        conn=sqlite3.connect('registration.db')
+        cursor=conn.cursor()
+
+        # Check if the "registrations" table exists, and create it if it doesn't
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS registrations (
+                id INTEGER PRIMARY KEY,
+                first_name TEXT,
+                middle_name TEXT,
+                last_name TEXT,
+                age INTEGER,
+                sex TEXT,
+                birth_date TEXT,
+                address TEXT,
+                nationality TEXT,
+                contact_no TEXT,
+                email TEXT,
+                emergency_contact TEXT,
+                subscription_id TEXT,
+                subscription_plan TEXT,
+                start_timestamp TEXT,
+                end_timestamp TEXT,
+                user_reference TEXT
+            )
+        ''')
+
+        # Commit the changes
+        conn.commit()
+
+        try:
+            # Insert the data into the "registrations" table
+            cursor.execute('''
+                       INSERT INTO registrations (
+                           first_name, middle_name, last_name, age, sex, birth_date, address,
+                           nationality, contact_no, email, emergency_contact, subscription_id,
+                           subscription_plan, start_timestamp, end_timestamp, user_reference
+                       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                   ''', (
+                first_name, middle_name, last_name, age, sex, birth_date, address,
+                nationality, contact_no, email, emergency_contact, subscription_id,
+                subscription_plan, start_timestamp, end_timestamp, user_reference
+            ))
+
+            # Commit the changes
+            conn.commit()
+
+            # Check if any of the required fields are empty
+            required_fields=[
+                self.first_name_entry, self.last_name_entry, self.age_entry,
+                self.sex_entry, self.birth_date_entry, self.address_entry,
+                self.nationality_combo, self.contact_no_entry, self.email_entry
+            ]
+
+            if any(not field.get() for field in required_fields):
+                # Display a message box to inform the user
+                tk.messagebox.showwarning("Incomplete Fields", "Please fill in all required fields.")
+                return
+
+            # Clear the form fields after a successful registration
+            self.clear_form_fields()
+
+            # Display a success message (optional)
+            success_message="Registration Successful!"
+            messagebox.showinfo("Success", success_message)
+            return success_message  # Return the success message
+
+        except sqlite3.Error as e:
+            # Handle any database-related errors (e.g., unique constraint violations)
+            messagebox.showerror("Error", f"Error during registration: {e}")
+
+        finally:
+            # Close the database connection
+            conn.close()
+
+    def clear_form_fields(self):
+        # Clear all form fields
+        self.first_name_entry.delete(0, "end")
+        self.middle_name_entry.delete(0, "end")
+        self.last_name_entry.delete(0, "end")
+        self.age_entry.delete(0, "end")
+        self.sex_entry.set("Male")  # Set a default value
+        self.birth_date_entry.set_date("")  # Clear the DateEntry field
+        self.address_entry.delete(0, "end")
+        self.nationality_combo.set("Select Nationality")  # Set a default value
+        self.contact_no_entry.delete(0, "end")
+        self.email_entry.delete(0, "end")
+        self.emergency_contact_entry.delete(0, "end")
+        self.subscription_id_entry.delete(0, "end")
+        self.subscription_plan_entry.set("Weekly")  # Set a default value
+        self.start_timestamp_entry.set_date("")  # Clear the DateEntry field
+        self.end_timestamp_entry.set_date("")  # Clear the DateEntry field
+        self.user_reference_entry.delete(0, "end")
+
+style=ttk.Style()
+        style.theme_use("default")
+
+        # Configure the Treeview style with borderwidth for column headers
+        style.configure("Treeview",
+                        background="#2a2d2e",
+                        foreground="white",
+                        rowheight=25,
+                        fieldbackground="#343638",
+                        bordercolor="#343638",
+                        borderwidth=0,
+                        relief="groove")  # Adjust borderwidth as needed
+
+        style.map('Treeview', background=[('selected', '#00C957')])
+
+        # Configure the Treeview.Heading style with background color and borderwidth for column headers
+        style.configure("Treeview.Heading",
+                        background="#565b5e",
+                        foreground="white",
+                        relief="groove",
+                        borderwidth=2)  # Adjust borderwidth for column headers
+
+        style.map("Treeview.Heading", background=[('active', '#3484F0')])
+
+        # Create a frame to hold the Treeview
+        tree_frame=ctk.CTkFrame(self)
+        tree_frame.grid(row=0, column=1, padx=10, pady=10)
+
+        # Create a Treeview widget to display the employee data
+        self.tree=ttk.Treeview(tree_frame, columns=(
+            "First Name", "Middle Name", "Last Name", "Age", "Sex", "Date of Birth", "Address", "Contact No"),
+                               show="headings")
+        self.tree.heading("First Name", text="First Name")
+        self.tree.heading("Middle Name", text="Middle Name")
+        self.tree.heading("Last Name", text="Last Name")
+        self.tree.heading("Age", text="Age")
+        self.tree.heading("Sex", text="Sex")
+        self.tree.heading("Date of Birth", text="Date of Birth")
+        self.tree.heading("Address", text="Address")
+        self.tree.heading("Contact No", text="Contact No")
+        self.tree.pack(side=tk.LEFT)
+
+        # Define the column headings and their alignment
+        columns=[
+            ("First Name", "center"),
+            ("Middle Name", "center"),
+            ("Last Name", "center"),
+            ("Age", "center"),
+            ("Sex", "center"),
+            ("Date of Birth", "center"),
+            ("Address", "center"),
+            ("Contact No", "center")
+        ]
+
+        for col, align in columns:
+            self.tree.heading(col, text=col, anchor=align)
+            self.tree.column(col, anchor=align)
+
+        self.tree.pack(side=tk.LEFT)
