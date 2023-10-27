@@ -747,30 +747,24 @@ class ViewFrame(ctk.CTkFrame):
                 # Retrieve the data of the selected record from the Treeview
                 record_data=self.table.item(selected_item)['values']
 
-                # Delete the selected record from the database based on the 'id' column
-                if record_data:  # Check if data is available
-                    unique_record_identifier=record_data[
-                        0]  # Assuming the 'id' column is the first in the 'values' list
+                # Delete the selected record from the database based on the 'First Name' column
+                if record_data:
+                    first_name=record_data[0]  # Assuming 'First Name' is the first column in the 'values' list
                     conn=sqlite3.connect('registration_form.db')
                     cursor=conn.cursor()
                     try:
-                        cursor.execute("DELETE FROM registration WHERE id=?", (unique_record_identifier,))
-                        conn.commit()  # Commit the changes
-                        print("Record deleted successfully.")  # Add this for debugging
+                        cursor.execute("DELETE FROM registration WHERE first_name=?", (first_name,))
+                        conn.commit()  # Commit the changes to the database
+                        print("Record deleted successfully.")
                     except sqlite3.Error as e:
                         messagebox.showerror("Error", f"Error deleting record: {e}")
-                        print(f"Error deleting record: {e}")  # Add this for debugging
+                        print(f"Error deleting record: {e}")
                     finally:
-                        conn.close()
+                        cursor.close()  # Close the cursor
+                        conn.close()  # Close the database connection
 
                     # Remove the selected item from the Treeview
                     self.table.delete(selected_item)
-                else:
-                    print("No record data found.")  # Add this for debugging
-            else:
-                print("Deletion canceled by user.")  # Add this for debugging
-        else:
-            print("No record selected for deletion.")  # Add this for debugging
 
 
 class EditForm(ctk.CTkToplevel):
