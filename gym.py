@@ -770,9 +770,10 @@ class ViewFrame(ctk.CTkFrame):
 class EditForm(ctk.CTkToplevel):
     def __init__(self, parent, record_data):
         super().__init__(parent)
+        self.record_data=record_data
 
         self.title("Edit Information")
-        self.geometry("800x600")
+        self.geometry("1000x500")
 
         # Define and configure widgets within the frame
         label=ctk.CTkLabel(self, text="EDIT INFORMATION", font=("Arial bold", 26))
@@ -792,49 +793,49 @@ class EditForm(ctk.CTkToplevel):
         # Name
         first_name_label=ctk.CTkLabel(personal_info_frame, text="First Name:", font=label_font)
         first_name_label.grid(row=2, column=0, padx=20, pady=5, sticky="w")
-        first_name_entry=ctk.CTkEntry(personal_info_frame, placeholder_text="Enter your first name")
-        first_name_entry.grid(row=2, column=1, padx=20, pady=5)
-        first_name_entry.insert(0, record_data[0])
+        self.first_name_entry=ctk.CTkEntry(personal_info_frame, placeholder_text="Enter your first name")
+        self.first_name_entry.grid(row=2, column=1, padx=20, pady=5)
+        self.first_name_entry.insert(0, record_data[0])
 
         middle_name_label=ctk.CTkLabel(personal_info_frame, text="Middle Name:", font=label_font)
         middle_name_label.grid(row=3, column=0, padx=20, pady=5, sticky="w")
-        middle_name_entry=ctk.CTkEntry(personal_info_frame, placeholder_text="Enter your middle name")
-        middle_name_entry.grid(row=3, column=1, padx=20, pady=5)
-        middle_name_entry.insert(0, record_data[1])
+        self.middle_name_entry=ctk.CTkEntry(personal_info_frame, placeholder_text="Enter your middle name")
+        self.middle_name_entry.grid(row=3, column=1, padx=20, pady=5)
+        self.middle_name_entry.insert(0, record_data[1])
 
         last_name_label=ctk.CTkLabel(personal_info_frame, text="Last Name:", font=label_font)
         last_name_label.grid(row=4, column=0, padx=20, pady=5, sticky="w")
-        last_name_entry=ctk.CTkEntry(personal_info_frame, placeholder_text="Enter your last name")
-        last_name_entry.grid(row=4, column=1, padx=20, pady=5)
-        last_name_entry.insert(0, record_data[2])
+        self.last_name_entry=ctk.CTkEntry(personal_info_frame, placeholder_text="Enter your last name")
+        self.last_name_entry.grid(row=4, column=1, padx=20, pady=5)
+        self.last_name_entry.insert(0, record_data[2])
 
         # Age
         age_label=ctk.CTkLabel(personal_info_frame, text="Age:", font=label_font)
         age_label.grid(row=5, column=0, padx=20, pady=5, sticky="w")
-        age_entry=ctk.CTkEntry(personal_info_frame, placeholder_text="Enter your age")
-        age_entry.grid(row=5, column=1, padx=20, pady=5)
-        age_entry.insert(0, record_data[3])
+        self.age_entry=ctk.CTkEntry(personal_info_frame, placeholder_text="Enter your age")
+        self.age_entry.grid(row=5, column=1, padx=20, pady=5)
+        self.age_entry.insert(0, record_data[3])
 
         # Sex
         sex_label=ctk.CTkLabel(personal_info_frame, text="Sex:", font=label_font)
         sex_label.grid(row=6, column=0, padx=20, pady=5, sticky="w")
-        sex_entry=ctk.CTkComboBox(personal_info_frame, values=["Male", "Female", "Other"])
-        sex_entry.grid(row=6, column=1, padx=20, pady=5)
-        sex_entry.set(record_data[4])
+        self.sex_entry=ctk.CTkComboBox(personal_info_frame, values=["Male", "Female", "Other"])
+        self.sex_entry.grid(row=6, column=1, padx=20, pady=5)
+        self.sex_entry.set(record_data[4])
 
         # Create a DateEntry widget for the birthdate
         birth_date_label=ctk.CTkLabel(personal_info_frame, text="Date of Birth:", font=label_font)
         birth_date_label.grid(row=7, column=0, padx=20, pady=5, sticky="w")
-        birth_date_entry=DateEntry(personal_info_frame, width=20, date_pattern="yyyy-mm-dd")
-        birth_date_entry.grid(row=7, column=1, padx=20, pady=15, sticky="w")
-        birth_date_entry.set_date(record_data[5])
+        self.birth_date_entry=DateEntry(personal_info_frame, width=20, date_pattern="yyyy-mm-dd")
+        self.birth_date_entry.grid(row=7, column=1, padx=20, pady=15, sticky="w")
+        self.birth_date_entry.set_date(record_data[5])
 
         # Address
         address_label=ctk.CTkLabel(personal_info_frame, text="Address:", font=label_font)
         address_label.grid(row=8, column=0, padx=20, pady=5, sticky="w")
-        address_entry=ctk.CTkEntry(personal_info_frame, placeholder_text="Enter your address")
-        address_entry.grid(row=8, column=1, padx=20, pady=5)
-        address_entry.insert(0, record_data[6])
+        self.address_entry=ctk.CTkEntry(personal_info_frame, placeholder_text="Enter your address")
+        self.address_entry.grid(row=8, column=1, padx=20, pady=5)
+        self.address_entry.insert(0, record_data[6])
 
         contact_frame=ctk.CTkFrame(widget_frames)
         contact_frame.grid(row=0, column=1, padx=10, pady=10)
@@ -850,31 +851,27 @@ class EditForm(ctk.CTkToplevel):
         nationality_label.pack(pady=5, padx=10, anchor="w")
 
         # Create a CTkComboBox widget for nationalities
-        nationality_combo=ctk.CTkComboBox(contact_frame, values=nationalities_list)
-        nationality_combo.pack(pady=5, padx=10, fill="x")
-        nationality_combo.set("Select Nationality")  # Set a default selection
-        nationality_combo.set(record_data[7])
+        self.nationality_combo=ctk.CTkComboBox(contact_frame, values=nationalities_list)
+        self.nationality_combo.pack(pady=5, padx=10, fill="x")
+        self.nationality_combo.set("Select Nationality")  # Set a default selection
 
         # Contact No
         contact_no_label=ctk.CTkLabel(contact_frame, text="Contact No:", font=label_font)
         contact_no_label.pack(pady=3, padx=10, anchor="w")
-        contact_no_entry=ctk.CTkEntry(contact_frame, placeholder_text="+63 9123456789")
-        contact_no_entry.pack(pady=0, padx=10, fill="x")
-        contact_no_entry.insert(0, record_data[8])
+        self.contact_no_entry=ctk.CTkEntry(contact_frame, placeholder_text="+63 9123456789")
+        self.contact_no_entry.pack(pady=0, padx=10, fill="x")
 
         # Email Address
         email_label=ctk.CTkLabel(contact_frame, text="Email Address:", font=label_font)
         email_label.pack(pady=0, padx=10, anchor="w")
-        email_entry=ctk.CTkEntry(contact_frame, placeholder_text="example@gmail.com")
-        email_entry.pack(pady=0, padx=10, fill="x")
-        email_entry.insert(0, record_data[9])
+        self.email_entry=ctk.CTkEntry(contact_frame, placeholder_text="example@gmail.com")
+        self.email_entry.pack(pady=0, padx=10, fill="x")
 
         # Emergency Contact No
         emergency_contact_label=ctk.CTkLabel(contact_frame, text="Emergency Contact No:", font=label_font)
         emergency_contact_label.pack(pady=0, padx=10, anchor="w")
-        emergency_contact_entry=ctk.CTkEntry(contact_frame, placeholder_text="+63 9123456789")
-        emergency_contact_entry.pack(pady=10, padx=10, fill="x")
-        emergency_contact_entry.insert(0, record_data[10])
+        self.emergency_contact_entry=ctk.CTkEntry(contact_frame, placeholder_text="+63 9123456789")
+        self.emergency_contact_entry.pack(pady=10, padx=10, fill="x")
 
         # Create a frame to hold the form fields
         subscription_frame=ctk.CTkFrame(widget_frames)
@@ -886,43 +883,98 @@ class EditForm(ctk.CTkToplevel):
         # Subscription ID
         subscription_id_label=ctk.CTkLabel(subscription_frame, text="Subscription ID:", font=label_font)
         subscription_id_label.grid(row=1, column=0, padx=20, pady=15, sticky="w")
-        subscription_id_entry=ctk.CTkEntry(subscription_frame, placeholder_text="DG-XXX")
-        subscription_id_entry.grid(row=1, column=1, padx=20, pady=15)
-        subscription_id_entry.insert(0, record_data[11])
+        self.subscription_id_entry=ctk.CTkEntry(subscription_frame, placeholder_text="DG-XXX")
+        self.subscription_id_entry.grid(row=1, column=1, padx=20, pady=15)
 
         # Create the widgets for subscription plan, start date, and end date
         subscription_plan_label=ctk.CTkLabel(subscription_frame, text="Subscription Plan:", font=label_font)
         subscription_plan_label.grid(row=2, column=0, padx=20, pady=10, sticky="w")
-        subscription_plan_options=["Weekly", "Monthly", "Yearly"]
-        subscription_plan_entry=ctk.CTkComboBox(subscription_frame, values=subscription_plan_options)
-        subscription_plan_entry.grid(row=2, column=1, padx=20, pady=15)
-        subscription_plan_entry.set(record_data[12])
+        self.subscription_plan_options=["Weekly", "Monthly", "Yearly"]
+        self.subscription_plan_entry=ctk.CTkComboBox(subscription_frame, values=self.subscription_plan_options)
+        self.subscription_plan_entry.grid(row=2, column=1, padx=20, pady=15)
 
         start_timestamp_label=ctk.CTkLabel(subscription_frame, text="Start:", font=label_font)
         start_timestamp_label.grid(row=3, column=0, padx=20, pady=10, sticky="w")
-        start_timestamp_entry=DateEntry(subscription_frame, width=20, date_pattern="yyyy-mm-dd")
-        start_timestamp_entry.grid(row=3, column=1, padx=20, pady=15, sticky="w")
-        start_timestamp_entry.set_date(record_data[13])
+        self.start_timestamp_entry=DateEntry(subscription_frame, width=20, date_pattern="yyyy-mm-dd")
+        self.start_timestamp_entry.grid(row=3, column=1, padx=20, pady=15, sticky="w")
 
         end_timestamp_label=ctk.CTkLabel(subscription_frame, text="End:", font=label_font)
         end_timestamp_label.grid(row=4, column=0, padx=20, pady=10, sticky="w")
-        end_timestamp_entry=DateEntry(subscription_frame, width=20, date_pattern="yyyy-mm-dd")
-        end_timestamp_entry.grid(row=4, column=1, padx=20, pady=15, sticky="w")
-        end_timestamp_entry.set_date(record_data[14])
+        self.end_timestamp_entry=DateEntry(subscription_frame, width=20, date_pattern="yyyy-mm-dd")
+        self.end_timestamp_entry.grid(row=4, column=1, padx=20, pady=15, sticky="w")
 
         # Reference to the user who owns the subscription
         user_reference_label=ctk.CTkLabel(subscription_frame, text="User Reference:", font=label_font)
         user_reference_label.grid(row=5, column=0, padx=20, pady=15, sticky="w")
-        user_reference_entry=ctk.CTkEntry(subscription_frame, placeholder_text="User ID or Name")
-        user_reference_entry.grid(row=5, column=1, padx=20, pady=15)
-        user_reference_entry.insert(0, record_data[15])
+        self.user_reference_entry=ctk.CTkEntry(subscription_frame, placeholder_text="User ID or Name")
+        self.user_reference_entry.grid(row=5, column=1, padx=20, pady=15)
 
         # Create an "Edit" button to save changes to the database
         save_button=ctk.CTkButton(self, text="Save", command=self.save_changes)
         save_button.pack(pady=10)
 
     def save_changes(self):
-        pass
+        # Retrieve the updated data from the input fields
+        updated_first_name=self.first_name_entry.get()
+        updated_middle_name=self.middle_name_entry.get()
+        updated_last_name=self.last_name_entry.get()
+        updated_age=self.age_entry.get()
+        updated_sex=self.sex_entry.get()
+        updated_birth_date=self.birth_date_entry.get_date()
+        updated_address=self.address_entry.get()
+        updated_nationality=self.nationality_combo.get()
+        updated_contact_no=self.contact_no_entry.get()
+        updated_email=self.email_entry.get()
+        updated_emergency_contact=self.emergency_contact_entry.get()
+        updated_subscription_id=self.subscription_id_entry.get()
+        updated_subscription_plan=self.subscription_plan_entry.get()
+        updated_start_date=self.start_timestamp_entry.get_date()
+        updated_end_date=self.end_timestamp_entry.get_date()
+        updated_user_reference=self.user_reference_entry.get()
+
+        # Establish a connection to the database
+        conn=sqlite3.connect('registration_form.db')
+        cursor=conn.cursor()
+
+        try:
+            # Update the corresponding record in the database using an SQL UPDATE statement
+            cursor.execute("""
+                    UPDATE registration
+                    SET
+                        first_name = ?,
+                        middle_name = ?,
+                        last_name = ?,
+                        age = ?,
+                        sex = ?,
+                        birth_date = ?,
+                        address = ?,
+                        nationality = ?,
+                        contact_no = ?,
+                        email = ?,
+                        emergency_contact_no = ?,
+                        subscription_id = ?,
+                        subscription_plan = ?,
+                        start_date = ?,
+                        end_date = ?,
+                        user_reference = ?
+                    WHERE first_name = ?
+                """, (
+                updated_first_name, updated_middle_name, updated_last_name, updated_age, updated_sex,
+                updated_birth_date, updated_address, updated_nationality, updated_contact_no, updated_email,
+                updated_emergency_contact, updated_subscription_id, updated_subscription_plan,
+                updated_start_date, updated_end_date, updated_user_reference, self.record_data[0]
+            ))
+
+            # Commit the changes to the database
+            conn.commit()
+            print("Record updated successfully.")
+        except sqlite3.Error as e:
+            messagebox.showerror("Error", f"Error updating record: {e}")
+            print(f"Error updating record: {e}")
+        finally:
+            # Close the cursor and the database connection
+            cursor.close()
+            conn.close()
 
 
 # ------------- FRAME 3 -----------------------#
