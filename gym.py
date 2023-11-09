@@ -759,8 +759,8 @@ class ViewFrame(ctk.CTkFrame):
         return_button.grid(row=0, column=0, padx=10, pady=40)
 
         # Create an "Edit" button in the second column
-        edit_button=ctk.CTkButton(button_frame, text="Edit", command=self.edit_record)
-        edit_button.grid(row=0, column=1, padx=10, pady=20)
+        view_button=ctk.CTkButton(button_frame, text="View", command=self.edit_record)
+        view_button.grid(row=0, column=1, padx=10, pady=20)
 
         # Create a "Delete" button in the third column
         delete_button=ctk.CTkButton(button_frame, text="Delete", command=self.delete_record)
@@ -771,15 +771,15 @@ class ViewFrame(ctk.CTkFrame):
         self.destroy()
 
     def edit_record(self):
-        # Get the selected item (record) from the Treeview
         selected_item=self.table.selection()
         if selected_item:
-            # Retrieve the data of the selected record
             record_data=self.table.item(selected_item)["values"]
 
             if record_data:
-                id=record_data[0]  # Get the first name from the selected record
-                edit_form=EditForm(self, id)  # Pass the first_name to the EditForm constructor
+                # Assuming 'id' is the first element and 'first_name' is the second element in the 'values' list
+                id_value=record_data[0]
+                first_name=record_data[1]
+                edit_form=EditForm(self, first_name, id_value, self.table)
 
     def delete_record(self):
         # Get the selected item (record) from the Treeview
@@ -812,7 +812,7 @@ class ViewFrame(ctk.CTkFrame):
 
 
 class EditForm(ctk.CTkToplevel):
-    def __init__(self, master, first_name):
+    def __init__(self, master, first_name, id_value, table_reference):
         super().__init__(master)
 
         # Set the title for the edit form
@@ -832,8 +832,8 @@ class EditForm(ctk.CTkToplevel):
         self.conn=sqlite3.connect('registration_form.db')
         self.cursor=self.conn.cursor()
 
-        # Fetch data for the specified member
-        self.cursor.execute("SELECT * FROM registration WHERE id=?", (id,))
+        # Fetch data for the specified member using the provided 'id_value'
+        self.cursor.execute("SELECT * FROM registration WHERE id=?", (id_value,))
         member_data=self.cursor.fetchone()
 
         if member_data is None:
@@ -874,6 +874,13 @@ class EditForm(ctk.CTkToplevel):
         update_button=ctk.CTkButton(self, text="Update", command=self.update_record)
         update_button.pack(pady=20)
 
+        # Create Delete button to remove data from the database
+        delete_button=ctk.CTkButton(self, text="Delete", command=self.delete_record)
+        delete_button.pack(pady=20)
+
+        # Store the reference to the 'table' in EditForm
+        self.table=table_reference
+
     def update_record(self):
         # Get the updated data from the entry fields
         updated_data=[entry.get() for entry in self.entry_fields]
@@ -903,6 +910,30 @@ class EditForm(ctk.CTkToplevel):
 
         # Close the edit form
         self.destroy()
+
+    def delete_record(self):
+        selected_item=self.table.selection()
+        if selected_item:
+            confirm=messagebox.askyesno("Delete Record", "Are you sure you want to delete this record?")
+            if confirm:
+                # Retrieve the data of the selected record from the Treeview
+                record_data=self.table.item(selected_item)['values']
+
+                # Delete the selected record from the database based on the 'First Name' column
+                if record_data:
+                    id_value=record_data[0]  # Assuming 'ID' is the first column in the 'values' list
+                    conn=sqlite3.connect('registration_form.db')
+                    cursor=conn.cursor()
+                    try:
+                        cursor.execute("DELETE FROM registration WHERE id=?", (id_value,))
+                        conn.commit()  # Commit the changes to the database
+                        print("Record deleted successfully.")
+                    except sqlite3.Error as e:
+                        messagebox.showerror("Error", f"Error deleting record: {e}")
+                        print(f"Error deleting record: {e}")
+                    finally:
+                        cursor.close()
+                        conn.close()
 
 
 # ------------- FRAME 3 -----------------------#
@@ -967,25 +998,25 @@ class ScanFrame(ctk.CTkFrame):
 
     def create_ui_elements(self):
         # Create and configure UI elements within frame
-        label = ctk.CTkLabel(self, text="", font=("Arial bold", 8))
+        label=ctk.CTkLabel(self, text="", font=("Arial bold", 8))
         label.pack(pady=5, padx=10)
 
         # Define the desired button width and height
-        button_width = 200
-        button_height = 200
+        button_width=200
+        button_height=200
 
         # Define the path to the directory containing your image files
-        frame_3_icons = os.path.join(os.path.dirname(os.path.realpath(__file__)), "frame_3_icons")
+        frame_3_icons=os.path.join(os.path.dirname(os.path.realpath(__file__)), "frame_3_icons")
 
         # Load and resize the images
-        time_in_image = Image.open(os.path.join(frame_3_icons, 'time_in.png'))
-        time_in_image = time_in_image.resize((button_width, button_height), Image.LANCZOS)
+        time_in_image=Image.open(os.path.join(frame_3_icons, 'time_in.png'))
+        time_in_image=time_in_image.resize((button_width, button_height), Image.LANCZOS)
 
-        time_out_image = Image.open(os.path.join(frame_3_icons, 'time_out.png'))
-        time_out_image = time_out_image.resize((button_width, button_height), Image.LANCZOS)
+        time_out_image=Image.open(os.path.join(frame_3_icons, 'time_out.png'))
+        time_out_image=time_out_image.resize((button_width, button_height), Image.LANCZOS)
 
         # Create the buttons with the resized images
-        time_in_button = ctk.CTkButton(
+        time_in_button=ctk.CTkButton(
             master=self,
             text="Time In",
             image=ImageTk.PhotoImage(time_in_image),
@@ -996,7 +1027,7 @@ class ScanFrame(ctk.CTkFrame):
         )
         time_in_button.place(x=300, y=150)
 
-        time_out_button = ctk.CTkButton(
+        time_out_button=ctk.CTkButton(
             master=self,
             text="Time Out",
             image=ImageTk.PhotoImage(time_out_image),
@@ -1008,8 +1039,8 @@ class ScanFrame(ctk.CTkFrame):
         time_out_button.place(x=550, y=150)
 
         # create a back button to return to the previous frame
-        back_button = ctk.CTkButton(self, text="Back", fg_color="Red", text_color=("gray10", "gray90"),
-                                    hover_color=("red3", "red4"), command=self.back_button_event)
+        back_button=ctk.CTkButton(self, text="Back", fg_color="Red", text_color=("gray10", "gray90"),
+                                  hover_color=("red3", "red4"), command=self.back_button_event)
         back_button.pack(pady=20, side=tk.BOTTOM)
 
     def time_in(self):
