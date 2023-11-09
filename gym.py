@@ -527,26 +527,26 @@ class RegistrationFrame(ctk.CTkFrame):
 
         # Create a table to store registration information
         cursor.execute('''
-            CREATE TABLE IF NOT EXISTS registration (
-                id INTEGER PRIMARY KEY,
-                first_name TEXT,
-                middle_name TEXT,
-                last_name TEXT,
-                age INTEGER,
-                sex TEXT,
-                birth_date DATE,
-                address TEXT,
-                nationality TEXT,
-                contact_no TEXT,
-                email TEXT,
-                emergency_contact_no TEXT,
-                subscription_id TEXT,
-                subscription_plan TEXT,
-                start_date DATE,
-                end_date DATE,
-                user_reference TEXT
-            )
-        ''')
+                   CREATE TABLE IF NOT EXISTS registration (
+                       id INTEGER PRIMARY KEY,
+                       first_name TEXT,
+                       middle_name TEXT,
+                       last_name TEXT,
+                       age INTEGER,
+                       sex TEXT,
+                       birth_date DATE,
+                       address TEXT,
+                       nationality TEXT,
+                       contact_no TEXT,
+                       email TEXT,
+                       emergency_contact_no TEXT,
+                       subscription_id TEXT,
+                       subscription_plan TEXT,
+                       start_date DATE,
+                       end_date DATE,
+                       user_reference TEXT
+                   )
+               ''')
 
         # Commit the changes and close the database connection
         conn.commit()
@@ -682,7 +682,7 @@ class ViewFrame(ctk.CTkFrame):
 
         # Get only the specific columns from the database
         cursor.execute(
-            "SELECT first_name, middle_name, last_name, subscription_id, subscription_plan, start_date, end_date FROM registration")
+            "SELECT id, first_name, middle_name, last_name, subscription_plan, start_date, end_date FROM registration")
         records=cursor.fetchall()
 
         # Create a frame that holds the table
@@ -712,7 +712,7 @@ class ViewFrame(ctk.CTkFrame):
 
         # Create a table to display the records
         self.table=ttk.Treeview(table_frame, columns=(
-            "First Name", "Middle Name", "Last Name", "Subscription ID", "Subscription Plan",
+            "ID", "First Name", "Middle Name", "Last Name", "Subscription Plan",
             "Start Date", "End Date"), show="headings", height=10)
         self.table.pack(side=tk.LEFT)
 
@@ -722,20 +722,20 @@ class ViewFrame(ctk.CTkFrame):
         self.table.configure(yscrollcommand=self.scrollbar.set)
 
         # Configure the columns
+        self.table.heading("ID", text="ID")
         self.table.heading("First Name", text="First Name")
         self.table.heading("Middle Name", text="Middle Name")
         self.table.heading("Last Name", text="Last Name")
-        self.table.heading("Subscription ID", text="Subscription ID")
         self.table.heading("Subscription Plan", text="Subscription Plan")
         self.table.heading("Start Date", text="Start Date")
         self.table.heading("End Date", text="End Date")
 
         # Define the column headings and their alignment
         columns=[
+            ("ID", "center"),
             ("First Name", "center"),
             ("Middle Name", "center"),
             ("Last Name", "center"),
-            ("Subscription ID", "center"),
             ("Subscription Plan", "center"),
             ("Start Date", "center"),
             ("End Date", "center")
@@ -778,8 +778,8 @@ class ViewFrame(ctk.CTkFrame):
             record_data=self.table.item(selected_item)["values"]
 
             if record_data:
-                first_name=record_data[0]  # Get the first name from the selected record
-                edit_form=EditForm(self, first_name)  # Pass the first_name to the EditForm constructor
+                id=record_data[0]  # Get the first name from the selected record
+                edit_form=EditForm(self, id)  # Pass the first_name to the EditForm constructor
 
     def delete_record(self):
         # Get the selected item (record) from the Treeview
@@ -793,11 +793,11 @@ class ViewFrame(ctk.CTkFrame):
 
                 # Delete the selected record from the database based on the 'First Name' column
                 if record_data:
-                    first_name=record_data[0]  # Assuming 'First Name' is the first column in the 'values' list
+                    id=record_data[0]  # Assuming 'First Name' is the first column in the 'values' list
                     conn=sqlite3.connect('registration_form.db')
                     cursor=conn.cursor()
                     try:
-                        cursor.execute("DELETE FROM registration WHERE ID=?", (first_name,))
+                        cursor.execute("DELETE FROM registration WHERE id=?", (id,))
                         conn.commit()  # Commit the changes to the database
                         print("Record deleted successfully.")
                     except sqlite3.Error as e:
@@ -833,7 +833,7 @@ class EditForm(ctk.CTkToplevel):
         self.cursor=self.conn.cursor()
 
         # Fetch data for the specified member
-        self.cursor.execute("SELECT * FROM registration WHERE first_name=?", (first_name,))
+        self.cursor.execute("SELECT * FROM registration WHERE id=?", (id,))
         member_data=self.cursor.fetchone()
 
         if member_data is None:
