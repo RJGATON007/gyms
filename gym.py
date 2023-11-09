@@ -604,6 +604,44 @@ class RegistrationFrame(ctk.CTkFrame):
         conn.commit()
         conn.close()
 
+        # Combine all the data entries into a single string
+        data_string=f"First Name: {first_name}\n" \
+                    f"Middle Name: {middle_name}\n" \
+                    f"Last Name: {last_name}\n" \
+                    f"Age: {age}\n" \
+                    f"Sex: {sex}\n" \
+                    f"Date of Birth: {birth_date}\n" \
+                    f"Address: {address}\n" \
+                    f"Nationality: {nationality}\n" \
+                    f"Contact No: {contact_no}\n" \
+                    f"Email: {email}\n" \
+                    f"Emergency Contact No: {emergency_contact_no}\n" \
+                    f"Subscription ID: {subscription_id}\n" \
+                    f"Subscription Plan: {subscription_plan}\n" \
+                    f"Start Date: {start_date}\n" \
+                    f"End Date: {end_date}\n" \
+                    f"User Reference: {user_reference}"
+
+        # Create a folder if it doesn't exist
+        folder_path="member_qrcodes"
+        os.makedirs(folder_path, exist_ok=True)
+
+        # Create a QR code containing all the data entries
+        qr=qrcode.QRCode(
+            version=1,
+            error_correction=qrcode.constants.ERROR_CORRECT_L,
+            box_size=10,
+            border=4,
+        )
+        qr.add_data(data_string)
+        qr.make(fit=True)
+        qr_img=qr.make_image(fill_color="black", back_color="white")
+
+        # Specify the file path to save the QR code in the folder
+        file_path=os.path.join(folder_path, f"dgrit_{last_name}.png")
+        qr_img.save(file_path)
+
+        # Show a success message
         messagebox.showinfo("Registration Successful", "User registered successfully!")
 
         # Clear all form fields
@@ -676,7 +714,12 @@ class ViewFrame(ctk.CTkFrame):
         self.table=ttk.Treeview(table_frame, columns=(
             "First Name", "Middle Name", "Last Name", "Subscription ID", "Subscription Plan",
             "Start Date", "End Date"), show="headings", height=10)
-        self.table.grid(row=0, column=0, padx=10, pady=10)
+        self.table.pack(side=tk.LEFT)
+
+        self.scrollbar=ttk.Scrollbar(table_frame, orient=tk.VERTICAL, command=self.table.yview)
+        self.scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+        self.table.configure(yscrollcommand=self.scrollbar.set)
 
         # Configure the columns
         self.table.heading("First Name", text="First Name")
@@ -786,12 +829,12 @@ class EditForm(ctk.CTkToplevel):
         self.geometry(f"+{x}+{y}")
 
         # Create a connection to the database
-        self.conn = sqlite3.connect('registration_form.db')
-        self.cursor = self.conn.cursor()
+        self.conn=sqlite3.connect('registration_form.db')
+        self.cursor=self.conn.cursor()
 
         # Fetch data for the specified member
         self.cursor.execute("SELECT * FROM registration WHERE first_name=?", (first_name,))
-        member_data = self.cursor.fetchone()
+        member_data=self.cursor.fetchone()
 
         if member_data is None:
             messagebox.showerror("Member Not Found", "Member not found in the database.")
@@ -799,11 +842,11 @@ class EditForm(ctk.CTkToplevel):
             return
 
         # Create and configure widgets within the edit form
-        label = ctk.CTkLabel(self, text="Edit Member Record", font=("Arial bold", 20))
+        label=ctk.CTkLabel(self, text="Edit Member Record", font=("Arial bold", 20))
         label.pack(pady=10)
 
         # Create a frame to hold edit form frames
-        main_frame = ctk.CTkFrame(self)
+        main_frame=ctk.CTkFrame(self)
         main_frame.pack(fill="both", expand=True)
 
         # Create a frame to hold the form fields with custom width and height
@@ -828,12 +871,12 @@ class EditForm(ctk.CTkToplevel):
             self.entry_fields.append(entry)
 
         # Create an "Update" button
-        update_button = ctk.CTkButton(self, text="Update", command=self.update_record)
+        update_button=ctk.CTkButton(self, text="Update", command=self.update_record)
         update_button.pack(pady=20)
 
     def update_record(self):
         # Get the updated data from the entry fields
-        updated_data = [entry.get() for entry in self.entry_fields]
+        updated_data=[entry.get() for entry in self.entry_fields]
 
         # Validate the updated data
         if not all(updated_data):
@@ -869,23 +912,76 @@ def create_take_attendance_frame(frame_3):
     label=ctk.CTkLabel(frame_3, text="", font=("Arial bold", 34))
     label.pack(pady=10, padx=10)
 
-    attendance_frame=ctk.CTkFrame(frame_3, corner_radius=0, fg_color="transparent")
+    # create frame for attendance
+    attendance_frame=ctk.CTkFrame(frame_3)
     attendance_frame.pack(pady=10, padx=10)
 
-    qr_frame=ctk.CTkFrame(attendance_frame, corner_radius=0, fg_color="transparent")
-    qr_frame.grid(row=0, column=0, padx=10, pady=10)
+    # Define the desired button width and height
+    button_width=200
+    button_height=200
 
-    # create a frame to hold qr code scanner
-    qr_code_frame=ctk.CTkFrame(qr_frame, corner_radius=0, fg_color="transparent")
-    qr_code_frame.pack(pady=10, padx=10)
+    # Define the path to the directory containing your image files
+    frame_2_icons=os.path.join(os.path.dirname(os.path.realpath(__file__)), "frame_2_icons")
+
+    # Load and resize the images
+    register_image=Image.open(os.path.join(frame_2_icons, 'scan_black.png'))
+    register_image=register_image.resize((button_width, button_height), Image.LANCZOS)
+
+    view_image=Image.open(os.path.join(frame_2_icons, 'list_black.png'))
+    view_image=view_image.resize((button_width, button_height), Image.LANCZOS)
+
+    def scan_qr():
+        # When the "Register Members" button is clicked, create and show the registration frame
+        scan_qr_frame=ScanFrame(frame_3)
+        scan_qr_frame.pack(fill='both', expand=True)
+
+    def view_records():
+        # When the "View Members" button is clicked, create and show the view members frame
+        view_records_frame=RecordsFrame(frame_3)
+        view_records_frame.pack(fill='both', expand=True)
+
+    # Create the buttons with the resized images
+    scan_qr_button=ctk.CTkButton(
+        master=frame_3,
+        text="Register Members",
+        image=ImageTk.PhotoImage(register_image),
+        compound=tk.TOP,
+        command=scan_qr,  # Call the function to open the frame
+        width=button_width,
+        height=button_height
+    )
+    scan_qr_button.place(x=250, y=200)
+
+    view_records_button=ctk.CTkButton(
+        master=frame_3,
+        text="View Members",
+        image=ImageTk.PhotoImage(view_image),
+        compound=tk.TOP,
+        command=view_records,
+        width=button_width,
+        height=button_height
+    )
+    view_records_button.place(x=600, y=200)
+
+
+class ScanFrame(ctk.CTkFrame):
+    def __init__(self, master, **kwargs):
+        super().__init__(master, **kwargs)
+
+    pass
+
+
+class RecordsFrame(ctk.CTkFrame):
+    def __init__(self, master, **kwargs):
+        super().__init__(master, **kwargs)
+
+    pass
 
 
 def create_gym_equipment_frame(frame_4):
     # Create and configure UI elements within frame
     label=ctk.CTkLabel(frame_4, text="GYM EQUIPMENT MANAGEMENT", font=("Arial bold", 34))
     label.pack(pady=10, padx=10)
-
-    # Widgets
 
 
 def create_trainers_frame(frame_5):
