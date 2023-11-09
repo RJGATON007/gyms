@@ -797,7 +797,7 @@ class ViewFrame(ctk.CTkFrame):
                     conn=sqlite3.connect('registration_form.db')
                     cursor=conn.cursor()
                     try:
-                        cursor.execute("DELETE FROM registration WHERE first_name=?", (first_name,))
+                        cursor.execute("DELETE FROM registration WHERE ID=?", (first_name,))
                         conn.commit()  # Commit the changes to the database
                         print("Record deleted successfully.")
                     except sqlite3.Error as e:
@@ -912,22 +912,18 @@ def create_take_attendance_frame(frame_3):
     label=ctk.CTkLabel(frame_3, text="", font=("Arial bold", 34))
     label.pack(pady=10, padx=10)
 
-    # create frame for attendance
-    attendance_frame=ctk.CTkFrame(frame_3)
-    attendance_frame.pack(pady=10, padx=10)
-
     # Define the desired button width and height
     button_width=200
     button_height=200
 
     # Define the path to the directory containing your image files
-    frame_2_icons=os.path.join(os.path.dirname(os.path.realpath(__file__)), "frame_2_icons")
+    frame_3_icons=os.path.join(os.path.dirname(os.path.realpath(__file__)), "frame_3_icons")
 
     # Load and resize the images
-    register_image=Image.open(os.path.join(frame_2_icons, 'scan_black.png'))
+    register_image=Image.open(os.path.join(frame_3_icons, 'scan_black.png'))
     register_image=register_image.resize((button_width, button_height), Image.LANCZOS)
 
-    view_image=Image.open(os.path.join(frame_2_icons, 'list_black.png'))
+    view_image=Image.open(os.path.join(frame_3_icons, 'record_black.png'))
     view_image=view_image.resize((button_width, button_height), Image.LANCZOS)
 
     def scan_qr():
@@ -943,7 +939,7 @@ def create_take_attendance_frame(frame_3):
     # Create the buttons with the resized images
     scan_qr_button=ctk.CTkButton(
         master=frame_3,
-        text="Register Members",
+        text="Scan QR Code",
         image=ImageTk.PhotoImage(register_image),
         compound=tk.TOP,
         command=scan_qr,  # Call the function to open the frame
@@ -954,7 +950,7 @@ def create_take_attendance_frame(frame_3):
 
     view_records_button=ctk.CTkButton(
         master=frame_3,
-        text="View Members",
+        text="Attendance Records",
         image=ImageTk.PhotoImage(view_image),
         compound=tk.TOP,
         command=view_records,
@@ -967,8 +963,66 @@ def create_take_attendance_frame(frame_3):
 class ScanFrame(ctk.CTkFrame):
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
+        self.create_ui_elements()
 
-    pass
+    def create_ui_elements(self):
+        # Create and configure UI elements within frame
+        label = ctk.CTkLabel(self, text="", font=("Arial bold", 8))
+        label.pack(pady=5, padx=10)
+
+        # Define the desired button width and height
+        button_width = 200
+        button_height = 200
+
+        # Define the path to the directory containing your image files
+        frame_3_icons = os.path.join(os.path.dirname(os.path.realpath(__file__)), "frame_3_icons")
+
+        # Load and resize the images
+        time_in_image = Image.open(os.path.join(frame_3_icons, 'time_in.png'))
+        time_in_image = time_in_image.resize((button_width, button_height), Image.LANCZOS)
+
+        time_out_image = Image.open(os.path.join(frame_3_icons, 'time_out.png'))
+        time_out_image = time_out_image.resize((button_width, button_height), Image.LANCZOS)
+
+        # Create the buttons with the resized images
+        time_in_button = ctk.CTkButton(
+            master=self,
+            text="Time In",
+            image=ImageTk.PhotoImage(time_in_image),
+            compound=tk.TOP,
+            command=self.time_in,  # Call the function to open the frame
+            width=button_width,
+            height=button_height
+        )
+        time_in_button.place(x=300, y=150)
+
+        time_out_button = ctk.CTkButton(
+            master=self,
+            text="Time Out",
+            image=ImageTk.PhotoImage(time_out_image),
+            compound=tk.TOP,
+            command=self.time_out,
+            width=button_width,
+            height=button_height
+        )
+        time_out_button.place(x=550, y=150)
+
+        # create a back button to return to the previous frame
+        back_button = ctk.CTkButton(self, text="Back", fg_color="Red", text_color=("gray10", "gray90"),
+                                    hover_color=("red3", "red4"), command=self.back_button_event)
+        back_button.pack(pady=20, side=tk.BOTTOM)
+
+    def time_in(self):
+        # When the "Scan QR Code" button is clicked, implement the functionality here
+        pass
+
+    def time_out(self):
+        # When the "Attendance Records" button is clicked, implement the functionality here
+        pass
+
+    def back_button_event(self):
+        # Switch back to the take attendance frame
+        self.destroy()
 
 
 class RecordsFrame(ctk.CTkFrame):
