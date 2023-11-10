@@ -5,6 +5,7 @@ from PIL import Image, ImageTk
 from tkcalendar import DateEntry
 from twilio.rest import Client
 import os
+import shutil
 import sqlite3
 import random
 import string
@@ -870,16 +871,56 @@ class EditForm(ctk.CTkToplevel):
             entry.insert(0, member_data[i + 1])  # Fill with data from the database
             self.entry_fields.append(entry)
 
+        # Display the qr code of the member inside the edit form
+        qr_code_frame=ctk.CTkFrame(edit_frame)
+        qr_code_frame.grid(row=16, column=1, rowspan=16, padx=10, pady=10)
+
+        label=ctk.CTkLabel(edit_frame, text="QR Code:", font=("Arial bold", 16))
+        label.grid(row=16, column=0, padx=10, pady=10, sticky="w")
+
+        download_button_frame=ctk.CTkFrame(edit_frame)
+        download_button_frame.grid(row=50, column=1, rowspan=50, padx=10, pady=10)
+
+        # create a download button to download the qr code
+        download_button=ctk.CTkButton(download_button_frame, text="Download", command=self.download_qr_code)
+        download_button.grid(row=0, column=1, padx=10, pady=10, sticky="w")
+
+        # Display the qr code from the member_qrcodes folder based on the last name of the member
+        qr_code_path=os.path.join("member_qrcodes", f"dgrit_{member_data[3]}.png")
+        qr_code_image=Image.open(qr_code_path)
+        qr_code_image=qr_code_image.resize((200, 200), Image.LANCZOS)
+        qr_code_image=ImageTk.PhotoImage(qr_code_image)
+        qr_code_label=ctk.CTkLabel(qr_code_frame, text="", image=qr_code_image)
+        qr_code_label.image=qr_code_image
+        qr_code_label.pack(pady=10, padx=10)
+
+        # create frame to hold the buttons
+        button_frame=ctk.CTkFrame(main_frame)
+        button_frame.pack(pady=20, padx=20)
+
         # Create an "Update" button
-        update_button=ctk.CTkButton(self, text="Update", command=self.update_record)
-        update_button.pack(pady=20)
+        update_button=ctk.CTkButton(button_frame, text="Update", command=self.update_record)
+        update_button.grid(row=0, column=0, padx=20, pady=20)
 
         # Create Delete button to remove data from the database
-        delete_button=ctk.CTkButton(self, text="Delete", command=self.delete_record)
-        delete_button.pack(pady=20)
+        delete_button=ctk.CTkButton(button_frame, text="Delete", command=self.delete_record)
+        delete_button.grid(row=0, column=1, padx=20, pady=20)
 
         # Store the reference to the 'table' in EditForm
         self.table=table_reference
+
+    @staticmethod
+    def download_qr_code(member_data):
+        # Download the qr code from the member_qrcodes folder and save it to the downloads folder
+        qr_code_path = os.path.join("member_qrcodes", f"dgrit_{member_data[3]}.png")
+        downloads_path = os.path.join(os.path.expanduser("~"), "Downloads")
+
+        # Check if the QR code file exists before copying
+        if os.path.exists(qr_code_path):
+            shutil.copy(qr_code_path, downloads_path)
+            print("QR code downloaded successfully.")
+        else:
+            print("QR code not found.")
 
     def update_record(self):
         # Get the updated data from the entry fields
