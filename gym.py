@@ -751,26 +751,30 @@ class ViewFrame(ctk.CTkFrame):
         for record in records:
             self.table.insert("", tk.END, values=record)
 
+        # create a frame to hold sub-frames
+        button_frames=ctk.CTkFrame(self)
+        button_frames.pack(pady=10, padx=10)
+
         # create a frame to hold the return button
-        return_button_frame=ctk.CTkFrame(self)
-        return_button_frame.pack(padx=10)
+        return_button_frame=ctk.CTkFrame(button_frames)
+        return_button_frame.grid(row=0, column=0, padx=10)
         # Create a "Return" button in the first column
         return_button=ctk.CTkButton(return_button_frame, text="Return", command=self.back_button_event)
-        return_button.grid(row=0, column=0, padx=10, pady=40)
+        return_button.pack(padx=10, pady=10)
 
         # Create a frame to hold the edit button
-        view_button_frame=ctk.CTkFrame(self)
-        view_button_frame.pack(padx=10)
+        view_button_frame=ctk.CTkFrame(button_frames)
+        view_button_frame.grid(row=0, column=1, padx=10)
         # Create an "Edit" button in the second column
         view_button=ctk.CTkButton(view_button_frame, text="View", command=self.edit_record)
-        view_button.grid(row=0, column=1, padx=10, pady=20)
+        view_button.pack(padx=10, pady=10)
 
         # Create a frame to hold the delete button
-        delete_button_frame=ctk.CTkFrame(self)
-        delete_button_frame.pack(padx=10)
+        delete_button_frame=ctk.CTkFrame(button_frames)
+        delete_button_frame.grid(row=0, column=2, padx=10)
         # Create a "Delete" button in the third column
         delete_button=ctk.CTkButton(delete_button_frame, text="Delete", command=self.delete_record)
-        delete_button.grid(row=0, column=2, padx=10, pady=20)
+        delete_button.pack(padx=10, pady=10)
 
     def back_button_event(self):
         # Switch back to the previous frame (e.g., the gym membership frame)
