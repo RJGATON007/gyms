@@ -5,7 +5,6 @@ from PIL import Image, ImageTk
 from tkcalendar import DateEntry
 from twilio.rest import Client
 import os
-import shutil
 import sqlite3
 import random
 import string
@@ -752,19 +751,25 @@ class ViewFrame(ctk.CTkFrame):
         for record in records:
             self.table.insert("", tk.END, values=record)
 
-        button_frame=ctk.CTkFrame(self)
-        button_frame.pack(padx=10)
-
+        # create a frame to hold the return button
+        return_button_frame=ctk.CTkFrame(self)
+        return_button_frame.pack(padx=10)
         # Create a "Return" button in the first column
-        return_button=ctk.CTkButton(button_frame, text="Return", command=self.back_button_event)
+        return_button=ctk.CTkButton(return_button_frame, text="Return", command=self.back_button_event)
         return_button.grid(row=0, column=0, padx=10, pady=40)
 
+        # Create a frame to hold the edit button
+        view_button_frame=ctk.CTkFrame(self)
+        view_button_frame.pack(padx=10)
         # Create an "Edit" button in the second column
-        view_button=ctk.CTkButton(button_frame, text="View", command=self.edit_record)
+        view_button=ctk.CTkButton(view_button_frame, text="View", command=self.edit_record)
         view_button.grid(row=0, column=1, padx=10, pady=20)
 
+        # Create a frame to hold the delete button
+        delete_button_frame=ctk.CTkFrame(self)
+        delete_button_frame.pack(padx=10)
         # Create a "Delete" button in the third column
-        delete_button=ctk.CTkButton(button_frame, text="Delete", command=self.delete_record)
+        delete_button=ctk.CTkButton(delete_button_frame, text="Delete", command=self.delete_record)
         delete_button.grid(row=0, column=2, padx=10, pady=20)
 
     def back_button_event(self):
@@ -835,9 +840,9 @@ class EditForm(ctk.CTkToplevel):
 
         # Fetch data for the specified member using the provided 'id_value'
         self.cursor.execute("SELECT * FROM registration WHERE id=?", (id_value,))
-        member_data=self.cursor.fetchone()
+        self.member_data=self.cursor.fetchone()
 
-        if member_data is None:
+        if self.member_data is None:
             messagebox.showerror("Member Not Found", "Member not found in the database.")
             self.destroy()
             return
@@ -868,7 +873,7 @@ class EditForm(ctk.CTkToplevel):
             label.grid(row=i, column=0, padx=10, pady=5, sticky="w")
             entry=ctk.CTkEntry(edit_frame)
             entry.grid(row=i, column=1, padx=10, pady=5, ipadx=10, ipady=3)
-            entry.insert(0, member_data[i + 1])  # Fill with data from the database
+            entry.insert(0, self.member_data[i + 1])  # Fill with data from the database
             self.entry_fields.append(entry)
 
         # Display the qr code of the member inside the edit form
@@ -886,7 +891,7 @@ class EditForm(ctk.CTkToplevel):
         download_button.grid(row=0, column=1, padx=10, pady=10, sticky="w")
 
         # Display the qr code from the member_qrcodes folder based on the last name of the member
-        qr_code_path=os.path.join("member_qrcodes", f"dgrit_{member_data[3]}.png")
+        qr_code_path=os.path.join("member_qrcodes", f"dgrit_{self.member_data[3]}.png")
         qr_code_image=Image.open(qr_code_path)
         qr_code_image=qr_code_image.resize((200, 200), Image.LANCZOS)
         qr_code_image=ImageTk.PhotoImage(qr_code_image)
@@ -895,32 +900,35 @@ class EditForm(ctk.CTkToplevel):
         qr_code_label.pack(pady=10, padx=10)
 
         # create frame to hold the buttons
-        button_frame=ctk.CTkFrame(main_frame)
-        button_frame.pack(pady=20, padx=20)
+        update_button_frame=ctk.CTkFrame(main_frame)
+        update_button_frame.pack(pady=20, padx=20)
 
         # Create an "Update" button
-        update_button=ctk.CTkButton(button_frame, text="Update", command=self.update_record)
+        update_button=ctk.CTkButton(update_button_frame, text="Update", command=self.update_record)
         update_button.grid(row=0, column=0, padx=20, pady=20)
 
+        # create a frame to hold the delete button
+        delete_button_frame=ctk.CTkFrame(main_frame)
+        delete_button_frame.pack(pady=20, padx=20)
+
         # Create Delete button to remove data from the database
-        delete_button=ctk.CTkButton(button_frame, text="Delete", command=self.delete_record)
+        delete_button=ctk.CTkButton(delete_button_frame, text="Delete", command=self.delete_record)
         delete_button.grid(row=0, column=1, padx=20, pady=20)
 
         # Store the reference to the 'table' in EditForm
         self.table=table_reference
 
-    @staticmethod
-    def download_qr_code(member_data):
-        # Download the qr code from the member_qrcodes folder and save it to the downloads folder
-        qr_code_path = os.path.join("member_qrcodes", f"dgrit_{member_data[3]}.png")
-        downloads_path = os.path.join(os.path.expanduser("~"), "Downloads")
+    def download_qr_code(self):
+        # Download the displayed QR code and save it to the Downloads folder in file explorer
+        qr_code_path=os.path.join("member_qrcodes", f"dgrit_{self.member_data[3]}.png")
+        qr_code_image=Image.open(qr_code_path)
 
-        # Check if the QR code file exists before copying
-        if os.path.exists(qr_code_path):
-            shutil.copy(qr_code_path, downloads_path)
-            print("QR code downloaded successfully.")
-        else:
-            print("QR code not found.")
+        # Assuming self.member_data[3] is the unique identifier for the member
+        save_path=os.path.join(os.path.expanduser("~"), "Downloads", f"dgrit_{self.member_data[3]}.png")
+        qr_code_image.save(save_path)
+
+        # show a success message
+        messagebox.showinfo("Download Successful", "QR Code downloaded successfully.")
 
     def update_record(self):
         # Get the updated data from the entry fields
