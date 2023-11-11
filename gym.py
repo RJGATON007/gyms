@@ -9,6 +9,7 @@ import sqlite3
 import random
 import string
 import qrcode
+import cv2
 from tkintermapview import TkinterMapView
 
 ctk.set_appearance_mode("dark")
@@ -827,7 +828,7 @@ class EditForm(ctk.CTkToplevel):
 
         # Set the title for the edit form
         self.title("Edit Member Record")
-        self.geometry("500x500")
+        self.geometry("500x550")
 
         # Center-align the window
         window_width=self.winfo_reqwidth()
@@ -903,17 +904,20 @@ class EditForm(ctk.CTkToplevel):
         qr_code_label.image=qr_code_image
         qr_code_label.pack(pady=10, padx=10)
 
+        frame_buttons=ctk.CTkFrame(main_frame)
+        frame_buttons.pack(pady=20, padx=20)
+
         # create frame to hold the buttons
-        update_button_frame=ctk.CTkFrame(main_frame)
-        update_button_frame.pack(pady=20, padx=20)
+        update_button_frame=ctk.CTkFrame(frame_buttons)
+        update_button_frame.grid(row=0, column=0, padx=20, pady=20)
 
         # Create an "Update" button
         update_button=ctk.CTkButton(update_button_frame, text="Update", command=self.update_record)
         update_button.grid(row=0, column=0, padx=20, pady=20)
 
         # create a frame to hold the delete button
-        delete_button_frame=ctk.CTkFrame(main_frame)
-        delete_button_frame.pack(pady=20, padx=20)
+        delete_button_frame=ctk.CTkFrame(frame_buttons)
+        delete_button_frame.grid(row=0, column=1, padx=20, pady=20)
 
         # Create Delete button to remove data from the database
         delete_button=ctk.CTkButton(delete_button_frame, text="Delete", command=self.delete_record)
@@ -992,10 +996,6 @@ class EditForm(ctk.CTkToplevel):
 # ------------- FRAME 3 -----------------------#
 
 def create_take_attendance_frame(frame_3):
-    # Create and configure UI elements within frame
-    label=ctk.CTkLabel(frame_3, text="", font=("Arial bold", 34))
-    label.pack(pady=10, padx=10)
-
     # Define the desired button width and height
     button_width=200
     button_height=200
@@ -1074,7 +1074,7 @@ class ScanFrame(ctk.CTkFrame):
             text="Time In",
             image=ImageTk.PhotoImage(time_in_image),
             compound=tk.TOP,
-            command=self.time_in,  # Call the function to open the frame
+            command=self.scan_qr_code_time_in,  # Call the function to open the frame
             width=button_width,
             height=button_height
         )
@@ -1085,7 +1085,7 @@ class ScanFrame(ctk.CTkFrame):
             text="Time Out",
             image=ImageTk.PhotoImage(time_out_image),
             compound=tk.TOP,
-            command=self.time_out,
+            command=self.scan_qr_code_time_out,
             width=button_width,
             height=button_height
         )
@@ -1096,13 +1096,49 @@ class ScanFrame(ctk.CTkFrame):
                                   hover_color=("red3", "red4"), command=self.back_button_event)
         back_button.pack(pady=20, side=tk.BOTTOM)
 
-    def time_in(self):
-        # When the "Scan QR Code" button is clicked, implement the functionality here
-        pass
+    def scan_qr_code_time_in(self):
+        # Implement the QR code scanning for time in
+        qr_code_data=self.scan_qr_code()
+        if qr_code_data:
+            # Process the QR code data for time in
+            print("Time In:", qr_code_data)
 
-    def time_out(self):
-        # When the "Attendance Records" button is clicked, implement the functionality here
-        pass
+    def scan_qr_code_time_out(self):
+        # Implement the QR code scanning for time out
+        qr_code_data=self.scan_qr_code()
+        if qr_code_data:
+            # Process the QR code data for time out
+            print("Time Out:", qr_code_data)
+
+    @staticmethod
+    def scan_qr_code():
+        # Open a camera to capture video
+        cap=cv2.VideoCapture(0)
+
+        while True:
+            # Capture frame-by-frame
+            ret, frame=cap.read()
+
+            # Display the frame
+            cv2.imshow('QR Code Scanner', frame)
+
+            # Check for QR code in the frame
+            detector=cv2.QRCodeDetector()
+            data, vertices, qr_code=detector.detectAndDecode(frame)
+
+            if data:
+                # If QR code is detected, close the camera and return the data
+                cap.release()
+                cv2.destroyAllWindows()
+                return data
+
+            # Break the loop if 'q' key is pressed
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
+
+        # Release the camera and destroy all OpenCV windows
+        cap.release()
+        cv2.destroyAllWindows()
 
     def back_button_event(self):
         # Switch back to the take attendance frame
@@ -1116,11 +1152,114 @@ class RecordsFrame(ctk.CTkFrame):
     pass
 
 
+# -------------------------- FRAME 4 ----------------------#
+
 def create_gym_equipment_frame(frame_4):
     # Create and configure UI elements within frame
-    label=ctk.CTkLabel(frame_4, text="GYM EQUIPMENT MANAGEMENT", font=("Arial bold", 34))
+    label=ctk.CTkLabel(frame_4, text="GYM EQUIPMENT MANAGEMENT", font=("Arial bold", 28))
     label.pack(pady=10, padx=10)
 
+    # create frame for the fields frame
+    main_frame=ctk.CTkFrame(frame_4)
+    main_frame.pack(pady=10, padx=10)
+
+    # Create a frame to hold the form fields
+    fields_frame=ctk.CTkFrame(main_frame)
+    fields_frame.grid(row=0, column=0, padx=10, pady=10)
+
+    label_font=ctk.CTkFont(family="Arial bold", size=16)  # Adjust the size as needed
+
+    # Equipment Details Label
+    equipment_details_label=ctk.CTkLabel(fields_frame, text="Gym Equipment Details", font=("Arial bold", 16))
+    equipment_details_label.grid(row=0, column=0, padx=10, pady=10)
+
+    # Name
+    equipment_name_label=ctk.CTkLabel(fields_frame, text="Equipment Name:", font=label_font)
+    equipment_name_label.grid(row=2, column=0, padx=10, pady=5, sticky="w")
+    equipment_name_entry=ctk.CTkEntry(fields_frame, placeholder_text="Description")
+    equipment_name_entry.grid(row=2, column=1, padx=10, pady=5)
+
+    # Brand
+    equipment_brand_label=ctk.CTkLabel(fields_frame, text="Equipment Brand:", font=label_font)
+    equipment_brand_label.grid(row=3, column=0, padx=10, pady=5, sticky="w")
+    equipment_brand_entry=ctk.CTkEntry(fields_frame, placeholder_text="Brand")
+    equipment_brand_entry.grid(row=3, column=1, padx=10, pady=5)
+
+    # Model
+    equipment_model_label=ctk.CTkLabel(fields_frame, text="Equipment Model:", font=label_font)
+    equipment_model_label.grid(row=4, column=0, padx=10, pady=5, sticky="w")
+    equipment_model_entry=ctk.CTkEntry(fields_frame, placeholder_text="Model")
+    equipment_model_entry.grid(row=4, column=1, padx=10, pady=5)
+
+    # Serial Number
+    equipment_serial_label=ctk.CTkLabel(fields_frame, text="Serial Number:", font=label_font)
+    equipment_serial_label.grid(row=5, column=0, padx=10, pady=5, sticky="w")
+    equipment_serial_entry=ctk.CTkEntry(fields_frame, placeholder_text="Serial Number")
+    equipment_serial_entry.grid(row=5, column=1, padx=10, pady=5)
+
+    # Equipment type
+    equipment_type_label=ctk.CTkLabel(fields_frame, text="Equipment Type:", font=label_font)
+    equipment_type_label.grid(row=6, column=0, padx=10, pady=5, sticky="w")
+
+    equipment_types=["Cardiovascular", "Strength training", "Functional", "Flexibility",
+                     "Gymnastics", "Recovery", "Safety", "Miscellaneous"]
+
+    equipment_type_entry=ctk.CTkComboBox(fields_frame, values=equipment_types, state="readonly")
+    equipment_type_entry.grid(row=6, column=1, padx=10, pady=5)
+    # Set a default type (e.g., "Cardiovascular")
+    equipment_type_entry.set("Type")
+
+    # Equipment status
+    equipment_status_label=ctk.CTkLabel(fields_frame, text="Equipment Status:", font=label_font)
+    equipment_status_label.grid(row=7, column=0, padx=10, pady=5, sticky="w")
+
+    status_options=["Available", "Under Maintenance", "Out of Order"]
+    equipment_status_entry=ctk.CTkComboBox(fields_frame, values=status_options, state="readonly")
+    equipment_status_entry.grid(row=7, column=1, padx=10, pady=5)
+    # Set a default status (e.g., "Available")
+    equipment_status_entry.set("Status")
+
+    # Button to register details and save QR code
+    register_button=ctk.CTkButton(fields_frame, text="Register Equipment",
+                                  command=register_equipment)
+    register_button.grid(row=11, column=0, padx=10, pady=5)
+
+    # Button to clear all entries
+    clear_button=ctk.CTkButton(fields_frame, text="Clear Entries", command=clear_entry)
+    clear_button.grid(row=11, column=1, padx=10, pady=5)
+
+    update_button=ctk.CTkButton(fields_frame, text="Update", command=update_employee)
+    update_button.grid(row=12, column=0, padx=10, pady=5)
+
+    delete_button=ctk.CTkButton(fields_frame, text="Delete", command=delete_employee)
+    delete_button.grid(row=12, column=1, padx=10, pady=5)
+
+
+def register_equipment():
+    pass
+
+
+def clear_entry():
+    pass
+
+
+def update_employee(self):
+    selected_item=self.tree.selection()
+    if not selected_item:
+        messagebox.showwarning("Warning", "Please select an employee to update.")
+        return
+    # Implement the logic to update employee details here using the selected_item
+
+
+def delete_employee(self):
+    selected_item=self.tree.selection()
+    if not selected_item:
+        messagebox.showwarning("Warning", "Please select an employee to delete.")
+        return
+    # Implement the logic to delete the selected employee here using the selected_item
+
+
+# --------------------------FRAME 5 -----------------------------------------#
 
 def create_trainers_frame(frame_5):
     # Create and configure UI elements within frame
