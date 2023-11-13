@@ -306,10 +306,6 @@ class MainApp(ctk.CTk):
 
 
 def create_gym_membership_frame(frame_2):
-    # Create and configure UI elements within frame
-    label=ctk.CTkLabel(frame_2, text="", font=("Arial bold", 34))
-    label.pack(pady=10, padx=10)
-
     # Define the desired button width and height
     button_width=200
     button_height=200
@@ -364,16 +360,22 @@ class RegistrationFrame(ctk.CTkFrame):
 
         # STEP 1: PERSONAL INFORMATION
         # Define and configure widgets within the frame
-        label=ctk.CTkLabel(self, text="MEMBER REGISTRATION", font=("Arial bold", 26))
+        label=ctk.CTkLabel(self, text="Member Registration", font=("Arial bold", 26))
         label.pack(pady=20, padx=10)
 
+        # outer frame
+        outer_frame=ctk.CTkFrame(self)
+        outer_frame.pack(pady=20, padx=10)
+
         # create frame to hold all the widget frames
-        widget_frames=ctk.CTkFrame(self)
+        widget_frames=ctk.CTkFrame(outer_frame)
         widget_frames.pack(pady=10, padx=10)
 
         # Create a frame to hold the form fields
-        personal_info_frame=ctk.CTkFrame(widget_frames)
-        personal_info_frame.grid(row=0, column=0, padx=10, pady=10)
+        first_frame=ctk.CTkFrame(widget_frames)
+        first_frame.grid(row=0, column=0, padx=10, pady=10)
+        personal_info_frame=ctk.CTkFrame(first_frame)
+        personal_info_frame.pack(pady=10, padx=10)
 
         # Create a custom font for labels
         label_font=ctk.CTkFont(family="Arial bold", size=16)  # Adjust the size as
@@ -418,8 +420,10 @@ class RegistrationFrame(ctk.CTkFrame):
         address_entry=ctk.CTkEntry(personal_info_frame, placeholder_text="Enter your address")
         address_entry.grid(row=8, column=1, padx=20, pady=5)
 
-        contact_frame=ctk.CTkFrame(widget_frames)
-        contact_frame.grid(row=0, column=1, padx=10, pady=10)
+        second_frame=ctk.CTkFrame(widget_frames)
+        second_frame.grid(row=0, column=1, padx=10, pady=10)
+        contact_frame=ctk.CTkFrame(second_frame)
+        contact_frame.pack(pady=10, padx=10)
 
         # Create a custom font for labels
         label_font=ctk.CTkFont(family="Arial bold", size=16)  # Adjust the size as
@@ -455,8 +459,10 @@ class RegistrationFrame(ctk.CTkFrame):
         emergency_contact_entry.pack(pady=10, padx=10, fill="x")
 
         # Create a frame to hold the form fields
-        subscription_frame=ctk.CTkFrame(widget_frames)
-        subscription_frame.grid(row=0, column=2, padx=10, pady=10)
+        third_frame=ctk.CTkFrame(widget_frames)
+        third_frame.grid(row=0, column=2, padx=10, pady=10)
+        subscription_frame=ctk.CTkFrame(third_frame)
+        subscription_frame.pack(pady=10, padx=10)
 
         # Create a custom font for labels
         label_font=ctk.CTkFont(family="Arial bold", size=16)  # Adjust the size as needed
@@ -491,11 +497,11 @@ class RegistrationFrame(ctk.CTkFrame):
         user_reference_entry.grid(row=5, column=1, padx=20, pady=15)
 
         # Create a "Register" button
-        register_button=ctk.CTkButton(widget_frames, text="Register", fg_color="Green",
+        register_button=ctk.CTkButton(outer_frame, text="Register", fg_color="Green",
                                       text_color=("gray10", "gray90"),
                                       hover_color=("green3", "green4"),
                                       command=self.register_subscription)
-        register_button.grid(row=7, column=1, padx=20, pady=10, sticky="e")
+        register_button.pack(pady=20, side=tk.TOP)
 
         # Create a "Back" button to return to the previous frame
         back_button=ctk.CTkButton(self, text="Back", fg_color="Red", text_color=("gray10", "gray90"),
@@ -758,21 +764,21 @@ class ViewFrame(ctk.CTkFrame):
 
         # create a frame to hold the return button
         return_button_frame=ctk.CTkFrame(button_frames)
-        return_button_frame.grid(row=0, column=0, padx=10)
+        return_button_frame.grid(row=0, column=0, padx=10, pady=10)
         # Create a "Return" button in the first column
         return_button=ctk.CTkButton(return_button_frame, text="Return", command=self.back_button_event)
         return_button.pack(padx=10, pady=10)
 
         # Create a frame to hold the edit button
         view_button_frame=ctk.CTkFrame(button_frames)
-        view_button_frame.grid(row=0, column=1, padx=10)
+        view_button_frame.grid(row=0, column=1, padx=10, pady=10)
         # Create an "Edit" button in the second column
         view_button=ctk.CTkButton(view_button_frame, text="View", command=self.edit_record)
         view_button.pack(padx=10, pady=10)
 
         # Create a frame to hold the delete button
         delete_button_frame=ctk.CTkFrame(button_frames)
-        delete_button_frame.grid(row=0, column=2, padx=10)
+        delete_button_frame.grid(row=0, column=2, padx=10, pady=10)
         # Create a "Delete" button in the third column
         delete_button=ctk.CTkButton(delete_button_frame, text="Delete", command=self.delete_record)
         delete_button.pack(padx=10, pady=10)
@@ -1155,118 +1161,1227 @@ class RecordsFrame(ctk.CTkFrame):
 # -------------------------- FRAME 4 ----------------------#
 
 def create_gym_equipment_frame(frame_4):
-    # Create and configure UI elements within frame
-    label=ctk.CTkLabel(frame_4, text="GYM EQUIPMENT MANAGEMENT", font=("Arial bold", 28))
-    label.pack(pady=10, padx=10)
+    # Define the desired button width and height
+    button_width=200
+    button_height=200
 
-    # create frame for the fields frame
-    main_frame=ctk.CTkFrame(frame_4)
-    main_frame.pack(pady=10, padx=10)
+    # Define the path to the directory containing your image files
+    frame_4_icons=os.path.join(os.path.dirname(os.path.realpath(__file__)), "frame_4_icons")
 
-    # Create a frame to hold the form fields
-    fields_frame=ctk.CTkFrame(main_frame)
-    fields_frame.grid(row=0, column=0, padx=10, pady=10)
+    # Load and resize the images
+    register_image=Image.open(os.path.join(frame_4_icons, 'dumbell_dark.png'))
+    register_image=register_image.resize((button_width, button_height), Image.LANCZOS)
 
-    label_font=ctk.CTkFont(family="Arial bold", size=16)  # Adjust the size as needed
+    view_image=Image.open(os.path.join(frame_4_icons, 'list_black.png'))
+    view_image=view_image.resize((button_width, button_height), Image.LANCZOS)
 
-    # Equipment Details Label
-    equipment_details_label=ctk.CTkLabel(fields_frame, text="Gym Equipment Details", font=("Arial bold", 16))
-    equipment_details_label.grid(row=0, column=0, padx=10, pady=10)
+    def register_equipment():
+        # When the "Register Equipment" button is clicked, create and show the registration frame
+        registration_frame=RegistrationEquipment(frame_4)
+        registration_frame.pack(fill='both', expand=True)
 
-    # Name
-    equipment_name_label=ctk.CTkLabel(fields_frame, text="Equipment Name:", font=label_font)
-    equipment_name_label.grid(row=2, column=0, padx=10, pady=5, sticky="w")
-    equipment_name_entry=ctk.CTkEntry(fields_frame, placeholder_text="Description")
-    equipment_name_entry.grid(row=2, column=1, padx=10, pady=5)
+    def view_member():
+        # When the "View Members" button is clicked, create and show the view members frame
+        view_equipment_frame=EquipmentRecords(frame_4)
+        view_equipment_frame.pack(fill='both', expand=True)
 
-    # Brand
-    equipment_brand_label=ctk.CTkLabel(fields_frame, text="Equipment Brand:", font=label_font)
-    equipment_brand_label.grid(row=3, column=0, padx=10, pady=5, sticky="w")
-    equipment_brand_entry=ctk.CTkEntry(fields_frame, placeholder_text="Brand")
-    equipment_brand_entry.grid(row=3, column=1, padx=10, pady=5)
+    # Create the buttons with the resized images
+    register_equipment_button=ctk.CTkButton(
+        master=frame_4,
+        text="Register Equipment",
+        image=ImageTk.PhotoImage(register_image),
+        compound=tk.TOP,
+        command=register_equipment,  # Call the function to open the frame
+        width=button_width,
+        height=button_height
+    )
+    register_equipment_button.place(x=250, y=200)
 
-    # Model
-    equipment_model_label=ctk.CTkLabel(fields_frame, text="Equipment Model:", font=label_font)
-    equipment_model_label.grid(row=4, column=0, padx=10, pady=5, sticky="w")
-    equipment_model_entry=ctk.CTkEntry(fields_frame, placeholder_text="Model")
-    equipment_model_entry.grid(row=4, column=1, padx=10, pady=5)
-
-    # Serial Number
-    equipment_serial_label=ctk.CTkLabel(fields_frame, text="Serial Number:", font=label_font)
-    equipment_serial_label.grid(row=5, column=0, padx=10, pady=5, sticky="w")
-    equipment_serial_entry=ctk.CTkEntry(fields_frame, placeholder_text="Serial Number")
-    equipment_serial_entry.grid(row=5, column=1, padx=10, pady=5)
-
-    # Equipment type
-    equipment_type_label=ctk.CTkLabel(fields_frame, text="Equipment Type:", font=label_font)
-    equipment_type_label.grid(row=6, column=0, padx=10, pady=5, sticky="w")
-
-    equipment_types=["Cardiovascular", "Strength training", "Functional", "Flexibility",
-                     "Gymnastics", "Recovery", "Safety", "Miscellaneous"]
-
-    equipment_type_entry=ctk.CTkComboBox(fields_frame, values=equipment_types, state="readonly")
-    equipment_type_entry.grid(row=6, column=1, padx=10, pady=5)
-    # Set a default type (e.g., "Cardiovascular")
-    equipment_type_entry.set("Type")
-
-    # Equipment status
-    equipment_status_label=ctk.CTkLabel(fields_frame, text="Equipment Status:", font=label_font)
-    equipment_status_label.grid(row=7, column=0, padx=10, pady=5, sticky="w")
-
-    status_options=["Available", "Under Maintenance", "Out of Order"]
-    equipment_status_entry=ctk.CTkComboBox(fields_frame, values=status_options, state="readonly")
-    equipment_status_entry.grid(row=7, column=1, padx=10, pady=5)
-    # Set a default status (e.g., "Available")
-    equipment_status_entry.set("Status")
-
-    # Button to register details and save QR code
-    register_button=ctk.CTkButton(fields_frame, text="Register Equipment",
-                                  command=register_equipment)
-    register_button.grid(row=11, column=0, padx=10, pady=5)
-
-    # Button to clear all entries
-    clear_button=ctk.CTkButton(fields_frame, text="Clear Entries", command=clear_entry)
-    clear_button.grid(row=11, column=1, padx=10, pady=5)
-
-    update_button=ctk.CTkButton(fields_frame, text="Update", command=update_employee)
-    update_button.grid(row=12, column=0, padx=10, pady=5)
-
-    delete_button=ctk.CTkButton(fields_frame, text="Delete", command=delete_employee)
-    delete_button.grid(row=12, column=1, padx=10, pady=5)
+    view_member_button=ctk.CTkButton(
+        master=frame_4,
+        text="View Equipment Records",
+        image=ImageTk.PhotoImage(view_image),
+        compound=tk.TOP,
+        command=view_member,
+        width=button_width,
+        height=button_height
+    )
+    view_member_button.place(x=600, y=200)
 
 
-def register_equipment():
-    pass
+class RegistrationEquipment(ctk.CTkFrame):
+    def __init__(self, master, **kwargs):
+        super().__init__(master, **kwargs)
+
+        # create frame to hold all the widget frames
+        outer_frame=ctk.CTkFrame(self)
+        outer_frame.pack(padx=20, pady=20, fill="both", expand=True)
+
+        widget_frames=ctk.CTkFrame(outer_frame)
+        widget_frames.pack(pady=10, padx=10)
+
+        first_frame=ctk.CTkFrame(widget_frames)
+        first_frame.grid(row=0, column=0, padx=10, pady=10)
+
+        # Create a frame to hold the form fields
+        equipment_info_frame=ctk.CTkFrame(first_frame)
+        equipment_info_frame.grid(row=0, column=0, padx=10, pady=10)
+
+        # Create a custom font for labels
+        label_font=ctk.CTkFont(family="Arial bold", size=18)  # Adjust the size as
+        # Equipment details label
+        equipment_details_label=ctk.CTkLabel(equipment_info_frame, text="Equipment Details", font=label_font)
+        equipment_details_label.grid(row=0, column=0, padx=10, pady=10, sticky="w")
+        # Name
+        equipment_name_label=ctk.CTkLabel(equipment_info_frame, text="Equipment Name:", font=label_font)
+        equipment_name_label.grid(row=1, column=0, padx=10, pady=20, sticky="w")
+        equipment_name_entry=ctk.CTkEntry(equipment_info_frame, placeholder_text="Description")
+        equipment_name_entry.grid(row=1, column=1, padx=10, pady=20)
+
+        # Brand
+        equipment_brand_label=ctk.CTkLabel(equipment_info_frame, text="Brand:", font=label_font)
+        equipment_brand_label.grid(row=2, column=0, padx=10, pady=20, sticky="w")
+        equipment_brand_entry=ctk.CTkEntry(equipment_info_frame, placeholder_text="Brand/Manufacturer")
+        equipment_brand_entry.grid(row=2, column=1, padx=10, pady=20)
+
+        # Model
+        equipment_model_label=ctk.CTkLabel(equipment_info_frame, text="Model:", font=label_font)
+        equipment_model_label.grid(row=3, column=0, padx=10, pady=20, sticky="w")
+        equipment_model_entry=ctk.CTkEntry(equipment_info_frame, placeholder_text="Model/Year")
+        equipment_model_entry.grid(row=3, column=1, padx=10, pady=20)
+
+        # Serial Number
+        equipment_serial_number_label=ctk.CTkLabel(equipment_info_frame, text="Serial No:", font=label_font)
+        equipment_serial_number_label.grid(row=4, column=0, padx=10, pady=20, sticky="w")
+        equipment_serial_number_entry=ctk.CTkEntry(equipment_info_frame, placeholder_text="Serial Number")
+        equipment_serial_number_entry.grid(row=4, column=1, padx=10, pady=20)
+
+        # quantity
+        equipment_quantity_label=ctk.CTkLabel(equipment_info_frame, text="Quantity:", font=label_font)
+        equipment_quantity_label.grid(row=5, column=0, padx=10, pady=20, sticky="w")
+        equipment_quantity_entry=ctk.CTkEntry(equipment_info_frame, placeholder_text="Quantity")
+        equipment_quantity_entry.grid(row=5, column=1, padx=10, pady=20)
+
+        second_frame=ctk.CTkFrame(widget_frames)
+        second_frame.grid(row=0, column=1, padx=10, pady=10)
+
+        second_info_frame=ctk.CTkFrame(second_frame)
+        second_info_frame.grid(row=0, column=1, padx=10, pady=10)
+
+        # Create a custom font for labels
+        label_font=ctk.CTkFont(family="Arial bold", size=16)  # Adjust the size as
+
+        # Condition
+        equipment_condition_label=ctk.CTkLabel(second_info_frame, text="Condition:", font=label_font)
+        equipment_condition_label.pack(padx=10, pady=5)
+        equipment_condition_options=["New", "Used", "Damaged"]
+        equipment_condition_entry=ctk.CTkComboBox(second_info_frame, values=equipment_condition_options)
+        equipment_condition_entry.pack(padx=10, pady=5)
+
+        # Equipment type
+        equipment_type_label=ctk.CTkLabel(second_info_frame, text="Type:", font=label_font)
+        equipment_type_label.pack(padx=10, pady=5)
+        equipment_type_options=["Cardio", "Strength", "Endurance", "Flexibility", "Others"]
+        equipment_type_entry=ctk.CTkComboBox(second_info_frame, values=equipment_type_options)
+        equipment_type_entry.pack(padx=10, pady=5)
+
+        # Equipment Status
+        equipment_status_label=ctk.CTkLabel(second_info_frame, text="Status:", font=label_font)
+        equipment_status_label.pack(padx=10, pady=5)
+        equipment_status_options=["Available", "Unavailable", "Under Maintenance"]
+        equipment_status_entry=ctk.CTkComboBox(second_info_frame, values=equipment_status_options)
+        equipment_status_entry.pack(padx=10, pady=5)
+
+        # Location
+        equipment_location_label=ctk.CTkLabel(second_info_frame, text="Location:", font=label_font)
+        equipment_location_label.pack(padx=10, pady=5)
+        equipment_location_options=["First Floor", "Second Floor", "Third Floor"]
+        equipment_location_entry=ctk.CTkComboBox(second_info_frame, values=equipment_location_options)
+        equipment_location_entry.pack(padx=10, pady=5)
+
+        # Training required
+        equipment_training_required_label=ctk.CTkLabel(second_info_frame, text="Training Required:", font=label_font)
+        equipment_training_required_label.pack(padx=10, pady=5)
+        equipment_training_required_options=["Yes", "No"]
+        equipment_training_required_entry=ctk.CTkComboBox(second_info_frame, values=equipment_training_required_options)
+        equipment_training_required_entry.pack(padx=10, pady=5)
+
+        # Create a "Register" button
+        register_button=ctk.CTkButton(outer_frame, text="Register", fg_color="Green",
+                                      text_color=("gray10", "gray90"),
+                                      hover_color=("green3", "green4"),
+                                      command=self.register_equipment_info)
+        register_button.pack(pady=10, side=tk.TOP)
+
+        # Create a "Back" button to return to the previous frame
+        back_button=ctk.CTkButton(self, text="Back", fg_color="Red", text_color=("gray10", "gray90"),
+                                  hover_color=("red3", "red4"), command=self.back_button_event)
+        back_button.pack(pady=10, side=tk.TOP)
+
+        # Store the Entry fields and other widgets as instance attributes
+        self.equipment_name_entry=equipment_name_entry
+        self.equipment_brand_entry=equipment_brand_entry
+        self.equipment_model_entry=equipment_model_entry
+        self.equipment_serial_number_entry=equipment_serial_number_entry
+        self.equipment_quantity_entry=equipment_quantity_entry
+        self.equipment_condition_entry=equipment_condition_entry
+        self.equipment_type_entry=equipment_type_entry
+        self.equipment_status_entry=equipment_status_entry
+        self.equipment_location_entry=equipment_location_entry
+        self.equipment_training_required_entry=equipment_training_required_entry
+
+        # Create a connection to the database (or create it if it doesn't exist)
+        conn=sqlite3.connect('register_equipment.db')
+
+        # Create a cursor object to interact with the database
+        cursor=conn.cursor()
+
+        # Create a table to store registration information
+        cursor.execute('''
+                       CREATE TABLE IF NOT EXISTS equipment (
+                           id INTEGER PRIMARY KEY,
+                            equipment_name TEXT NOT NULL,
+                            equipment_brand TEXT NOT NULL,
+                            equipment_model TEXT NOT NULL,
+                            equipment_serial_number TEXT NOT NULL,
+                            equipment_quantity TEXT NOT NULL,
+                            equipment_condition TEXT NOT NULL,
+                            equipment_type TEXT NOT NULL,
+                            equipment_status TEXT NOT NULL,
+                            equipment_location TEXT NOT NULL,
+                            equipment_training_required TEXT NOT NULL
+                       )
+                   ''')
+
+        # Commit the changes and close the database connection
+        conn.commit()
+        conn.close()
+
+    def register_equipment_info(self):
+        # Gather data from the form fields
+        equipment_name=self.equipment_name_entry.get()
+        equipment_brand=self.equipment_brand_entry.get()
+        equipment_model=self.equipment_model_entry.get()
+        equipment_serial_number=self.equipment_serial_number_entry.get()
+        equipment_quantity=self.equipment_quantity_entry.get()
+        equipment_condition=self.equipment_condition_entry.get()
+        equipment_type=self.equipment_type_entry.get()
+        equipment_status=self.equipment_status_entry.get()
+        equipment_location=self.equipment_location_entry.get()
+        equipment_training_required=self.equipment_training_required_entry.get()
+
+        # Create a connection to the database
+        conn=sqlite3.connect('register_equipment.db')
+        cursor=conn.cursor()
+
+        # Insert the data into the database
+        cursor.execute('''
+                       INSERT INTO equipment (equipment_name, equipment_brand, equipment_model, equipment_serial_number, 
+                       equipment_quantity, equipment_condition, equipment_type, equipment_status, equipment_location, equipment_training_required)
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                   ''', (equipment_name, equipment_brand, equipment_model, equipment_serial_number, equipment_quantity,
+                         equipment_condition, equipment_type, equipment_status, equipment_location, equipment_training_required))
+
+        # Commit the changes and close the database connection
+        conn.commit()
+        conn.close()
+
+        # Show a success message
+        messagebox.showinfo("Registration Successful", "equipment registered successfully!")
+
+        # Clear all form fields
+        for entry in [self.equipment_name_entry, self.equipment_brand_entry, self.equipment_model_entry,
+                      self.equipment_serial_number_entry, self.equipment_quantity_entry, self.equipment_condition_entry,
+                      self.equipment_type_entry, self.equipment_status_entry, self.equipment_location_entry,
+                      self.equipment_training_required_entry]:
+            entry.delete(0, tk.END)
+
+        # Set ComboBox and DateEntry widgets to default or empty values
+        self.equipment_condition_entry.set("")
+        self.equipment_type_entry.set("")
+        self.equipment_status_entry.set("")
+        self.equipment_location_entry.set("")
+        self.equipment_training_required_entry.set("")
+        self.equipment_name_entry.focus()
+
+    def back_button_event(self):
+        self.destroy()
 
 
-def clear_entry():
-    pass
+class EquipmentRecords(ctk.CTkFrame):
+    def __init__(self, master, **kwargs):
+        super().__init__(master, **kwargs)
+
+        # Define and configure widgets within the frame
+        label=ctk.CTkLabel(self, text="Gym Equipment Records", font=("Arial bold", 28))
+        label.pack(pady=20, padx=10)
+
+        # Create a connection to the database
+        conn=sqlite3.connect('register_equipment.db')
+        cursor=conn.cursor()
+
+        # Get only the specific columns from the database
+        cursor.execute(
+            "SELECT id, equipment_name, equipment_condition, equipment_type, equipment_status, equipment_training_required FROM equipment")
+        records=cursor.fetchall()
+
+        # Create a frame that holds the table
+        table_frame=ctk.CTkFrame(self)
+        table_frame.pack(pady=10, padx=20)
+
+        style=ttk.Style()
+
+        style.theme_use("default")
+
+        style.configure("Treeview",
+                        background="#2a2d2e",
+                        foreground="white",
+                        rowheight=50,
+                        fieldbackground="#343638",
+                        bordercolor="#343638",
+                        borderwidth=0,
+                        anchor="center")
+        style.map('Treeview', background=[('selected', '#22559b')])
+
+        style.configure("Treeview.Heading",
+                        background="#565b5e",
+                        foreground="white",
+                        relief="flat")
+        style.map("Treeview.Heading",
+                  background=[('active', '#3484F0')])
+
+        # Create a table to display the records
+        self.table=ttk.Treeview(table_frame, columns=(
+            "ID", "Equipment Name", "Equipment Condition", "Equipment Type", "Equipment Status", "Equipment Training Required"), show="headings", height=10)
+        self.table.pack(side=tk.LEFT)
+
+        self.scrollbar=ttk.Scrollbar(table_frame, orient=tk.VERTICAL, command=self.table.yview)
+        self.scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+        self.table.configure(yscrollcommand=self.scrollbar.set)
+
+        # Configure the columns
+        self.table.heading("ID", text="ID")
+        self.table.heading("Equipment Name", text="Equipment Name")
+        self.table.heading("Equipment Condition", text="Condition")
+        self.table.heading("Equipment Type", text="Type")
+        self.table.heading("Equipment Status", text="Status")
+        self.table.heading("Equipment Training Required", text="Training Required")
+
+        # Define the column headings and their alignment
+        columns=[
+            ("ID", "center"),
+            ("Equipment Name", "center"),
+            ("Equipment Condition", "center"),
+            ("Equipment Type", "center"),
+            ("Equipment Status", "center"),
+            ("Equipment Training Required", "center")
+        ]
+
+        for col, align in columns:
+            self.table.heading(col, text=col, anchor=align)
+            self.table.column(col, anchor=align)
+
+        self.table.pack(side=tk.LEFT)
+
+        # Add the records to the table
+        for record in records:
+            self.table.insert("", tk.END, values=record)
+
+        # create a frame to hold sub-frames
+        button_frames=ctk.CTkFrame(self)
+        button_frames.pack(pady=20, padx=10)
+
+        # create a frame to hold the return button
+        return_button_frame=ctk.CTkFrame(button_frames)
+        return_button_frame.grid(row=0, column=0, padx=10, pady=10)
+        # Create a "Return" button in the first column
+        return_button=ctk.CTkButton(return_button_frame, text="Return", command=self.back_button_event)
+        return_button.pack(padx=10, pady=10)
+
+        # Create a frame to hold the edit button
+        view_button_frame=ctk.CTkFrame(button_frames)
+        view_button_frame.grid(row=0, column=1, padx=10, pady=10)
+        # Create an "Edit" button in the second column
+        view_button=ctk.CTkButton(view_button_frame, text="View", command=self.edit_record)
+        view_button.pack(padx=10, pady=10)
+
+        # Create a frame to hold the delete button
+        delete_button_frame=ctk.CTkFrame(button_frames)
+        delete_button_frame.grid(row=0, column=2, padx=10, pady=10)
+        # Create a "Delete" button in the third column
+        delete_button=ctk.CTkButton(delete_button_frame, text="Delete", command=self.delete_record)
+        delete_button.pack(padx=10, pady=10)
+
+    def back_button_event(self):
+        # Switch back to the previous frame (e.g., the gym membership frame)
+        self.destroy()
+
+    def edit_record(self):
+        selected_item=self.table.selection()
+        if selected_item:
+            record_data=self.table.item(selected_item)["values"]
+
+            if record_data:
+                # Assuming 'id' is the first element and 'first_name' is the second element in the 'values' list
+                id_value=record_data[0]
+                equipment_name=record_data[1]
+                edit_record=EditRecord(self, equipment_name, id_value, self.table)
+
+    def delete_record(self):
+        # Get the selected item (record) from the Treeview
+        selected_item=self.table.selection()
+        if selected_item:
+            # Prompt the user for confirmation
+            confirm=messagebox.askyesno("Delete Record", "Are you sure you want to delete this record?")
+            if confirm:
+                # Retrieve the data of the selected record from the Treeview
+                record_data=self.table.item(selected_item)['values']
+
+                # Delete the selected record from the database based on the 'First Name' column
+                if record_data:
+                    id=record_data[0]  # Assuming 'First Name' is the first column in the 'values' list
+                    conn=sqlite3.connect('register_equipment.db')
+                    cursor=conn.cursor()
+                    try:
+                        cursor.execute("DELETE FROM equipment WHERE id=?", (id,))
+                        conn.commit()  # Commit the changes to the database
+                        print("Record deleted successfully.")
+                    except sqlite3.Error as e:
+                        messagebox.showerror("Error", f"Error deleting record: {e}")
+                        print(f"Error deleting record: {e}")
+                    finally:
+                        cursor.close()  # Close the cursor
+                        conn.close()  # Close the database connection
+
+                    # Remove the selected item from the Treeview
+                    self.table.delete(selected_item)
 
 
-def update_employee(self):
-    selected_item=self.tree.selection()
-    if not selected_item:
-        messagebox.showwarning("Warning", "Please select an employee to update.")
-        return
-    # Implement the logic to update employee details here using the selected_item
+class EditRecord(ctk.CTkToplevel):
+    def __init__(self, master, first_name, id_value, table_reference):
+        super().__init__(master)
 
+        # Set the title for the edit form
+        self.title("Edit Equipment Record")
+        self.geometry("500x550")
 
-def delete_employee(self):
-    selected_item=self.tree.selection()
-    if not selected_item:
-        messagebox.showwarning("Warning", "Please select an employee to delete.")
-        return
-    # Implement the logic to delete the selected employee here using the selected_item
+        # Center-align the window
+        window_width=self.winfo_reqwidth()
+        window_height=self.winfo_reqheight()
+        screen_width=self.winfo_screenwidth()
+        screen_height=self.winfo_screenheight()
+        x=(screen_width - window_width) // 2
+        y=(screen_height - window_height) // 5
+        self.geometry(f"+{x}+{y}")
+
+        # Create a connection to the database
+        self.conn=sqlite3.connect('register_equipment.db')
+        self.cursor=self.conn.cursor()
+
+        # Fetch data for the specified member using the provided 'id_value'
+        self.cursor.execute("SELECT * FROM equipment WHERE id=?", (id_value,))
+        self.member_data=self.cursor.fetchone()
+
+        if self.member_data is None:
+            messagebox.showerror("Member Not Found", "Member not found in the database.")
+            self.destroy()
+            return
+
+        # Create and configure widgets within the edit form
+        label=ctk.CTkLabel(self, text="Edit Equipment Record", font=("Arial bold", 20))
+        label.pack(pady=10)
+
+        # Create a frame to hold edit form frames
+        main_frame=ctk.CTkFrame(self)
+        main_frame.pack(fill="both", expand=True)
+
+        # Create a frame to hold the form fields with custom width and height
+        edit_frame=ctk.CTkScrollableFrame(main_frame, width=450, height=300)
+        edit_frame.pack(pady=20, padx=20)
+
+        # Define a custom font style for entry labels
+        label_font=ctk.CTkFont(family="Arial", size=16, weight="bold")
+
+        # Create labels and entry fields for editing the record
+        labels=["Equipment Name:", "Equipment Brand:", "Equipment Model:", "Equipment Serial Number:",
+                "Equipment Quantity:", "Equipment Condition:", "Equipment Type:", "Equipment Status:", "Equipment Location:",
+                "Equipment Training Required:"]
+        self.entry_fields=[]
+
+        for i, label_text in enumerate(labels):
+            label=ctk.CTkLabel(edit_frame, text=label_text, font=label_font)
+            label.grid(row=i, column=0, padx=10, pady=5, sticky="w")
+            entry=ctk.CTkEntry(edit_frame)
+            entry.grid(row=i, column=1, padx=10, pady=5, ipadx=10, ipady=3)
+            entry.insert(0, self.member_data[i + 1])  # Fill with data from the database
+            self.entry_fields.append(entry)
+
+        # Create a frame to hold the buttons
+        frame_buttons=ctk.CTkFrame(main_frame)
+        frame_buttons.pack(pady=20, padx=20)
+
+        # create frame to hold the buttons
+        update_button_frame=ctk.CTkFrame(frame_buttons)
+        update_button_frame.grid(row=0, column=0, padx=20, pady=20)
+
+        # Create an "Update" button
+        update_button=ctk.CTkButton(update_button_frame, text="Update", command=self.update_record)
+        update_button.grid(row=0, column=0, padx=20, pady=20)
+
+        # create a frame to hold the delete button
+        delete_button_frame=ctk.CTkFrame(frame_buttons)
+        delete_button_frame.grid(row=0, column=1, padx=20, pady=20)
+
+        # Create Delete button to remove data from the database
+        delete_button=ctk.CTkButton(delete_button_frame, text="Delete", command=self.delete_record)
+        delete_button.grid(row=0, column=1, padx=20, pady=20)
+
+        # Store the reference to the 'table' in EditForm
+        self.table=table_reference
+
+    def update_record(self):
+        # Get the updated data from the entry fields
+        updated_data=[entry.get() for entry in self.entry_fields]
+
+        # Validate the updated data
+        if not all(updated_data):
+            messagebox.showerror("Validation Error", "All fields are required.")
+            return
+
+        # Continue with the update logic
+        try:
+            self.cursor.execute('''
+                    UPDATE equipment SET 
+                    equipment_name=?, equipment_brand=?, equipment_model=?, equipment_serial_number=?, equipment_quantity=?,
+                     equipment_condition=?, equipment_type=?, equipment_status=?, equipment_location=?, equipment_training_required=?
+                ''', tuple(updated_data))
+
+            self.conn.commit()  # Commit the changes to the database
+            messagebox.showinfo("Update Successful", "Record updated successfully.")
+        except sqlite3.Error as e:
+            messagebox.showerror("Error", f"Error updating record: {e}")
+        finally:
+            self.cursor.close()  # Close the cursor
+            self.conn.close()  # Close the database connection
+
+        # Close the edit form
+        self.destroy()
+
+    def delete_record(self):
+        selected_item=self.table.selection()
+        if selected_item:
+            confirm=messagebox.askyesno("Delete Record", "Are you sure you want to delete this record?")
+            if confirm:
+                # Retrieve the data of the selected record from the Treeview
+                record_data=self.table.item(selected_item)['values']
+
+                # Delete the selected record from the database based on the 'First Name' column
+                if record_data:
+                    id_value=record_data[0]  # Assuming 'ID' is the first column in the 'values' list
+                    conn=sqlite3.connect('register_equipment.db')
+                    cursor=conn.cursor()
+                    try:
+                        cursor.execute("DELETE FROM registration WHERE id=?", (id_value,))
+                        conn.commit()  # Commit the changes to the database
+                        print("Record deleted successfully.")
+                    except sqlite3.Error as e:
+                        messagebox.showerror("Error", f"Error deleting record: {e}")
+                        print(f"Error deleting record: {e}")
+                    finally:
+                        cursor.close()
+                        conn.close()
 
 
 # --------------------------FRAME 5 -----------------------------------------#
 
 def create_trainers_frame(frame_5):
-    # Create and configure UI elements within frame
-    label=ctk.CTkLabel(frame_5, text="TRAINER MANAGEMENT", font=("Arial bold", 34))
-    label.pack(pady=10, padx=10)
+    # Define the desired button width and height
+    button_width=200
+    button_height=200
 
-    # Widgets
+    # Define the path to the directory containing your image files
+    frame_2_icons=os.path.join(os.path.dirname(os.path.realpath(__file__)), "frame_2_icons")
+
+    # Load and resize the images
+    register_image=Image.open(os.path.join(frame_2_icons, 'register_black.png'))
+    register_image=register_image.resize((button_width, button_height), Image.LANCZOS)
+
+    view_image=Image.open(os.path.join(frame_2_icons, 'list_black.png'))
+    view_image=view_image.resize((button_width, button_height), Image.LANCZOS)
+
+    def register_trainer():
+        # When the "Register Members" button is clicked, create and show the registration frame
+        registration_frame=TrainerFrame(frame_5)
+        registration_frame.pack(fill='both', expand=True)
+
+    def view_trainer():
+        # When the "View Members" button is clicked, create and show the view members frame
+        view_trainer_frame=ViewTrainerFrame(frame_5)
+        view_trainer_frame.pack(fill='both', expand=True)
+
+    # Create the buttons with the resized images
+    register_member_button=ctk.CTkButton(
+        master=frame_5,
+        text="Register Members",
+        image=ImageTk.PhotoImage(register_image),
+        compound=tk.TOP,
+        command=register_trainer,  # Call the function to open the frame
+        width=button_width,
+        height=button_height
+    )
+    register_member_button.place(x=250, y=200)
+
+    view_member_button=ctk.CTkButton(
+        master=frame_5,
+        text="View Members",
+        image=ImageTk.PhotoImage(view_image),
+        compound=tk.TOP,
+        command=view_trainer,
+        width=button_width,
+        height=button_height
+    )
+    view_member_button.place(x=600, y=200)
+
+
+class TrainerFrame(ctk.CTkFrame):
+    def __init__(self, master, **kwargs):
+        super().__init__(master, **kwargs)
+
+        # STEP 1: PERSONAL INFORMATION
+        # Define and configure widgets within the frame
+        label=ctk.CTkLabel(self, text="Member Registration", font=("Arial bold", 26))
+        label.pack(pady=20, padx=10)
+
+        # outer frame
+        outer_frame=ctk.CTkFrame(self)
+        outer_frame.pack(pady=20, padx=10)
+
+        # create frame to hold all the widget frames
+        widget_frames=ctk.CTkFrame(outer_frame)
+        widget_frames.pack(pady=10, padx=10)
+
+        # Create a frame to hold the form fields
+        first_frame=ctk.CTkFrame(widget_frames)
+        first_frame.grid(row=0, column=0, padx=10, pady=10)
+        personal_info_frame=ctk.CTkFrame(first_frame)
+        personal_info_frame.pack(pady=10, padx=10)
+
+        # Create a custom font for labels
+        label_font=ctk.CTkFont(family="Arial bold", size=16)  # Adjust the size as
+
+        # Name
+        first_name_label=ctk.CTkLabel(personal_info_frame, text="First Name:", font=label_font)
+        first_name_label.grid(row=2, column=0, padx=20, pady=5, sticky="w")
+        first_name_entry=ctk.CTkEntry(personal_info_frame, placeholder_text="Enter your first name")
+        first_name_entry.grid(row=2, column=1, padx=20, pady=5)
+
+        middle_name_label=ctk.CTkLabel(personal_info_frame, text="Middle Name:", font=label_font)
+        middle_name_label.grid(row=3, column=0, padx=20, pady=5, sticky="w")
+        middle_name_entry=ctk.CTkEntry(personal_info_frame, placeholder_text="Enter your middle name")
+        middle_name_entry.grid(row=3, column=1, padx=20, pady=5)
+
+        last_name_label=ctk.CTkLabel(personal_info_frame, text="Last Name:", font=label_font)
+        last_name_label.grid(row=4, column=0, padx=20, pady=5, sticky="w")
+        last_name_entry=ctk.CTkEntry(personal_info_frame, placeholder_text="Enter your last name")
+        last_name_entry.grid(row=4, column=1, padx=20, pady=5)
+
+        # Age
+        age_label=ctk.CTkLabel(personal_info_frame, text="Age:", font=label_font)
+        age_label.grid(row=5, column=0, padx=20, pady=5, sticky="w")
+        age_entry=ctk.CTkEntry(personal_info_frame, placeholder_text="Enter your age")
+        age_entry.grid(row=5, column=1, padx=20, pady=5)
+
+        # Sex
+        sex_label=ctk.CTkLabel(personal_info_frame, text="Sex:", font=label_font)
+        sex_label.grid(row=6, column=0, padx=20, pady=5, sticky="w")
+        sex_entry=ctk.CTkComboBox(personal_info_frame, values=["Male", "Female", "Other"])
+        sex_entry.grid(row=6, column=1, padx=20, pady=5)
+
+        # Create a DateEntry widget for the birthdate
+        birth_date_label=ctk.CTkLabel(personal_info_frame, text="Date of Birth:", font=label_font)
+        birth_date_label.grid(row=7, column=0, padx=20, pady=5, sticky="w")
+        birth_date_entry=DateEntry(personal_info_frame, width=20, date_pattern="yyyy-mm-dd")
+        birth_date_entry.grid(row=7, column=1, padx=20, pady=15, sticky="w")
+
+        # Address
+        address_label=ctk.CTkLabel(personal_info_frame, text="Address:", font=label_font)
+        address_label.grid(row=8, column=0, padx=20, pady=5, sticky="w")
+        address_entry=ctk.CTkEntry(personal_info_frame, placeholder_text="Enter your address")
+        address_entry.grid(row=8, column=1, padx=20, pady=5)
+
+        second_frame=ctk.CTkFrame(widget_frames)
+        second_frame.grid(row=0, column=1, padx=10, pady=10)
+        contact_frame=ctk.CTkFrame(second_frame)
+        contact_frame.pack(pady=10, padx=10)
+
+        # Create a custom font for labels
+        label_font=ctk.CTkFont(family="Arial bold", size=16)  # Adjust the size as
+
+        # Assuming you have a list of nationalities
+        nationalities_list=["Select Nationality", "Filipino", "American", "Chinese", "Japanese", "Korean", "Other"]
+
+        # Nationality Label
+        nationality_label=ctk.CTkLabel(contact_frame, text="Nationality:", font=label_font)
+        nationality_label.pack(pady=5, padx=10, anchor="w")
+
+        # Create a CTkComboBox widget for nationalities
+        nationality_combo=ctk.CTkComboBox(contact_frame, values=nationalities_list)
+        nationality_combo.pack(pady=5, padx=10, fill="x")
+        nationality_combo.set("Select Nationality")  # Set a default selection
+
+        # Contact No
+        contact_no_label=ctk.CTkLabel(contact_frame, text="Contact No:", font=label_font)
+        contact_no_label.pack(pady=3, padx=10, anchor="w")
+        contact_no_entry=ctk.CTkEntry(contact_frame, placeholder_text="+63 9123456789")
+        contact_no_entry.pack(pady=0, padx=10, fill="x")
+
+        # Email Address
+        email_label=ctk.CTkLabel(contact_frame, text="Email Address:", font=label_font)
+        email_label.pack(pady=0, padx=10, anchor="w")
+        email_entry=ctk.CTkEntry(contact_frame, placeholder_text="example@gmail.com")
+        email_entry.pack(pady=0, padx=10, fill="x")
+
+        # Emergency Contact No
+        emergency_contact_label=ctk.CTkLabel(contact_frame, text="Emergency Contact No:", font=label_font)
+        emergency_contact_label.pack(pady=0, padx=10, anchor="w")
+        emergency_contact_entry=ctk.CTkEntry(contact_frame, placeholder_text="+63 9123456789")
+        emergency_contact_entry.pack(pady=10, padx=10, fill="x")
+
+        # Create a frame to hold the form fields
+        third_frame=ctk.CTkFrame(widget_frames)
+        third_frame.grid(row=0, column=2, padx=10, pady=10)
+        subscription_frame=ctk.CTkFrame(third_frame)
+        subscription_frame.pack(pady=10, padx=10)
+
+        # Create a custom font for labels
+        label_font=ctk.CTkFont(family="Arial bold", size=16)  # Adjust the size as needed
+
+        # Subscription ID
+        subscription_id_label=ctk.CTkLabel(subscription_frame, text="Subscription ID:", font=label_font)
+        subscription_id_label.grid(row=1, column=0, padx=20, pady=15, sticky="w")
+        subscription_id_entry=ctk.CTkEntry(subscription_frame, placeholder_text="DG-XXX")
+        subscription_id_entry.grid(row=1, column=1, padx=20, pady=15)
+
+        # Create the widgets for subscription plan, start date, and end date
+        subscription_plan_label=ctk.CTkLabel(subscription_frame, text="Subscription Plan:", font=label_font)
+        subscription_plan_label.grid(row=2, column=0, padx=20, pady=10, sticky="w")
+        subscription_plan_options=["Weekly", "Monthly", "Yearly"]
+        subscription_plan_entry=ctk.CTkComboBox(subscription_frame, values=subscription_plan_options)
+        subscription_plan_entry.grid(row=2, column=1, padx=20, pady=15)
+
+        start_timestamp_label=ctk.CTkLabel(subscription_frame, text="Start:", font=label_font)
+        start_timestamp_label.grid(row=3, column=0, padx=20, pady=10, sticky="w")
+        start_timestamp_entry=DateEntry(subscription_frame, width=20, date_pattern="yyyy-mm-dd")
+        start_timestamp_entry.grid(row=3, column=1, padx=20, pady=15, sticky="w")
+
+        end_timestamp_label=ctk.CTkLabel(subscription_frame, text="End:", font=label_font)
+        end_timestamp_label.grid(row=4, column=0, padx=20, pady=10, sticky="w")
+        end_timestamp_entry=DateEntry(subscription_frame, width=20, date_pattern="yyyy-mm-dd")
+        end_timestamp_entry.grid(row=4, column=1, padx=20, pady=15, sticky="w")
+
+        # Reference to the user who owns the subscription
+        user_reference_label=ctk.CTkLabel(subscription_frame, text="User Reference:", font=label_font)
+        user_reference_label.grid(row=5, column=0, padx=20, pady=15, sticky="w")
+        user_reference_entry=ctk.CTkEntry(subscription_frame, placeholder_text="User ID or Name")
+        user_reference_entry.grid(row=5, column=1, padx=20, pady=15)
+
+        # Create a "Register" button
+        register_button=ctk.CTkButton(outer_frame, text="Register", fg_color="Green",
+                                      text_color=("gray10", "gray90"),
+                                      hover_color=("green3", "green4"),
+                                      command=self.register_subscription)
+        register_button.pack(pady=20, side=tk.TOP)
+
+        # Create a "Back" button to return to the previous frame
+        back_button=ctk.CTkButton(self, text="Back", fg_color="Red", text_color=("gray10", "gray90"),
+                                  hover_color=("red3", "red4"), command=self.back_button_event)
+        back_button.pack(pady=20, side=tk.TOP)
+
+        # Store the Entry fields and other widgets as instance attributes
+        self.first_name_entry=first_name_entry
+        self.middle_name_entry=middle_name_entry
+        self.last_name_entry=last_name_entry
+        self.age_entry=age_entry
+        self.sex_entry=sex_entry
+        self.birth_date_entry=birth_date_entry
+        self.address_entry=address_entry
+        self.nationality_combo=nationality_combo
+        self.contact_no_entry=contact_no_entry
+        self.email_entry=email_entry
+        self.emergency_contact_entry=emergency_contact_entry
+        self.subscription_id_entry=subscription_id_entry
+        self.subscription_plan_entry=subscription_plan_entry
+        self.start_timestamp_entry=start_timestamp_entry
+        self.end_timestamp_entry=end_timestamp_entry
+        self.user_reference_entry=user_reference_entry
+
+        # Create a connection to the database (or create it if it doesn't exist)
+        conn=sqlite3.connect('registration_form.db')
+
+        # Create a cursor object to interact with the database
+        cursor=conn.cursor()
+
+        # Create a table to store registration information
+        cursor.execute('''
+                       CREATE TABLE IF NOT EXISTS registration (
+                           id INTEGER PRIMARY KEY,
+                           first_name TEXT,
+                           middle_name TEXT,
+                           last_name TEXT,
+                           age INTEGER,
+                           sex TEXT,
+                           birth_date DATE,
+                           address TEXT,
+                           nationality TEXT,
+                           contact_no TEXT,
+                           email TEXT,
+                           emergency_contact_no TEXT,
+                           subscription_id TEXT,
+                           subscription_plan TEXT,
+                           start_date DATE,
+                           end_date DATE,
+                           user_reference TEXT
+                       )
+                   ''')
+
+        # Commit the changes and close the database connection
+        conn.commit()
+        conn.close()
+
+    def register_subscription(self):
+        # Gather data from the form fields
+        first_name=self.first_name_entry.get()
+        middle_name=self.middle_name_entry.get()
+        last_name=self.last_name_entry.get()
+        age=self.age_entry.get()
+        sex=self.sex_entry.get()
+        birth_date=self.birth_date_entry.get()
+        address=self.address_entry.get()
+        nationality=self.nationality_combo.get()
+        contact_no=self.contact_no_entry.get()
+        email=self.email_entry.get()
+        emergency_contact_no=self.emergency_contact_entry.get()
+        subscription_id=self.subscription_id_entry.get()
+        subscription_plan=self.subscription_plan_entry.get()
+        start_date=self.start_timestamp_entry.get()
+        end_date=self.end_timestamp_entry.get()
+        user_reference=self.user_reference_entry.get()
+
+        # Validate the data (you can add your validation logic here)
+
+        # Validate the data
+        if not (first_name and last_name and age and sex and birth_date and address and
+                nationality and contact_no and email and emergency_contact_no and
+                subscription_id and subscription_plan and start_date and end_date and user_reference):
+            messagebox.showerror("Validation Error", "All fields are required.")
+            return
+
+        try:
+            age=int(age)
+        except ValueError:
+            messagebox.showerror("Validation Error", "Age must be a valid integer.")
+            return
+
+        # Create a connection to the database
+        conn=sqlite3.connect('registration_form.db')
+        cursor=conn.cursor()
+
+        # Insert the data into the database
+        cursor.execute('''
+                       INSERT INTO registration (first_name, middle_name, last_name, age, sex, birth_date, address,
+                                                nationality, contact_no, email, emergency_contact_no, subscription_id,
+                                                subscription_plan, start_date, end_date, user_reference)
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                   ''', (first_name, middle_name, last_name, age, sex, birth_date, address, nationality, contact_no,
+                         email, emergency_contact_no, subscription_id, subscription_plan, start_date, end_date,
+                         user_reference))
+
+        # Commit the changes and close the database connection
+        conn.commit()
+        conn.close()
+
+        # Combine all the data entries into a single string
+        data_string=f"First Name: {first_name}\n" \
+                    f"Middle Name: {middle_name}\n" \
+                    f"Last Name: {last_name}\n" \
+                    f"Age: {age}\n" \
+                    f"Sex: {sex}\n" \
+                    f"Date of Birth: {birth_date}\n" \
+                    f"Address: {address}\n" \
+                    f"Nationality: {nationality}\n" \
+                    f"Contact No: {contact_no}\n" \
+                    f"Email: {email}\n" \
+                    f"Emergency Contact No: {emergency_contact_no}\n" \
+                    f"Subscription ID: {subscription_id}\n" \
+                    f"Subscription Plan: {subscription_plan}\n" \
+                    f"Start Date: {start_date}\n" \
+                    f"End Date: {end_date}\n" \
+                    f"User Reference: {user_reference}"
+
+        # Create a folder if it doesn't exist
+        folder_path="member_qrcodes"
+        os.makedirs(folder_path, exist_ok=True)
+
+        # Create a QR code containing all the data entries
+        qr=qrcode.QRCode(
+            version=1,
+            error_correction=qrcode.constants.ERROR_CORRECT_L,
+            box_size=10,
+            border=4,
+        )
+        qr.add_data(data_string)
+        qr.make(fit=True)
+        qr_img=qr.make_image(fill_color="black", back_color="white")
+
+        # Specify the file path to save the QR code in the folder
+        file_path=os.path.join(folder_path, f"dgrit_{last_name}.png")
+        qr_img.save(file_path)
+
+        # Show a success message
+        messagebox.showinfo("Registration Successful", "User registered successfully!")
+
+        # Clear all form fields
+        for entry in [self.first_name_entry, self.middle_name_entry, self.last_name_entry, self.age_entry,
+                      self.address_entry, self.contact_no_entry, self.email_entry,
+                      self.emergency_contact_entry, self.subscription_id_entry,
+                      self.user_reference_entry]:
+            entry.delete(0, tk.END)
+
+        # Set ComboBox and DateEntry widgets to default or empty values
+        self.sex_entry.set("Male")
+        self.birth_date_entry.set_date("")
+        self.nationality_combo.set("Select Nationality")
+        self.subscription_plan_entry.set("Weekly")
+        self.start_timestamp_entry.set_date("")
+        self.end_timestamp_entry.set_date("")
+
+    def back_button_event(self):
+        self.destroy()
+
+
+class ViewTrainerFrame(ctk.CTkFrame):
+    def __init__(self, master, **kwargs):
+        super().__init__(master, **kwargs)
+
+        # Define and configure widgets within the frame
+        label=ctk.CTkLabel(self, text="Members List", font=("Arial bold", 28))
+        label.pack(pady=20, padx=10)
+
+        # Create a connection to the database
+        conn=sqlite3.connect('registration_form.db')
+        cursor=conn.cursor()
+
+        # Get only the specific columns from the database
+        cursor.execute(
+            "SELECT id, first_name, middle_name, last_name, subscription_plan, start_date, end_date FROM registration")
+        records=cursor.fetchall()
+
+        # Create a frame that holds the table
+        table_frame=ctk.CTkFrame(self)
+        table_frame.pack(pady=10, padx=10)
+
+        style=ttk.Style()
+
+        style.theme_use("default")
+
+        style.configure("Treeview",
+                        background="#2a2d2e",
+                        foreground="white",
+                        rowheight=50,
+                        fieldbackground="#343638",
+                        bordercolor="#343638",
+                        borderwidth=0,
+                        anchor="center")
+        style.map('Treeview', background=[('selected', '#22559b')])
+
+        style.configure("Treeview.Heading",
+                        background="#565b5e",
+                        foreground="white",
+                        relief="flat")
+        style.map("Treeview.Heading",
+                  background=[('active', '#3484F0')])
+
+        # Create a table to display the records
+        self.table=ttk.Treeview(table_frame, columns=(
+            "ID", "First Name", "Middle Name", "Last Name", "Subscription Plan",
+            "Start Date", "End Date"), show="headings", height=10)
+        self.table.pack(side=tk.LEFT)
+
+        self.scrollbar=ttk.Scrollbar(table_frame, orient=tk.VERTICAL, command=self.table.yview)
+        self.scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+        self.table.configure(yscrollcommand=self.scrollbar.set)
+
+        # Configure the columns
+        self.table.heading("ID", text="ID")
+        self.table.heading("First Name", text="First Name")
+        self.table.heading("Middle Name", text="Middle Name")
+        self.table.heading("Last Name", text="Last Name")
+        self.table.heading("Subscription Plan", text="Subscription Plan")
+        self.table.heading("Start Date", text="Start Date")
+        self.table.heading("End Date", text="End Date")
+
+        # Define the column headings and their alignment
+        columns=[
+            ("ID", "center"),
+            ("First Name", "center"),
+            ("Middle Name", "center"),
+            ("Last Name", "center"),
+            ("Subscription Plan", "center"),
+            ("Start Date", "center"),
+            ("End Date", "center")
+        ]
+
+        for col, align in columns:
+            self.table.heading(col, text=col, anchor=align)
+            self.table.column(col, anchor=align)
+
+        self.table.pack(side=tk.LEFT)
+
+        # Add the records to the table
+        for record in records:
+            self.table.insert("", tk.END, values=record)
+
+        # create a frame to hold sub-frames
+        button_frames=ctk.CTkFrame(self)
+        button_frames.pack(pady=10, padx=10)
+
+        # create a frame to hold the return button
+        return_button_frame=ctk.CTkFrame(button_frames)
+        return_button_frame.grid(row=0, column=0, padx=10, pady=10)
+        # Create a "Return" button in the first column
+        return_button=ctk.CTkButton(return_button_frame, text="Return", command=self.back_button_event)
+        return_button.pack(padx=10, pady=10)
+
+        # Create a frame to hold the edit button
+        view_button_frame=ctk.CTkFrame(button_frames)
+        view_button_frame.grid(row=0, column=1, padx=10, pady=10)
+        # Create an "Edit" button in the second column
+        view_button=ctk.CTkButton(view_button_frame, text="View", command=self.edit_record)
+        view_button.pack(padx=10, pady=10)
+
+        # Create a frame to hold the delete button
+        delete_button_frame=ctk.CTkFrame(button_frames)
+        delete_button_frame.grid(row=0, column=2, padx=10, pady=10)
+        # Create a "Delete" button in the third column
+        delete_button=ctk.CTkButton(delete_button_frame, text="Delete", command=self.delete_record)
+        delete_button.pack(padx=10, pady=10)
+
+    def back_button_event(self):
+        # Switch back to the previous frame (e.g., the gym membership frame)
+        self.destroy()
+
+    def edit_record(self):
+        selected_item=self.table.selection()
+        if selected_item:
+            record_data=self.table.item(selected_item)["values"]
+
+            if record_data:
+                # Assuming 'id' is the first element and 'first_name' is the second element in the 'values' list
+                id_value=record_data[0]
+                first_name=record_data[1]
+                edit_form=EditForm(self, first_name, id_value, self.table)
+
+    def delete_record(self):
+        # Get the selected item (record) from the Treeview
+        selected_item=self.table.selection()
+        if selected_item:
+            # Prompt the user for confirmation
+            confirm=messagebox.askyesno("Delete Record", "Are you sure you want to delete this record?")
+            if confirm:
+                # Retrieve the data of the selected record from the Treeview
+                record_data=self.table.item(selected_item)['values']
+
+                # Delete the selected record from the database based on the 'First Name' column
+                if record_data:
+                    id=record_data[0]  # Assuming 'First Name' is the first column in the 'values' list
+                    conn=sqlite3.connect('registration_form.db')
+                    cursor=conn.cursor()
+                    try:
+                        cursor.execute("DELETE FROM registration WHERE id=?", (id,))
+                        conn.commit()  # Commit the changes to the database
+                        print("Record deleted successfully.")
+                    except sqlite3.Error as e:
+                        messagebox.showerror("Error", f"Error deleting record: {e}")
+                        print(f"Error deleting record: {e}")
+                    finally:
+                        cursor.close()  # Close the cursor
+                        conn.close()  # Close the database connection
+
+                    # Remove the selected item from the Treeview
+                    self.table.delete(selected_item)
+
+
+class EditForm(ctk.CTkToplevel):
+    def __init__(self, master, first_name, id_value, table_reference):
+        super().__init__(master)
+
+        # Set the title for the edit form
+        self.title("Edit Member Record")
+        self.geometry("500x550")
+
+        # Center-align the window
+        window_width=self.winfo_reqwidth()
+        window_height=self.winfo_reqheight()
+        screen_width=self.winfo_screenwidth()
+        screen_height=self.winfo_screenheight()
+        x=(screen_width - window_width) // 2
+        y=(screen_height - window_height) // 5
+        self.geometry(f"+{x}+{y}")
+
+        # Create a connection to the database
+        self.conn=sqlite3.connect('registration_form.db')
+        self.cursor=self.conn.cursor()
+
+        # Fetch data for the specified member using the provided 'id_value'
+        self.cursor.execute("SELECT * FROM registration WHERE id=?", (id_value,))
+        self.member_data=self.cursor.fetchone()
+
+        if self.member_data is None:
+            messagebox.showerror("Member Not Found", "Member not found in the database.")
+            self.destroy()
+            return
+
+        # Create and configure widgets within the edit form
+        label=ctk.CTkLabel(self, text="Edit Member Record", font=("Arial bold", 20))
+        label.pack(pady=10)
+
+        # Create a frame to hold edit form frames
+        main_frame=ctk.CTkFrame(self)
+        main_frame.pack(fill="both", expand=True)
+
+        # Create a frame to hold the form fields with custom width and height
+        edit_frame=ctk.CTkScrollableFrame(main_frame, width=450, height=300)
+        edit_frame.pack(pady=20, padx=20)
+
+        # Define a custom font style for entry labels
+        label_font=ctk.CTkFont(family="Arial", size=16, weight="bold")
+
+        # Create labels and entry fields for editing the record
+        labels=["First Name:", "Middle Name:", "Last Name:", "Age:", "Sex:", "Date of Birth:", "Address:",
+                "Nationality:", "Contact No:", "Email Address:", "Emergency Contact No:", "Subscription ID:",
+                "Subscription Plan:", "Start Date:", "End Date:", "User Reference:"]
+        self.entry_fields=[]
+
+        for i, label_text in enumerate(labels):
+            label=ctk.CTkLabel(edit_frame, text=label_text, font=label_font)
+            label.grid(row=i, column=0, padx=10, pady=5, sticky="w")
+            entry=ctk.CTkEntry(edit_frame)
+            entry.grid(row=i, column=1, padx=10, pady=5, ipadx=10, ipady=3)
+            entry.insert(0, self.member_data[i + 1])  # Fill with data from the database
+            self.entry_fields.append(entry)
+
+        # Display the qr code of the member inside the edit form
+        qr_code_frame=ctk.CTkFrame(edit_frame)
+        qr_code_frame.grid(row=16, column=1, rowspan=16, padx=10, pady=10)
+
+        label=ctk.CTkLabel(edit_frame, text="QR Code:", font=("Arial bold", 16))
+        label.grid(row=16, column=0, padx=10, pady=10, sticky="w")
+
+        download_button_frame=ctk.CTkFrame(edit_frame)
+        download_button_frame.grid(row=50, column=1, rowspan=50, padx=10, pady=10)
+
+        # create a download button to download the qr code
+        download_button=ctk.CTkButton(download_button_frame, text="Download", command=self.download_qr_code)
+        download_button.grid(row=0, column=1, padx=10, pady=10, sticky="w")
+
+        # Display the qr code from the member_qrcodes folder based on the last name of the member
+        qr_code_path=os.path.join("member_qrcodes", f"dgrit_{self.member_data[3]}.png")
+        qr_code_image=Image.open(qr_code_path)
+        qr_code_image=qr_code_image.resize((200, 200), Image.LANCZOS)
+        qr_code_image=ImageTk.PhotoImage(qr_code_image)
+        qr_code_label=ctk.CTkLabel(qr_code_frame, text="", image=qr_code_image)
+        qr_code_label.image=qr_code_image
+        qr_code_label.pack(pady=10, padx=10)
+
+        frame_buttons=ctk.CTkFrame(main_frame)
+        frame_buttons.pack(pady=20, padx=20)
+
+        # create frame to hold the buttons
+        update_button_frame=ctk.CTkFrame(frame_buttons)
+        update_button_frame.grid(row=0, column=0, padx=20, pady=20)
+
+        # Create an "Update" button
+        update_button=ctk.CTkButton(update_button_frame, text="Update", command=self.update_record)
+        update_button.grid(row=0, column=0, padx=20, pady=20)
+
+        # create a frame to hold the delete button
+        delete_button_frame=ctk.CTkFrame(frame_buttons)
+        delete_button_frame.grid(row=0, column=1, padx=20, pady=20)
+
+        # Create Delete button to remove data from the database
+        delete_button=ctk.CTkButton(delete_button_frame, text="Delete", command=self.delete_record)
+        delete_button.grid(row=0, column=1, padx=20, pady=20)
+
+        # Store the reference to the 'table' in EditForm
+        self.table=table_reference
+
+    def download_qr_code(self):
+        # Download the displayed QR code and save it to the Downloads folder in file explorer
+        qr_code_path=os.path.join("member_qrcodes", f"dgrit_{self.member_data[3]}.png")
+        qr_code_image=Image.open(qr_code_path)
+
+        # Assuming self.member_data[3] is the unique identifier for the member
+        save_path=os.path.join(os.path.expanduser("~"), "Downloads", f"dgrit_{self.member_data[3]}.png")
+        qr_code_image.save(save_path)
+
+        # show a success message
+        messagebox.showinfo("Download Successful", "QR Code downloaded successfully.")
+
+    def update_record(self):
+        # Get the updated data from the entry fields
+        updated_data=[entry.get() for entry in self.entry_fields]
+
+        # Validate the updated data
+        if not all(updated_data):
+            messagebox.showerror("Validation Error", "All fields are required.")
+            return
+
+        # Continue with the update logic
+        try:
+            self.cursor.execute('''
+                    UPDATE registration SET 
+                    first_name=?, middle_name=?, last_name=?, age=?, sex=?, birth_date=?, address=?, nationality=?,
+                    contact_no=?, email=?, emergency_contact_no=?, subscription_id=?, subscription_plan=?, start_date=?,
+                    end_date=?, user_reference=?
+                    WHERE first_name=?
+                ''', (*updated_data, updated_data[0]))
+
+            self.conn.commit()  # Commit the changes to the database
+            messagebox.showinfo("Update Successful", "Record updated successfully.")
+        except sqlite3.Error as e:
+            messagebox.showerror("Error", f"Error updating record: {e}")
+        finally:
+            self.cursor.close()  # Close the cursor
+            self.conn.close()  # Close the database connection
+
+        # Close the edit form
+        self.destroy()
+
+    def delete_record(self):
+        selected_item=self.table.selection()
+        if selected_item:
+            confirm=messagebox.askyesno("Delete Record", "Are you sure you want to delete this record?")
+            if confirm:
+                # Retrieve the data of the selected record from the Treeview
+                record_data=self.table.item(selected_item)['values']
+
+                # Delete the selected record from the database based on the 'First Name' column
+                if record_data:
+                    id_value=record_data[0]  # Assuming 'ID' is the first column in the 'values' list
+                    conn=sqlite3.connect('registration_form.db')
+                    cursor=conn.cursor()
+                    try:
+                        cursor.execute("DELETE FROM registration WHERE id=?", (id_value,))
+                        conn.commit()  # Commit the changes to the database
+                        print("Record deleted successfully.")
+                    except sqlite3.Error as e:
+                        messagebox.showerror("Error", f"Error deleting record: {e}")
+                        print(f"Error deleting record: {e}")
+                    finally:
+                        cursor.close()
+                        conn.close()
 
 
 def create_visitors_frame(frame_6):
