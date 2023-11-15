@@ -10,6 +10,7 @@ import random
 import string
 import qrcode
 import cv2
+import datetime
 from tkintermapview import TkinterMapView
 
 ctk.set_appearance_mode("dark")
@@ -358,6 +359,10 @@ class RegistrationFrame(ctk.CTkFrame):
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
 
+        # Create a connection to the database
+        self.conn=sqlite3.connect('registration_form.db')
+        self.cursor=self.conn.cursor()
+
         # STEP 1: PERSONAL INFORMATION
         # Define and configure widgets within the frame
         label=ctk.CTkLabel(self, text="Member Registration", font=("Arial bold", 26))
@@ -470,8 +475,13 @@ class RegistrationFrame(ctk.CTkFrame):
         # Subscription ID
         subscription_id_label=ctk.CTkLabel(subscription_frame, text="Subscription ID:", font=label_font)
         subscription_id_label.grid(row=1, column=0, padx=20, pady=15, sticky="w")
-        subscription_id_entry=ctk.CTkEntry(subscription_frame, placeholder_text="DG-XXX")
-        subscription_id_entry.grid(row=1, column=1, padx=20, pady=15)
+
+        # Subscription ID entry (read-only)
+        self.subscription_id_entry=ctk.CTkEntry(subscription_frame, placeholder_text="DG-XXXXXXXX")
+        self.subscription_id_entry.grid(row=1, column=1, padx=20, pady=15)
+
+        # Set the subscription ID based on the last inserted ID
+        self.set_subscription_id()
 
         # Create the widgets for subscription plan, start date, and end date
         subscription_plan_label=ctk.CTkLabel(subscription_frame, text="Subscription Plan:", font=label_font)
@@ -520,17 +530,14 @@ class RegistrationFrame(ctk.CTkFrame):
         self.contact_no_entry=contact_no_entry
         self.email_entry=email_entry
         self.emergency_contact_entry=emergency_contact_entry
-        self.subscription_id_entry=subscription_id_entry
+        self.subscription_id_entry=self.subscription_id_entry
         self.subscription_plan_entry=subscription_plan_entry
         self.start_timestamp_entry=start_timestamp_entry
         self.end_timestamp_entry=end_timestamp_entry
         self.user_reference_entry=user_reference_entry
 
-        # Create a connection to the database (or create it if it doesn't exist)
-        conn=sqlite3.connect('registration_form.db')
-
-        # Create a cursor object to interact with the database
-        cursor=conn.cursor()
+        with sqlite3.connect('registration_form.db') as conn:
+            cursor=conn.cursor()
 
         # Create a table to store registration information
         cursor.execute('''
@@ -559,6 +566,13 @@ class RegistrationFrame(ctk.CTkFrame):
         conn.commit()
         conn.close()
 
+    @staticmethod
+    def set_subscription_id():
+        # generate random string of length 5
+        letters=string.ascii_uppercase + string.digits
+        result_str="DG-" + ''.join(random.choice(letters) for i in range(8))
+        return result_str
+
     def register_subscription(self):
         # Gather data from the form fields
         first_name=self.first_name_entry.get()
@@ -572,7 +586,7 @@ class RegistrationFrame(ctk.CTkFrame):
         contact_no=self.contact_no_entry.get()
         email=self.email_entry.get()
         emergency_contact_no=self.emergency_contact_entry.get()
-        subscription_id=self.subscription_id_entry.get()
+        subscription_id=self.set_subscription_id()
         subscription_plan=self.subscription_plan_entry.get()
         start_date=self.start_timestamp_entry.get()
         end_date=self.end_timestamp_entry.get()
@@ -583,7 +597,7 @@ class RegistrationFrame(ctk.CTkFrame):
         # Validate the data
         if not (first_name and last_name and age and sex and birth_date and address and
                 nationality and contact_no and email and emergency_contact_no and
-                subscription_id and subscription_plan and start_date and end_date and user_reference):
+                subscription_plan and start_date and end_date and user_reference):
             messagebox.showerror("Validation Error", "All fields are required.")
             return
 
@@ -612,22 +626,7 @@ class RegistrationFrame(ctk.CTkFrame):
         conn.close()
 
         # Combine all the data entries into a single string
-        data_string=f"First Name: {first_name}\n" \
-                    f"Middle Name: {middle_name}\n" \
-                    f"Last Name: {last_name}\n" \
-                    f"Age: {age}\n" \
-                    f"Sex: {sex}\n" \
-                    f"Date of Birth: {birth_date}\n" \
-                    f"Address: {address}\n" \
-                    f"Nationality: {nationality}\n" \
-                    f"Contact No: {contact_no}\n" \
-                    f"Email: {email}\n" \
-                    f"Emergency Contact No: {emergency_contact_no}\n" \
-                    f"Subscription ID: {subscription_id}\n" \
-                    f"Subscription Plan: {subscription_plan}\n" \
-                    f"Start Date: {start_date}\n" \
-                    f"End Date: {end_date}\n" \
-                    f"User Reference: {user_reference}"
+        data_string=subscription_id
 
         # Create a folder if it doesn't exist
         folder_path="member_qrcodes"
@@ -1107,14 +1106,50 @@ class ScanFrame(ctk.CTkFrame):
         qr_code_data=self.scan_qr_code()
         if qr_code_data:
             # Process the QR code data for time in
-            print("Time In:", qr_code_data)
+            self.record_attendance(qr_code_data, "Time In")
 
     def scan_qr_code_time_out(self):
         # Implement the QR code scanning for time out
         qr_code_data=self.scan_qr_code()
         if qr_code_data:
             # Process the QR code data for time out
-            print("Time Out:", qr_code_data)
+            self.record_attendance(qr_code_data, "Time Out")
+
+    @staticmethod
+    def record_attendance(member_data, attendance_type):
+        # Extract relevant information from the QR code data
+        # Modify this part based on your QR code content and data format
+        member_id=member_data  # Assuming the QR code contains the member ID
+
+        # Get the current date and time
+        current_datetime=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+        # Log the attendance record in the database or any other storage mechanism
+        # Modify the logic to suit your database schema
+        conn=sqlite3.connect('attendance_records.db')
+        cursor=conn.cursor()
+
+        try:
+            if attendance_type == "Time In":
+                cursor.execute('''
+                    INSERT INTO attendance_records (member_id, time_in)
+                    VALUES (?, ?)
+                ''', (member_id, current_datetime))
+            elif attendance_type == "Time Out":
+                cursor.execute('''
+                    UPDATE attendance_records
+                    SET time_out = ?
+                    WHERE member_id = ? AND time_out IS NULL
+                ''', (current_datetime, member_id))
+
+            conn.commit()
+            messagebox.showinfo("Attendance Recorded",
+                                f"{attendance_type} recorded successfully for Member ID: {member_id}")
+        except sqlite3.Error as e:
+            messagebox.showerror("Error", f"Error recording attendance: {e}")
+        finally:
+            cursor.close()
+            conn.close()
 
     @staticmethod
     def scan_qr_code():
@@ -1154,8 +1189,79 @@ class ScanFrame(ctk.CTkFrame):
 class RecordsFrame(ctk.CTkFrame):
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
+        self.create_ui_elements()
 
-    pass
+    def create_ui_elements(self):
+        # Create a frame to hold the attendance records table
+        records_table_frame=ctk.CTkFrame(self)
+        records_table_frame.pack(pady=10, padx=10)
+
+        # Create a style for the Treeview
+        style=ttk.Style()
+        style.theme_use("default")
+        style.configure("Treeview", background="#2a2d2e", foreground="white", rowheight=25,
+                        fieldbackground="#343638", bordercolor="#343638", borderwidth=0, anchor="center")
+        style.map('Treeview', background=[('selected', '#22559b')])
+
+        # Create a Treeview widget to display the attendance records
+        self.records_table=ttk.Treeview(records_table_frame, columns=("Member ID", "Time In", "Time Out"),
+                                        show="headings", height=25)
+        self.records_table.pack(side=tk.LEFT)
+
+        # Create a scrollbar for the Treeview
+        scrollbar=ttk.Scrollbar(records_table_frame, orient=tk.VERTICAL, command=self.records_table.yview)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        self.records_table.configure(yscrollcommand=scrollbar.set)
+
+        # Configure the columns
+        self.records_table.heading("Member ID", text="Member ID")
+        self.records_table.heading("Time In", text="Time In")
+        self.records_table.heading("Time Out", text="Time Out")
+
+        # Fetch attendance records from the database
+        self.load_attendance_records()
+
+        # Create attendance record sqlite database if it doesn't exist
+        conn=sqlite3.connect('attendance_records.db')
+        cursor=conn.cursor()
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS attendance_records (
+                id INTEGER PRIMARY KEY,
+                member_id TEXT,
+                time_in TEXT,
+                time_out TEXT
+            )
+        ''')
+        conn.commit()
+        conn.close()
+
+    def load_attendance_records(self):
+        # Fetch attendance records from the database and populate the Treeview
+        conn=sqlite3.connect('attendance_records.db')
+        cursor=conn.cursor()
+
+        try:
+            cursor.execute('SELECT member_id, time_in, time_out FROM attendance_records')
+            records=cursor.fetchall()
+
+            for record in records:
+                self.records_table.insert("", tk.END, values=record)
+
+        except sqlite3.Error as e:
+            messagebox.showerror("Error", f"Error fetching attendance records: {e}")
+
+        finally:
+            cursor.close()
+            conn.close()
+
+            # create a back button to return to the previous frame
+            back_button=ctk.CTkButton(self, text="Back", fg_color="Red", text_color=("gray10", "gray90"),
+                                      hover_color=("red3", "red4"), command=self.back_button_event)
+            back_button.pack(pady=20, side=tk.BOTTOM)
+
+    def back_button_event(self):
+        # Switch back to the previous frame
+        self.destroy()
 
 
 # -------------------------- FRAME 4 ----------------------#
@@ -1978,8 +2084,8 @@ class TrainerFrame(ctk.CTkFrame):
                     f"Contact No: {contact_no}\n" \
                     f"Email: {email}\n" \
                     f"Emergency Contact No: {emergency_contact_no}\n" \
-
-        # Create a folder if it doesn't exist
+ \
+            # Create a folder if it doesn't exist
         folder_path="trainer_qrcodes"
         os.makedirs(folder_path, exist_ok=True)
 
@@ -2349,341 +2455,565 @@ def create_visitors_frame(frame_6):
 
 
 def create_employee_frame(frame_7):
-    # Create and configure UI elements within frame
-    label=ctk.CTkLabel(frame_7, text="EMPLOYEE MANAGEMENT", font=("Arial bold", 34))
-    label.pack(pady=20, padx=10)
-
     # Define the desired button width and height
     button_width=200
     button_height=200
 
     # Define the path to the directory containing your image files
-    frame_2_icons=os.path.join(os.path.dirname(os.path.realpath(__file__)), "frame_2_icons")
+    frame_7_icons=os.path.join(os.path.dirname(os.path.realpath(__file__)), "frame_7_icons")
 
     # Load and resize the images
-    register_image=Image.open(os.path.join(frame_2_icons, 'register_black.png'))
+    register_image=Image.open(os.path.join(frame_7_icons, 'register_black.png'))
     register_image=register_image.resize((button_width, button_height), Image.LANCZOS)
 
-    attendance_image=Image.open(os.path.join(frame_2_icons, 'scan_black.png'))
-    attendance_image=attendance_image.resize((button_width, button_height), Image.LANCZOS)
+    view_image=Image.open(os.path.join(frame_7_icons, 'list_black.png'))
+    view_image=view_image.resize((button_width, button_height), Image.LANCZOS)
 
-    def manage_employee_frame():
-        manage_employee=ManageEmployeeFrame(frame_7)
-        manage_employee.pack(fill='both', expand=True, padx=10, pady=10)
+    def register_employee():
+        # When the "Register Members" button is clicked, create and show the registration frame
+        registration_frame=RegisterEmployeeFrame(frame_7)
+        registration_frame.pack(fill='both', expand=True)
 
-    def employee_attendance():
-        pass
+    def view_employee_information():
+        # When the "View Members" button is clicked, create and show the view members frame
+        view_employee_frame=ViewEmployeeFrame(frame_7)
+        view_employee_frame.pack(fill='both', expand=True)
 
     # Create the buttons with the resized images
-    manage_employee_button=ctk.CTkButton(
+    register_employee_button=ctk.CTkButton(
         master=frame_7,
-        text="Manage Employee",
+        text="Register Employee",
         image=ImageTk.PhotoImage(register_image),
         compound=tk.TOP,
-        command=manage_employee_frame,  # Call the function to open the frame
+        command=register_employee,  # Call the function to open the frame
         width=button_width,
         height=button_height
     )
-    manage_employee_button.place(x=250, y=200)
+    register_employee_button.place(x=250, y=200)
 
-    employee_attendance_button=ctk.CTkButton(
+    view_employee_button=ctk.CTkButton(
         master=frame_7,
-        text="Take Attendance",
-        image=ImageTk.PhotoImage(attendance_image),
+        text="View Employee Information",
+        image=ImageTk.PhotoImage(view_image),
         compound=tk.TOP,
-        command=employee_attendance,
+        command=view_employee_information,
         width=button_width,
         height=button_height
     )
-    employee_attendance_button.place(x=600, y=200)
+    view_employee_button.place(x=600, y=200)
 
 
-class ManageEmployeeFrame(ctk.CTkFrame):
+class RegisterEmployeeFrame(ctk.CTkFrame):
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
-        self.output_folder="qr_codes"  # Folder where QR codes will be saved
 
-        # Check if the output folder exists; if not, create it
-        if not os.path.exists(self.output_folder):
-            os.makedirs(self.output_folder)
+        # STEP 1: PERSONAL INFORMATION
+        # Define and configure widgets within the frame
+        label=ctk.CTkLabel(self, text="Employee Registration", font=("Arial bold", 26))
+        label.pack(pady=20, padx=10)
+
+        # outer frame
+        outer_frame=ctk.CTkFrame(self)
+        outer_frame.pack(pady=20, padx=10)
+
+        # create frame to hold all the widget frames
+        widget_frames=ctk.CTkFrame(outer_frame)
+        widget_frames.pack(pady=10, padx=10)
 
         # Create a frame to hold the form fields
-        fields_frame=ctk.CTkFrame(self)
-        fields_frame.grid(row=0, column=0, padx=10, pady=50)
+        first_frame=ctk.CTkFrame(widget_frames)
+        first_frame.grid(row=0, column=0, padx=10, pady=10)
+        personal_info_frame=ctk.CTkFrame(first_frame)
+        personal_info_frame.pack(pady=10, padx=10)
 
-        label_font=ctk.CTkFont(family="Arial bold", size=16)  # Adjust the size as needed
-
-        # Employee Details Label
-        employee_details_label=ctk.CTkLabel(fields_frame, text="EMPLOYEE DETAILS", font=("Arial bold", 14))
-        employee_details_label.grid(row=0, column=0, padx=10, pady=10)
+        # Create a custom font for labels
+        label_font=ctk.CTkFont(family="Arial bold", size=16)  # Adjust the size as
 
         # Name
-        first_name_label=ctk.CTkLabel(fields_frame, text="First Name:", font=label_font)
-        first_name_label.grid(row=2, column=0, padx=10, pady=5, sticky="w")
-        first_name_entry=ctk.CTkEntry(fields_frame, placeholder_text="Enter your first name")
-        first_name_entry.grid(row=2, column=1, padx=10, pady=5)
+        first_name_label=ctk.CTkLabel(personal_info_frame, text="First Name:", font=label_font)
+        first_name_label.grid(row=2, column=0, padx=20, pady=5, sticky="w")
+        first_name_entry=ctk.CTkEntry(personal_info_frame, placeholder_text="Enter your first name")
+        first_name_entry.grid(row=2, column=1, padx=20, pady=5)
 
-        # Middle Name
-        middle_name_label=ctk.CTkLabel(fields_frame, text="Middle Name:", font=label_font)
-        middle_name_label.grid(row=3, column=0, padx=10, pady=5, sticky="w")
-        middle_name_entry=ctk.CTkEntry(fields_frame, placeholder_text="Enter your middle name")
-        middle_name_entry.grid(row=3, column=1, padx=10, pady=5)
+        middle_name_label=ctk.CTkLabel(personal_info_frame, text="Middle Name:", font=label_font)
+        middle_name_label.grid(row=3, column=0, padx=20, pady=5, sticky="w")
+        middle_name_entry=ctk.CTkEntry(personal_info_frame, placeholder_text="Enter your middle name")
+        middle_name_entry.grid(row=3, column=1, padx=20, pady=5)
 
-        # Last Name
-        last_name_label=ctk.CTkLabel(fields_frame, text="Last Name:", font=label_font)
-        last_name_label.grid(row=4, column=0, padx=10, pady=5, sticky="w")
-        last_name_entry=ctk.CTkEntry(fields_frame, placeholder_text="Enter your last name")
-        last_name_entry.grid(row=4, column=1, padx=10, pady=5)
+        last_name_label=ctk.CTkLabel(personal_info_frame, text="Last Name:", font=label_font)
+        last_name_label.grid(row=4, column=0, padx=20, pady=5, sticky="w")
+        last_name_entry=ctk.CTkEntry(personal_info_frame, placeholder_text="Enter your last name")
+        last_name_entry.grid(row=4, column=1, padx=20, pady=5)
 
         # Age
-        age_label=ctk.CTkLabel(fields_frame, text="Age:", font=label_font)
-        age_label.grid(row=5, column=0, padx=10, pady=5, sticky="w")
-        age_entry=ctk.CTkEntry(fields_frame, placeholder_text="Enter your age")
-        age_entry.grid(row=5, column=1, padx=10, pady=5)
+        age_label=ctk.CTkLabel(personal_info_frame, text="Age:", font=label_font)
+        age_label.grid(row=5, column=0, padx=20, pady=5, sticky="w")
+        age_entry=ctk.CTkEntry(personal_info_frame, placeholder_text="Enter your age")
+        age_entry.grid(row=5, column=1, padx=20, pady=5)
 
         # Sex
-        sex_label=ctk.CTkLabel(fields_frame, text="Sex:", font=label_font)
-        sex_label.grid(row=6, column=0, padx=10, pady=5, sticky="w")
-        sex_entry=ctk.CTkComboBox(fields_frame, values=["Male", "Female", "Other"])
-        sex_entry.grid(row=6, column=1, padx=10, pady=5)
+        sex_label=ctk.CTkLabel(personal_info_frame, text="Sex:", font=label_font)
+        sex_label.grid(row=6, column=0, padx=20, pady=5, sticky="w")
+        sex_entry=ctk.CTkComboBox(personal_info_frame, values=["Male", "Female", "Other"])
+        sex_entry.grid(row=6, column=1, padx=20, pady=5)
 
         # Create a DateEntry widget for the birthdate
-        birth_date_label=ctk.CTkLabel(fields_frame, text="Date of Birth:", font=label_font)
-        birth_date_label.grid(row=7, column=0, padx=10, pady=5, sticky="w")
-        birth_date_entry=DateEntry(fields_frame, width=20, date_pattern="yyyy-mm-dd")
-        birth_date_entry.grid(row=7, column=1, padx=10, pady=15, sticky="w")
+        birth_date_label=ctk.CTkLabel(personal_info_frame, text="Date of Birth:", font=label_font)
+        birth_date_label.grid(row=7, column=0, padx=20, pady=5, sticky="w")
+        birth_date_entry=DateEntry(personal_info_frame, width=20, date_pattern="yyyy-mm-dd")
+        birth_date_entry.grid(row=7, column=1, padx=20, pady=15, sticky="w")
 
         # Address
-        address_label=ctk.CTkLabel(fields_frame, text="Address:", font=label_font)
-        address_label.grid(row=8, column=0, padx=10, pady=5, sticky="w")
-        address_entry=ctk.CTkEntry(fields_frame, placeholder_text="Enter your address")
-        address_entry.grid(row=8, column=1, padx=10, pady=5)
+        address_label=ctk.CTkLabel(personal_info_frame, text="Address:", font=label_font)
+        address_label.grid(row=8, column=0, padx=20, pady=5, sticky="w")
+        address_entry=ctk.CTkEntry(personal_info_frame, placeholder_text="Enter your address")
+        address_entry.grid(row=8, column=1, padx=20, pady=5)
+
+        second_frame=ctk.CTkFrame(widget_frames)
+        second_frame.grid(row=0, column=1, padx=10, pady=10)
+        contact_frame=ctk.CTkFrame(second_frame)
+        contact_frame.pack(pady=10, padx=10)
+
+        # Create a custom font for labels
+        label_font=ctk.CTkFont(family="Arial bold", size=16)  # Adjust the size as
+
+        # Assuming you have a list of nationalities
+        nationalities_list=["Select Nationality", "Filipino", "American", "Chinese", "Japanese", "Korean", "Other"]
+
+        # Nationality Label
+        nationality_label=ctk.CTkLabel(contact_frame, text="Nationality:", font=label_font)
+        nationality_label.pack(pady=5, padx=10, anchor="w")
+
+        # Create a CTkComboBox widget for nationalities
+        nationality_combo=ctk.CTkComboBox(contact_frame, values=nationalities_list)
+        nationality_combo.pack(pady=5, padx=10, fill="x")
+        nationality_combo.set("Select Nationality")  # Set a default selection
 
         # Contact No
-        contact_no_label=ctk.CTkLabel(fields_frame, text="Contact No:", font=label_font)
-        contact_no_label.grid(row=9, column=0, padx=10, pady=5, sticky="w")
-        contact_no_entry=ctk.CTkEntry(fields_frame, placeholder_text="+63 9123456789")
-        contact_no_entry.grid(row=9, column=1, padx=10, pady=5)
+        contact_no_label=ctk.CTkLabel(contact_frame, text="Contact No:", font=label_font)
+        contact_no_label.pack(pady=3, padx=10, anchor="w")
+        contact_no_entry=ctk.CTkEntry(contact_frame, placeholder_text="+63 9123456789")
+        contact_no_entry.pack(pady=0, padx=10, fill="x")
 
-        # Function to register employee details and generate/save the QR code
-        def register_and_save_qr_code(manage_employee_frame):
-            # Get data from the input fields
-            first_name=first_name_entry.get()
-            middle_name=middle_name_entry.get()
-            last_name=last_name_entry.get()
-            age=age_entry.get()
-            sex=sex_entry.get()
-            birth_date=birth_date_entry.get()
-            address=address_entry.get()
-            contact_no=contact_no_entry.get()
+        # Email Address
+        email_label=ctk.CTkLabel(contact_frame, text="Email Address:", font=label_font)
+        email_label.pack(pady=0, padx=10, anchor="w")
+        email_entry=ctk.CTkEntry(contact_frame, placeholder_text="example@gmail.com")
+        email_entry.pack(pady=0, padx=10, fill="x")
 
-            # Construct the QR code data
-            qr_data=f"First Name: {first_name}\nMiddle Name: {middle_name}\nLast Name: {last_name}\nAge: {age}\nSex: {sex}\nDate of Birth: {birth_date}\nAddress: {address}\nContact No: {contact_no}"
+        # Emergency Contact No
+        emergency_contact_label=ctk.CTkLabel(contact_frame, text="Emergency Contact No:", font=label_font)
+        emergency_contact_label.pack(pady=0, padx=10, anchor="w")
+        emergency_contact_entry=ctk.CTkEntry(contact_frame, placeholder_text="+63 9123456789")
+        emergency_contact_entry.pack(pady=10, padx=10, fill="x")
 
-            # Generate the QR code
-            qr=qrcode.QRCode(
-                version=1,
-                error_correction=qrcode.constants.ERROR_CORRECT_L,
-                box_size=10,
-                border=4,
-            )
-            qr.add_data(qr_data)
-            qr.make(fit=True)
+        # Create a "Register" button
+        register_button=ctk.CTkButton(outer_frame, text="Register", fg_color="Green",
+                                      text_color=("gray10", "gray90"),
+                                      hover_color=("green3", "green4"),
+                                      command=self.register_employees)
+        register_button.pack(pady=20, side=tk.TOP)
 
-            qr_img=qr.make_image(fill_color="black", back_color="white")
+        # Create a "Back" button to return to the previous frame
+        back_button=ctk.CTkButton(self, text="Back", fg_color="Red", text_color=("gray10", "gray90"),
+                                  hover_color=("red3", "red4"), command=self.back_button_event)
+        back_button.pack(pady=20, side=tk.TOP)
 
-            # Save the QR code as an image in the output folder
-            qr_filename=os.path.join(self.output_folder, f"{first_name}_{last_name}_qr.png")
-            qr_img.save(qr_filename)
+        # Store the Entry fields and other widgets as instance attributes
+        self.first_name_entry=first_name_entry
+        self.middle_name_entry=middle_name_entry
+        self.last_name_entry=last_name_entry
+        self.age_entry=age_entry
+        self.sex_entry=sex_entry
+        self.birth_date_entry=birth_date_entry
+        self.address_entry=address_entry
+        self.nationality_combo=nationality_combo
+        self.contact_no_entry=contact_no_entry
+        self.email_entry=email_entry
+        self.emergency_contact_entry=emergency_contact_entry
 
-            # Insert data into the database
-            conn=sqlite3.connect('employee_database.db')
-            cursor=conn.cursor()
-            cursor.execute(
-                "INSERT INTO employee (first_name, middle_name, last_name, age, sex, birth_date, address, contact_no) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-                (first_name, middle_name, last_name, age, sex, birth_date, address, contact_no))
-            conn.commit()
+        # Create a connection to the database (or create it if it doesn't exist)
+        conn=sqlite3.connect('register_employee.db')
 
-            # Refresh the employee data in the table
-            manage_employee_frame.load_employee_data()
+        # Create a cursor object to interact with the database
+        cursor=conn.cursor()
 
-            # Show a success message using a messagebox
-            messagebox.showinfo("Success", "Employee registered successfully.")
-            print(f"QR code saved as {qr_filename}")
+        # Create a table to store registration information
+        cursor.execute('''
+                                 CREATE TABLE IF NOT EXISTS employees (
+                                     id INTEGER PRIMARY KEY,
+                                     first_name TEXT,
+                                     middle_name TEXT,
+                                     last_name TEXT,
+                                     age INTEGER,
+                                     sex TEXT,
+                                     birth_date DATE,
+                                     address TEXT,
+                                     nationality TEXT,
+                                     contact_no TEXT,
+                                     email TEXT,
+                                     emergency_contact_no TEXT
+                                 )
+                             ''')
 
-            # Clear the entry fields
-            clear_entries()
+        # Commit the changes and close the database connection
+        conn.commit()
+        conn.close()
 
-            # Clear the entry fields
-            first_name_entry.delete(0, 'end')
-            middle_name_entry.delete(0, 'end')
-            last_name_entry.delete(0, 'end')
-            age_entry.delete(0, 'end')
-            sex_entry.set("")
-            birth_date_entry.delete(0, 'end')
-            address_entry.delete(0, 'end')
-            contact_no_entry.delete(0, 'end')
+    def register_employees(self):
+        # Gather data from the form fields
+        first_name=self.first_name_entry.get()
+        middle_name=self.middle_name_entry.get()
+        last_name=self.last_name_entry.get()
+        age=self.age_entry.get()
+        sex=self.sex_entry.get()
+        birth_date=self.birth_date_entry.get()
+        address=self.address_entry.get()
+        nationality=self.nationality_combo.get()
+        contact_no=self.contact_no_entry.get()
+        email=self.email_entry.get()
+        emergency_contact_no=self.emergency_contact_entry.get()
 
-            # Function to clear all input entries
+        # Validate the data (you can add your validation logic here)
 
-        def clear_entries():
-            first_name_entry.delete(0, 'end')
-            middle_name_entry.delete(0, 'end')
-            last_name_entry.delete(0, 'end')
-            age_entry.delete(0, 'end')
-            sex_entry.set("")
-            birth_date_entry.delete(0, 'end')
-            address_entry.delete(0, 'end')
-            contact_no_entry.delete(0, 'end')
+        # Validate the data
+        if not (first_name and last_name and age and sex and birth_date and address and
+                nationality and contact_no and email and emergency_contact_no):
+            messagebox.showerror("Validation Error", "All fields are required.")
+            return
 
-        # Button to register details and save QR code
-        register_button=ctk.CTkButton(fields_frame, text="Register Employee",
-                                      command=lambda: register_and_save_qr_code(self))
-        register_button.grid(row=11, column=0, padx=10, pady=5)
+        try:
+            age=int(age)
+        except ValueError:
+            messagebox.showerror("Validation Error", "Age must be a valid integer.")
+            return
 
-        # Button to clear all entries
-        clear_button=ctk.CTkButton(fields_frame, text="Clear Entries", command=clear_entries)
-        clear_button.grid(row=11, column=1, padx=10, pady=5)
+        # Create a connection to the database
+        conn=sqlite3.connect('register_employee.db')
+        cursor=conn.cursor()
 
-        update_button=ctk.CTkButton(fields_frame, text="Update", command=self.update_employee)
-        update_button.grid(row=12, column=0, padx=10, pady=5)
+        # Insert the data into the database
+        cursor.execute('''
+                              INSERT INTO employees (first_name, middle_name, last_name, age, sex, birth_date, address,
+                                                       nationality, contact_no, email, emergency_contact_no)
+                              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                          ''',
+                       (first_name, middle_name, last_name, age, sex, birth_date, address, nationality, contact_no,
+                        email, emergency_contact_no))
 
-        delete_button=ctk.CTkButton(fields_frame, text="Delete", command=self.delete_employee)
-        delete_button.grid(row=12, column=1, padx=10, pady=5)
+        # Commit the changes and close the database connection
+        conn.commit()
+        conn.close()
+
+        # Show a success message
+        messagebox.showinfo("Registration Successful", "Trainer registered successfully!")
+
+        # Clear all form fields
+        for entry in [self.first_name_entry, self.middle_name_entry, self.last_name_entry, self.age_entry,
+                      self.address_entry, self.contact_no_entry, self.email_entry,
+                      self.emergency_contact_entry]:
+            entry.delete(0, tk.END)
+
+        # Set ComboBox and DateEntry widgets to default or empty values
+        self.sex_entry.set("Male")
+        self.birth_date_entry.set_date("")
+        self.nationality_combo.set("Select Nationality")
+
+    def back_button_event(self):
+        self.destroy()
+
+
+class ViewEmployeeFrame(ctk.CTkFrame):
+    def __init__(self, master, **kwargs):
+        super().__init__(master, **kwargs)
+
+        # Define and configure widgets within the frame
+        label=ctk.CTkLabel(self, text="Employee Information", font=("Arial bold", 28))
+        label.pack(pady=20, padx=10)
+
+        # Create a connection to the database
+        conn=sqlite3.connect('register_employee.db')
+        cursor=conn.cursor()
+
+        # Get only the specific columns from the database
+        cursor.execute(
+            "SELECT id, first_name, middle_name, last_name, age, sex, contact_no FROM employees")
+        records=cursor.fetchall()
+
+        # Create a frame that holds the table
+        table_frame=ctk.CTkFrame(self)
+        table_frame.pack(pady=10, padx=10)
 
         style=ttk.Style()
+
         style.theme_use("default")
 
-        # Configure the Treeview style with borderwidth for column headers
         style.configure("Treeview",
                         background="#2a2d2e",
                         foreground="white",
-                        rowheight=25,
+                        rowheight=50,
                         fieldbackground="#343638",
                         bordercolor="#343638",
                         borderwidth=0,
-                        relief="groove")  # Adjust borderwidth as needed
+                        anchor="center")
+        style.map('Treeview', background=[('selected', '#22559b')])
 
-        style.map('Treeview', background=[('selected', '#00C957')])
-
-        # Configure the Treeview.Heading style with background color and borderwidth for column headers
         style.configure("Treeview.Heading",
                         background="#565b5e",
                         foreground="white",
-                        relief="groove",
-                        borderwidth=2)  # Adjust borderwidth for column headers
+                        relief="flat")
+        style.map("Treeview.Heading",
+                  background=[('active', '#3484F0')])
 
-        style.map("Treeview.Heading", background=[('active', '#3484F0')])
+        # Create a table to display the records
+        self.table=ttk.Treeview(table_frame, columns=(
+            "ID", "First Name", "Middle Name", "Last Name", "Age", "Sex", "Contact No"), show="headings", height=10)
+        self.table.pack(side=tk.LEFT)
 
-        # Create a frame to hold the Treeview
-        tree_frame=ctk.CTkFrame(self)
-        tree_frame.grid(row=0, column=1, padx=10, pady=10)
+        self.scrollbar=ttk.Scrollbar(table_frame, orient=tk.VERTICAL, command=self.table.yview)
+        self.scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
-        # Create a Treeview widget to display the employee data
-        self.tree=ttk.Treeview(tree_frame, columns=(
-            "First Name", "Middle Name", "Last Name", "Age", "Sex", "Date of Birth", "Address", "Contact No"),
-                               show="headings")
-        self.tree.heading("First Name", text="First Name")
-        self.tree.heading("Middle Name", text="Middle Name")
-        self.tree.heading("Last Name", text="Last Name")
-        self.tree.heading("Age", text="Age")
-        self.tree.heading("Sex", text="Sex")
-        self.tree.heading("Date of Birth", text="Date of Birth")
-        self.tree.heading("Address", text="Address")
-        self.tree.heading("Contact No", text="Contact No")
-        self.tree.pack(side=tk.LEFT)
+        self.table.configure(yscrollcommand=self.scrollbar.set)
+
+        # Configure the columns
+        self.table.heading("ID", text="ID")
+        self.table.heading("First Name", text="First Name")
+        self.table.heading("Middle Name", text="Middle Name")
+        self.table.heading("Last Name", text="Last Name")
+        self.table.heading("Age", text="Age")
+        self.table.heading("Sex", text="Sex")
 
         # Define the column headings and their alignment
         columns=[
+            ("ID", "center"),
             ("First Name", "center"),
             ("Middle Name", "center"),
             ("Last Name", "center"),
             ("Age", "center"),
             ("Sex", "center"),
-            ("Date of Birth", "center"),
-            ("Address", "center"),
             ("Contact No", "center")
         ]
 
         for col, align in columns:
-            self.tree.heading(col, text=col, anchor=align)
-            self.tree.column(col, anchor=align)
+            self.table.heading(col, text=col, anchor=align)
+            self.table.column(col, anchor=align)
 
-        self.tree.pack(side=tk.LEFT)
+        self.table.pack(side=tk.LEFT)
 
-        # Function to populate the table with employee data
-        self.load_employee_data()
+        # Add the records to the table
+        for record in records:
+            self.table.insert("", tk.END, values=record)
 
-        # Ensure that the frame expands with window resizing
-        self.pack(fill=tk.BOTH, expand=True)
+        # create a frame to hold sub-frames
+        button_frames=ctk.CTkFrame(self)
+        button_frames.pack(pady=10, padx=10)
 
-        # Add a "Back" button to return to the previous frame
-        back_button=ctk.CTkButton(self, text="Back", fg_color="Red", text_color=("gray10", "gray90"),
-                                  hover_color=("red3", "red4"), command=self.back_button_event)
-        back_button.pack(pady=20, side=tk.BOTTOM)
+        # create a frame to hold the return button
+        return_button_frame=ctk.CTkFrame(button_frames)
+        return_button_frame.grid(row=0, column=0, padx=10, pady=10)
+        # Create a "Return" button in the first column
+        return_button=ctk.CTkButton(return_button_frame, text="Return", command=self.back_button_event)
+        return_button.pack(padx=10, pady=10)
+
+        # Create a frame to hold the edit button
+        view_button_frame=ctk.CTkFrame(button_frames)
+        view_button_frame.grid(row=0, column=1, padx=10, pady=10)
+        # Create an "Edit" button in the second column
+        view_button=ctk.CTkButton(view_button_frame, text="View", command=self.edit_record)
+        view_button.pack(padx=10, pady=10)
+
+        # Create a frame to hold the delete button
+        delete_button_frame=ctk.CTkFrame(button_frames)
+        delete_button_frame.grid(row=0, column=2, padx=10, pady=10)
+        # Create a "Delete" button in the third column
+        delete_button=ctk.CTkButton(delete_button_frame, text="Delete", command=self.delete_record)
+        delete_button.pack(padx=10, pady=10)
 
     def back_button_event(self):
         # Switch back to the previous frame (e.g., the gym membership frame)
         self.destroy()
 
-    def update_employee(self):
-        selected_item=self.tree.selection()
-        if not selected_item:
-            messagebox.showwarning("Warning", "Please select an employee to update.")
+    def edit_record(self):
+        selected_item=self.table.selection()
+        if selected_item:
+            record_data=self.table.item(selected_item)["values"]
+
+            if record_data:
+                # Assuming 'id' is the first element and 'first_name' is the second element in the 'values' list
+                id_value=record_data[0]
+                first_name=record_data[1]
+                edit_employee_form=EditEmployeeForm(self, first_name, id_value, self.table)
+
+    def delete_record(self):
+        # Get the selected item (record) from the Treeview
+        selected_item=self.table.selection()
+        if selected_item:
+            # Prompt the user for confirmation
+            confirm=messagebox.askyesno("Delete Record", "Are you sure you want to delete this record?")
+            if confirm:
+                # Retrieve the data of the selected record from the Treeview
+                record_data=self.table.item(selected_item)['values']
+
+                # Delete the selected record from the database based on the 'First Name' column
+                if record_data:
+                    id=record_data[0]  # Assuming 'First Name' is the first column in the 'values' list
+                    conn=sqlite3.connect('register_employee.db')
+                    cursor=conn.cursor()
+                    try:
+                        cursor.execute("DELETE FROM employee WHERE id=?", (id,))
+                        conn.commit()  # Commit the changes to the database
+                        print("Record deleted successfully.")
+                    except sqlite3.Error as e:
+                        messagebox.showerror("Error", f"Error deleting record: {e}")
+                        print(f"Error deleting record: {e}")
+                    finally:
+                        cursor.close()  # Close the cursor
+                        conn.close()  # Close the database connection
+
+            # Remove the selected item from the Treeview
+            self.table.delete(selected_item)
+
+
+class EditEmployeeForm(ctk.CTkToplevel):
+    def __init__(self, master, first_name, id_value, table_reference):
+        super().__init__(master)
+
+        # Set the title for the edit form
+        self.title("Edit Employee Record")
+        self.geometry("500x550")
+
+        # Center-align the window
+        window_width=self.winfo_reqwidth()
+        window_height=self.winfo_reqheight()
+        screen_width=self.winfo_screenwidth()
+        screen_height=self.winfo_screenheight()
+        x=(screen_width - window_width) // 2
+        y=(screen_height - window_height) // 5
+        self.geometry(f"+{x}+{y}")
+
+        # Create a connection to the database
+        self.conn=sqlite3.connect('register_employee.db')
+        self.cursor=self.conn.cursor()
+
+        # Fetch data for the specified member using the provided 'id_value'
+        self.cursor.execute("SELECT * FROM employees WHERE id=?", (id_value,))
+        self.trainer_data=self.cursor.fetchone()
+
+        if self.trainer_data is None:
+            messagebox.showerror("Employee Not Found", "Employee not found in the database.")
+            self.destroy()
             return
-        # Implement the logic to update employee details here using the selected_item
 
-    def delete_employee(self):
-        selected_item=self.tree.selection()
-        if not selected_item:
-            messagebox.showwarning("Warning", "Please select an employee to delete.")
+        # Create and configure widgets within the edit form
+        label=ctk.CTkLabel(self, text="Edit Employee Record", font=("Arial bold", 20))
+        label.pack(pady=10)
+
+        # Create a frame to hold edit form frames
+        main_frame=ctk.CTkFrame(self)
+        main_frame.pack(fill="both", expand=True)
+
+        # Create a frame to hold the form fields with custom width and height
+        edit_frame=ctk.CTkScrollableFrame(main_frame, width=450, height=300)
+        edit_frame.pack(pady=20, padx=20)
+
+        # Define a custom font style for entry labels
+        label_font=ctk.CTkFont(family="Arial", size=16, weight="bold")
+
+        # Create labels and entry fields for editing the record
+        labels=["First Name:", "Middle Name:", "Last Name:", "Age:", "Sex:", "Date of Birth:", "Address:",
+                "Nationality:", "Contact No:", "Email Address:", "Emergency Contact No:"]
+        self.entry_fields=[]
+
+        for i, label_text in enumerate(labels):
+            label=ctk.CTkLabel(edit_frame, text=label_text, font=label_font)
+            label.grid(row=i, column=0, padx=10, pady=5, sticky="w")
+            entry=ctk.CTkEntry(edit_frame)
+            entry.grid(row=i, column=1, padx=10, pady=5, ipadx=10, ipady=3)
+            entry.insert(0, self.trainer_data[i + 1])  # Fill with data from the database
+            self.entry_fields.append(entry)
+
+
+        frame_buttons=ctk.CTkFrame(main_frame)
+        frame_buttons.pack(pady=20, padx=20)
+
+        # create frame to hold the buttons
+        update_button_frame=ctk.CTkFrame(frame_buttons)
+        update_button_frame.grid(row=0, column=0, padx=20, pady=20)
+
+        # Create an "Update" button
+        update_button=ctk.CTkButton(update_button_frame, text="Update", command=self.update_record)
+        update_button.grid(row=0, column=0, padx=20, pady=20)
+
+        # create a frame to hold the delete button
+        delete_button_frame=ctk.CTkFrame(frame_buttons)
+        delete_button_frame.grid(row=0, column=1, padx=20, pady=20)
+
+        # Create Delete button to remove data from the database
+        delete_button=ctk.CTkButton(delete_button_frame, text="Delete", command=self.delete_record)
+        delete_button.grid(row=0, column=1, padx=20, pady=20)
+
+        # Store the reference to the 'table' in EditForm
+        self.table=table_reference
+
+    def update_record(self):
+        # Get the updated data from the entry fields
+        updated_data=[entry.get() for entry in self.entry_fields]
+
+        # Validate the updated data
+        if not all(updated_data):
+            messagebox.showerror("Validation Error", "All fields are required.")
             return
-        # Implement the logic to delete the selected employee here using the selected_item
 
-    def load_employee_data(self):
-        self.tree.delete(*self.tree.get_children())  # Clear existing data
-        conn=sqlite3.connect('employee_database.db')
-        cursor=conn.cursor()
-        cursor.execute(
-            "SELECT first_name, middle_name, last_name, age, sex, birth_date, address, contact_no FROM employee")
-        data=cursor.fetchall()
-        for row in data:
-            self.tree.insert('', 'end', values=row)
-        conn.close()
+        # Continue with the update logic
+        try:
+            self.cursor.execute('''
+                    UPDATE employees SET 
+                    first_name=?, middle_name=?, last_name=?, age=?, sex=?, birth_date=?, address=?, nationality=?,
+                    contact_no=?, email=?, emergency_contact_no=?
+                    WHERE first_name=?
+                ''', (tuple, updated_data))
 
+            self.conn.commit()  # Commit the changes to the database
+            messagebox.showinfo("Update Successful", "Record updated successfully.")
+        except sqlite3.Error as e:
+            messagebox.showerror("Error", f"Error updating record: {e}")
+        finally:
+            self.cursor.close()  # Close the cursor
+            self.conn.close()  # Close the database connection
 
-def create_employee_table():
-    conn=sqlite3.connect('employee_database.db')
-    cursor=conn.cursor()
+        # Close the edit form
+        self.destroy()
 
-    # Create the 'employee' table if it doesn't exist
-    cursor.execute('''
-    CREATE TABLE IF NOT EXISTS employee (
-        id INTEGER PRIMARY KEY,
-        first_name TEXT,
-        middle_name TEXT,
-        last_name TEXT,
-        age INTEGER,
-        sex TEXT,
-        birth_date DATE,
-        address TEXT,
-        contact_no TEXT
-    )
-    ''')
+    def delete_record(self):
+        selected_item=self.table.selection()
+        if selected_item:
+            confirm=messagebox.askyesno("Delete Record", "Are you sure you want to delete this record?")
+            if confirm:
+                # Retrieve the data of the selected record from the Treeview
+                record_data=self.table.item(selected_item)['values']
 
-    conn.commit()
-    conn.close()
-
-
-# Call this function when your application starts to ensure the table exists
-create_employee_table()
+                # Delete the selected record from the database based on the 'First Name' column
+                if record_data:
+                    id_value=record_data[0]  # Assuming 'ID' is the first column in the 'values' list
+                    conn=sqlite3.connect('register_trainer.db')
+                    cursor=conn.cursor()
+                    try:
+                        cursor.execute("DELETE FROM employees WHERE id=?", (id_value,))
+                        conn.commit()  # Commit the changes to the database
+                        print("Record deleted successfully.")
+                    except sqlite3.Error as e:
+                        messagebox.showerror("Error", f"Error deleting record: {e}")
+                        print(f"Error deleting record: {e}")
+                    finally:
+                        cursor.close()
+                        conn.close()
 
 
 def create_location_frame(frame_8):
     location_frame=LocationFrame(frame_8)
     location_frame.pack(fill='both', expand=True, padx=10, pady=10)
 
-
+# Configure the map widget
 class LocationFrame(ctk.CTkFrame):
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
