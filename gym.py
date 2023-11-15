@@ -2932,7 +2932,6 @@ class EditEmployeeForm(ctk.CTkToplevel):
             entry.insert(0, self.trainer_data[i + 1])  # Fill with data from the database
             self.entry_fields.append(entry)
 
-
         frame_buttons=ctk.CTkFrame(main_frame)
         frame_buttons.pack(pady=20, padx=20)
 
@@ -3012,6 +3011,7 @@ class EditEmployeeForm(ctk.CTkToplevel):
 def create_location_frame(frame_8):
     location_frame=LocationFrame(frame_8)
     location_frame.pack(fill='both', expand=True, padx=10, pady=10)
+
 
 # Configure the map widget
 class LocationFrame(ctk.CTkFrame):
