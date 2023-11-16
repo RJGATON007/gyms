@@ -626,7 +626,7 @@ class RegistrationFrame(ctk.CTkFrame):
         conn.close()
 
         # Combine all the data entries into a single string
-        data_string=subscription_id
+        data_string=f"{first_name},{middle_name},{last_name},{subscription_id}"
 
         # Create a folder if it doesn't exist
         folder_path="member_qrcodes"
@@ -1119,32 +1119,34 @@ class ScanFrame(ctk.CTkFrame):
     def record_attendance(member_data, attendance_type):
         # Extract relevant information from the QR code data
         # Modify this part based on your QR code content and data format
-        member_id=member_data  # Assuming the QR code contains the member ID
+
+        # Assuming the QR code contains the following data in order: first name, middle name, last name, subscription ID
+        first_name, middle_name, last_name, subscription_id = member_data.split(',')
 
         # Get the current date and time
-        current_datetime=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        current_datetime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
         # Log the attendance record in the database or any other storage mechanism
         # Modify the logic to suit your database schema
-        conn=sqlite3.connect('attendance_records.db')
-        cursor=conn.cursor()
+        conn = sqlite3.connect('attendance_records.db')
+        cursor = conn.cursor()
 
         try:
             if attendance_type == "Time In":
                 cursor.execute('''
-                    INSERT INTO attendance_records (member_id, time_in)
-                    VALUES (?, ?)
-                ''', (member_id, current_datetime))
+                    INSERT INTO attendance_records (first_name, middle_name, last_name, subscription_id, time_in)
+                    VALUES (?, ?, ?, ?, ?)
+                ''', (first_name, middle_name, last_name, subscription_id, current_datetime))
             elif attendance_type == "Time Out":
                 cursor.execute('''
                     UPDATE attendance_records
                     SET time_out = ?
-                    WHERE member_id = ? AND time_out IS NULL
-                ''', (current_datetime, member_id))
+                    WHERE subscription_id = ? AND time_out IS NULL
+                ''', (current_datetime, subscription_id))
 
             conn.commit()
             messagebox.showinfo("Attendance Recorded",
-                                f"{attendance_type} recorded successfully for Member ID: {member_id}")
+                                f"{attendance_type} recorded successfully for Subscription ID: {subscription_id}")
         except sqlite3.Error as e:
             messagebox.showerror("Error", f"Error recording attendance: {e}")
         finally:
@@ -1204,7 +1206,7 @@ class RecordsFrame(ctk.CTkFrame):
         style.map('Treeview', background=[('selected', '#22559b')])
 
         # Create a Treeview widget to display the attendance records
-        self.records_table=ttk.Treeview(records_table_frame, columns=("Member ID", "Time In", "Time Out"),
+        self.records_table=ttk.Treeview(records_table_frame, columns=("First Name", "Middle Name", "Last Name", "Subscription ID", "Time In", "Time Out"),
                                         show="headings", height=25)
         self.records_table.pack(side=tk.LEFT)
 
@@ -1214,7 +1216,10 @@ class RecordsFrame(ctk.CTkFrame):
         self.records_table.configure(yscrollcommand=scrollbar.set)
 
         # Configure the columns
-        self.records_table.heading("Member ID", text="Member ID")
+        self.records_table.heading("First Name", text="First Name")
+        self.records_table.heading("Middle Name", text="Middle Name")
+        self.records_table.heading("Last Name", text="Last Name")
+        self.records_table.heading("Subscription ID", text="Subscription ID")
         self.records_table.heading("Time In", text="Time In")
         self.records_table.heading("Time Out", text="Time Out")
 
@@ -1227,7 +1232,10 @@ class RecordsFrame(ctk.CTkFrame):
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS attendance_records (
                 id INTEGER PRIMARY KEY,
-                member_id TEXT,
+                first_name TEXT,
+                middle_name TEXT,
+                last_name TEXT,
+                subscription_id TEXT,
                 time_in TEXT,
                 time_out TEXT
             )
@@ -1241,7 +1249,7 @@ class RecordsFrame(ctk.CTkFrame):
         cursor=conn.cursor()
 
         try:
-            cursor.execute('SELECT member_id, time_in, time_out FROM attendance_records')
+            cursor.execute('SELECT first_name, middle_name, last_name, subscription_id, time_in, time_out FROM attendance_records')
             records=cursor.fetchall()
 
             for record in records:
