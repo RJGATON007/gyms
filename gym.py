@@ -3184,7 +3184,7 @@ class ViewEmployeeFrame(ctk.CTkFrame):
                     conn=sqlite3.connect('register_employee.db')
                     cursor=conn.cursor()
                     try:
-                        cursor.execute("DELETE FROM employee WHERE id=?", (id,))
+                        cursor.execute("DELETE FROM employees WHERE id=?", (id,))
                         conn.commit()  # Commit the changes to the database
                         print("Record deleted successfully.")
                     except sqlite3.Error as e:
@@ -3318,7 +3318,7 @@ class EditEmployeeForm(ctk.CTkToplevel):
                 # Delete the selected record from the database based on the 'First Name' column
                 if record_data:
                     id_value=record_data[0]  # Assuming 'ID' is the first column in the 'values' list
-                    conn=sqlite3.connect('register_trainer.db')
+                    conn=sqlite3.connect('register_employee.db')
                     cursor=conn.cursor()
                     try:
                         cursor.execute("DELETE FROM employees WHERE id=?", (id_value,))
