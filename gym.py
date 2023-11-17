@@ -2428,7 +2428,7 @@ class EditTrainerForm(ctk.CTkToplevel):
                     first_name=?, middle_name=?, last_name=?, age=?, sex=?, birth_date=?, address=?, nationality=?,
                     contact_no=?, email=?, emergency_contact_no=?
                     WHERE first_name=?
-                ''', (tuple, updated_data))
+                ''', tuple(updated_data + [self.trainer_data[1]]))
 
             self.conn.commit()  # Commit the changes to the database
             messagebox.showinfo("Update Successful", "Record updated successfully.")
