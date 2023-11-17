@@ -11,6 +11,7 @@ import string
 import qrcode
 import cv2
 import datetime
+from datetime import datetime
 from tkintermapview import TkinterMapView
 
 ctk.set_appearance_mode("dark")
@@ -679,7 +680,7 @@ class ViewFrame(ctk.CTkFrame):
         super().__init__(master, **kwargs)
 
         # Define and configure widgets within the frame
-        label=ctk.CTkLabel(self, text="Members List", font=("Arial bold", 28))
+        label=ctk.CTkLabel(self, text="Members Records", font=("Arial bold", 28))
         label.pack(pady=20, padx=10)
 
         # Create a connection to the database
@@ -688,7 +689,7 @@ class ViewFrame(ctk.CTkFrame):
 
         # Get only the specific columns from the database
         cursor.execute(
-            "SELECT id, first_name, middle_name, last_name, subscription_plan, start_date, end_date FROM registration")
+            "SELECT id, first_name, middle_name, last_name, subscription_id, start_date, end_date FROM registration")
         records=cursor.fetchall()
 
         # Create a frame that holds the table
@@ -718,7 +719,7 @@ class ViewFrame(ctk.CTkFrame):
 
         # Create a table to display the records
         self.table=ttk.Treeview(table_frame, columns=(
-            "ID", "First Name", "Middle Name", "Last Name", "Subscription Plan",
+            "ID", "First Name", "Middle Name", "Last Name", "Subscription ID",
             "Start Date", "End Date"), show="headings", height=10)
         self.table.pack(side=tk.LEFT)
 
@@ -732,7 +733,7 @@ class ViewFrame(ctk.CTkFrame):
         self.table.heading("First Name", text="First Name")
         self.table.heading("Middle Name", text="Middle Name")
         self.table.heading("Last Name", text="Last Name")
-        self.table.heading("Subscription Plan", text="Subscription Plan")
+        self.table.heading("Subscription ID", text="Subscription ID")
         self.table.heading("Start Date", text="Start Date")
         self.table.heading("End Date", text="End Date")
 
@@ -742,7 +743,7 @@ class ViewFrame(ctk.CTkFrame):
             ("First Name", "center"),
             ("Middle Name", "center"),
             ("Last Name", "center"),
-            ("Subscription Plan", "center"),
+            ("Subscription ID", "center"),
             ("Start Date", "center"),
             ("End Date", "center")
         ]
@@ -1102,89 +1103,68 @@ class ScanFrame(ctk.CTkFrame):
         back_button.pack(pady=20, side=tk.BOTTOM)
 
     def scan_qr_code_time_in(self):
-        # Implement the QR code scanning for time in
         qr_code_data=self.scan_qr_code()
         if qr_code_data:
-            # Process the QR code data for time in
             self.record_attendance(qr_code_data, "Time In")
 
     def scan_qr_code_time_out(self):
-        # Implement the QR code scanning for time out
         qr_code_data=self.scan_qr_code()
         if qr_code_data:
-            # Process the QR code data for time out
             self.record_attendance(qr_code_data, "Time Out")
 
     @staticmethod
     def record_attendance(member_data, attendance_type):
-        # Extract relevant information from the QR code data
-        # Modify this part based on your QR code content and data format
-
-        # Assuming the QR code contains the following data in order: first name, middle name, last name, subscription ID
-        first_name, middle_name, last_name, subscription_id = member_data.split(',')
-
-        # Get the current date and time
-        current_datetime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-        # Log the attendance record in the database or any other storage mechanism
-        # Modify the logic to suit your database schema
-        conn = sqlite3.connect('attendance_records.db')
-        cursor = conn.cursor()
-
         try:
-            if attendance_type == "Time In":
-                cursor.execute('''
-                    INSERT INTO attendance_records (first_name, middle_name, last_name, subscription_id, time_in)
-                    VALUES (?, ?, ?, ?, ?)
-                ''', (first_name, middle_name, last_name, subscription_id, current_datetime))
-            elif attendance_type == "Time Out":
-                cursor.execute('''
-                    UPDATE attendance_records
-                    SET time_out = ?
-                    WHERE subscription_id = ? AND time_out IS NULL
-                ''', (current_datetime, subscription_id))
+            first_name, middle_name, last_name, subscription_id=member_data.split(',')
+            current_datetime=datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-            conn.commit()
-            messagebox.showinfo("Attendance Recorded",
-                                f"{attendance_type} recorded successfully for Subscription ID: {subscription_id}")
+            with sqlite3.connect('attendance_records.db') as conn:
+                cursor=conn.cursor()
+
+                if attendance_type == "Time In":
+                    cursor.execute('''
+                           INSERT INTO attendance_records (first_name, middle_name, last_name, subscription_id, time_in)
+                           VALUES (?, ?, ?, ?, ?)
+                       ''', (first_name, middle_name, last_name, subscription_id, current_datetime))
+                elif attendance_type == "Time Out":
+                    cursor.execute('''
+                           UPDATE attendance_records
+                           SET time_out = ?
+                           WHERE subscription_id = ? AND time_out IS NULL
+                       ''', (current_datetime, subscription_id))
+
+                conn.commit()
+                messagebox.showinfo("Attendance Recorded",
+                                    f"{attendance_type} recorded successfully for Subscription ID: {subscription_id}")
+
         except sqlite3.Error as e:
-            messagebox.showerror("Error", f"Error recording attendance: {e}")
-        finally:
-            cursor.close()
-            conn.close()
+            messagebox.showerror("Database Error", f"Error interacting with the database: {e}")
+        except Exception as e:
+            messagebox.showerror("Error", f"An unexpected error occurred: {e}")
 
     @staticmethod
     def scan_qr_code():
-        # Open a camera to capture video
         cap=cv2.VideoCapture(0)
 
         while True:
-            # Capture frame-by-frame
             ret, frame=cap.read()
-
-            # Display the frame
             cv2.imshow('QR Code Scanner', frame)
 
-            # Check for QR code in the frame
             detector=cv2.QRCodeDetector()
-            data, vertices, qr_code=detector.detectAndDecode(frame)
+            data, _, _=detector.detectAndDecode(frame)
 
             if data:
-                # If QR code is detected, close the camera and return the data
                 cap.release()
                 cv2.destroyAllWindows()
                 return data
 
-            # Break the loop if 'q' key is pressed
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
 
-        # Release the camera and destroy all OpenCV windows
         cap.release()
         cv2.destroyAllWindows()
 
     def back_button_event(self):
-        # Switch back to the take attendance frame
         self.destroy()
 
 
@@ -1196,22 +1176,43 @@ class RecordsFrame(ctk.CTkFrame):
     def create_ui_elements(self):
         # Create a frame to hold the attendance records table
         records_table_frame=ctk.CTkFrame(self)
-        records_table_frame.pack(pady=10, padx=10)
+        records_table_frame.pack(pady=10, padx=10, fill="both", expand=True)
 
-        # Create a style for the Treeview
+        table_frame=ctk.CTkFrame(records_table_frame)
+        table_frame.pack(pady=20, padx=20)
+
+        label=ctk.CTkLabel(table_frame, text="Attendance Records", font=("Arial bold", 28))
+        label.pack(pady=20, padx=10)
+
         style=ttk.Style()
+
         style.theme_use("default")
-        style.configure("Treeview", background="#2a2d2e", foreground="white", rowheight=25,
-                        fieldbackground="#343638", bordercolor="#343638", borderwidth=0, anchor="center")
+
+        style.configure("Treeview",
+                        background="#2a2d2e",
+                        foreground="white",
+                        rowheight=50,
+                        fieldbackground="#343638",
+                        bordercolor="#343638",
+                        borderwidth=0,
+                        anchor="center")
         style.map('Treeview', background=[('selected', '#22559b')])
 
+        style.configure("Treeview.Heading",
+                        background="#565b5e",
+                        foreground="white",
+                        relief="flat")
+        style.map("Treeview.Heading",
+                  background=[('active', '#3484F0')])
+
         # Create a Treeview widget to display the attendance records
-        self.records_table=ttk.Treeview(records_table_frame, columns=("First Name", "Middle Name", "Last Name", "Subscription ID", "Time In", "Time Out"),
-                                        show="headings", height=25)
+        self.records_table=ttk.Treeview(table_frame, columns=(
+            "First Name", "Middle Name", "Last Name", "Subscription ID", "Time In", "Time Out"),
+                                        show="headings", height=10)
         self.records_table.pack(side=tk.LEFT)
 
         # Create a scrollbar for the Treeview
-        scrollbar=ttk.Scrollbar(records_table_frame, orient=tk.VERTICAL, command=self.records_table.yview)
+        scrollbar=ttk.Scrollbar(table_frame, orient=tk.VERTICAL, command=self.records_table.yview)
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         self.records_table.configure(yscrollcommand=scrollbar.set)
 
@@ -1222,6 +1223,20 @@ class RecordsFrame(ctk.CTkFrame):
         self.records_table.heading("Subscription ID", text="Subscription ID")
         self.records_table.heading("Time In", text="Time In")
         self.records_table.heading("Time Out", text="Time Out")
+
+        # Define the column headings and their alignment
+        columns=[
+            ("First Name", "center"),
+            ("Middle Name", "center"),
+            ("Last Name", "center"),
+            ("Subscription ID", "center"),
+            ("Time In", "center"),
+            ("Time Out", "center")
+        ]
+
+        for col, align in columns:
+            self.records_table.heading(col, text=col, anchor=align)
+            self.records_table.column(col, anchor=align)
 
         # Fetch attendance records from the database
         self.load_attendance_records()
@@ -1249,7 +1264,8 @@ class RecordsFrame(ctk.CTkFrame):
         cursor=conn.cursor()
 
         try:
-            cursor.execute('SELECT first_name, middle_name, last_name, subscription_id, time_in, time_out FROM attendance_records')
+            cursor.execute(
+                'SELECT first_name, middle_name, last_name, subscription_id, time_in, time_out FROM attendance_records')
             records=cursor.fetchall()
 
             for record in records:
@@ -2454,14 +2470,314 @@ class TrainerAttendanceFrame(ctk.CTkFrame):
     pass
 
 
+# -------------------- FRAME 6 --------------------#
 def create_visitors_frame(frame_6):
-    # Create and configure UI elements within frame
-    label=ctk.CTkLabel(frame_6, text="VISITORS LOG BOOK", font=("Arial bold", 34))
-    label.pack(pady=10, padx=10)
+    # Define the desired button width and height
+    button_width=200
+    button_height=200
 
-    # Widgets
+    # Define the path to the directory containing your image files
+    frame_6_icons=os.path.join(os.path.dirname(os.path.realpath(__file__)), "frame_6_icons")
+
+    # Load and resize the images
+    logbook_image=Image.open(os.path.join(frame_6_icons, 'logbook_black.png'))
+    logbook_image=logbook_image.resize((button_width, button_height), Image.LANCZOS)
+
+    def register_visitors():
+        # When the "Register Members" button is clicked, create and show the registration frame
+        registration_frame=LogbookFrame(frame_6)
+        registration_frame.pack(fill='both', expand=True)
+
+    # Create the buttons with the resized images
+    register_employee_button=ctk.CTkButton(
+        master=frame_6,
+        text="Register Employee",
+        image=ImageTk.PhotoImage(logbook_image),
+        compound=tk.TOP,
+        command=register_visitors,  # Call the function to open the frame
+        width=button_width,
+        height=button_height
+    )
+    register_employee_button.place(x=450, y=200)
 
 
+class LogbookFrame(ctk.CTkFrame):
+    def __init__(self, master, **kwargs):
+        super().__init__(master, **kwargs)
+
+        # STEP 1: PERSONAL INFORMATION
+        # Define and configure widgets within the frame
+        label=ctk.CTkLabel(self, text="VISITORS LOG BOOK", font=("Arial bold", 26))
+        label.pack(pady=25, padx=10)
+
+        # outer frame
+        outer_frame=ctk.CTkFrame(self)
+        outer_frame.pack(pady=20, padx=10)
+
+        # create frame to hold all the widget frames
+        widget_frames=ctk.CTkFrame(outer_frame)
+        widget_frames.pack(pady=10, padx=10)
+
+        # Create a frame to hold the form fields
+        first_frame=ctk.CTkFrame(widget_frames)
+        first_frame.grid(row=0, column=0, padx=10, pady=10)
+
+        personal_info_frame=ctk.CTkFrame(first_frame)
+        personal_info_frame.pack(pady=10, padx=10)
+
+        # Create a custom font for labels
+        label_font=ctk.CTkFont(family="Arial bold", size=16)  # Adjust the size as
+
+        # Name
+        first_name_label=ctk.CTkLabel(personal_info_frame, text="First Name:", font=label_font)
+        first_name_label.grid(row=2, column=0, padx=10, pady=15, sticky="w")
+        first_name_entry=ctk.CTkEntry(personal_info_frame, placeholder_text="Enter your first name")
+        first_name_entry.grid(row=2, column=1, padx=10, pady=15)
+
+        middle_name_label=ctk.CTkLabel(personal_info_frame, text="Middle Name:", font=label_font)
+        middle_name_label.grid(row=3, column=0, padx=10, pady=15, sticky="w")
+        middle_name_entry=ctk.CTkEntry(personal_info_frame, placeholder_text="Enter your middle name")
+        middle_name_entry.grid(row=3, column=1, padx=10, pady=15)
+
+        last_name_label=ctk.CTkLabel(personal_info_frame, text="Last Name:", font=label_font)
+        last_name_label.grid(row=4, column=0, padx=10, pady=15, sticky="w")
+        last_name_entry=ctk.CTkEntry(personal_info_frame, placeholder_text="Enter your last name")
+        last_name_entry.grid(row=4, column=1, padx=10, pady=15)
+
+        # Contact No
+        contact_no_label=ctk.CTkLabel(personal_info_frame, text="Contact No:", font=label_font)
+        contact_no_label.grid(row=5, column=0, padx=10, pady=15, sticky="w")
+        contact_no_entry=ctk.CTkEntry(personal_info_frame, placeholder_text="+63 9123456789")
+        contact_no_entry.grid(row=5, column=1, padx=10, pady=15)
+
+        # create a button to register the visitor
+        attend_button=ctk.CTkButton(personal_info_frame, text="Attend", fg_color="Green",
+                                    text_color=("gray10", "gray90"),
+                                    hover_color=("green3", "green4"),
+                                    command=self.attend_log)
+        attend_button.grid(row=6, column=0, padx=10, pady=10, sticky="w")
+
+        # create a button to delete the visitor
+        delete_button=ctk.CTkButton(personal_info_frame, text="Delete", fg_color="Red",
+                                    text_color=("gray10", "gray90"),
+                                    hover_color=("red3", "red4"),
+                                    command=self.delete_log)
+        delete_button.grid(row=6, column=1, padx=10, pady=10, sticky="e")
+
+        # Create a frame that holds the table
+        table_frame=ctk.CTkFrame(widget_frames)
+        table_frame.grid(row=0, column=1, padx=10, pady=10)
+
+        # Create a connection to the database
+        conn=sqlite3.connect('visitors_log.db')
+        cursor=conn.cursor()
+
+        # Get only the specific columns from the database
+        cursor.execute(
+            "SELECT first_name, middle_name, last_name, contact_no, time FROM visitors")
+        cursor.fetchall()
+
+        style=ttk.Style()
+
+        style.theme_use("default")
+
+        style.configure("Treeview",
+                        background="#2a2d2e",
+                        foreground="white",
+                        rowheight=50,
+                        fieldbackground="#343638",
+                        bordercolor="#343638",
+                        borderwidth=0,
+                        anchor="center")
+        style.map('Treeview', background=[('selected', '#22559b')])
+
+        style.configure("Treeview.Heading",
+                        background="#565b5e",
+                        foreground="white",
+                        relief="flat")
+        style.map("Treeview.Heading",
+                  background=[('active', '#3484F0')])
+
+        # Create a table to display the records
+        self.table=ttk.Treeview(table_frame, columns=(
+            "First Name", "Middle Name", "Last Name", "Contact No", "Time"), show="headings", height=10)
+        self.table.pack(side=tk.LEFT)
+
+        scrollbar=ttk.Scrollbar(table_frame, orient=tk.VERTICAL, command=self.table.yview)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+        self.table.configure(yscrollcommand=scrollbar.set)
+
+        # Configure the columns
+        self.table.heading("First Name", text="First Name")
+        self.table.heading("Middle Name", text="Middle Name")
+        self.table.heading("Last Name", text="Last Name")
+        self.table.heading("Contact No", text="Contact No")
+        self.table.heading("Time", text="Time")
+
+        # Define the column headings and their alignment
+        columns=[
+            ("First Name", "center"),
+            ("Middle Name", "center"),
+            ("Last Name", "center"),
+            ("Contact No", "center"),
+            ("Time", "center")
+        ]
+
+        for col, align in columns:
+            self.table.heading(col, text=col, anchor=align)
+            self.table.column(col, anchor=align)
+
+        # Back button
+        back_button=ctk.CTkButton(self, text="Back", fg_color="Red", text_color=("gray10", "gray90"),
+                                  hover_color=("red3", "red4"), command=self.back_button_event)
+        back_button.pack(pady=20, side=tk.TOP)
+
+        # Load data into the table
+        self.load_data_to_table()
+
+        # Store the Entry fields and other widgets as instance attributes
+        self.first_name_entry=first_name_entry
+        self.middle_name_entry=middle_name_entry
+        self.last_name_entry=last_name_entry
+        self.contact_no_entry=contact_no_entry
+
+        # Create a connection to the database (or create it if it doesn't exist)
+        try:
+            with sqlite3.connect('visitors_log.db') as conn:
+                # Create a cursor object to interact with the database
+                cursor=conn.cursor()
+
+                # Create a table to store registration information
+                cursor.execute('''
+                    CREATE TABLE IF NOT EXISTS visitors (
+                        id INTEGER PRIMARY KEY,
+                        first_name TEXT,
+                        middle_name TEXT,
+                        last_name TEXT,
+                        contact_no TEXT,
+                        time TEXT
+                    )
+                ''')
+
+                # Commit the changes
+                conn.commit()
+
+        except sqlite3.Error as e:
+            print(f"SQLite error: {e}")
+
+    def load_data_to_table(self):
+        try:
+            # Create a connection to the database
+            conn=sqlite3.connect('visitors_log.db')
+            cursor=conn.cursor()
+
+            # Fetch records from the database
+            cursor.execute("SELECT first_name, middle_name, last_name, contact_no, time FROM visitors")
+            records=cursor.fetchall()
+
+            # Clear existing data in the table
+            for row in self.table.get_children():
+                self.table.delete(row)
+
+            # Insert fetched records into the table
+            for record in records:
+                self.table.insert("", "end", values=record)
+
+            # Commit the changes and close the database connection
+            conn.commit()
+            conn.close()
+
+        except sqlite3.Error as e:
+            # Handle any potential SQLite errors
+            print(f"SQLite error: {e}")
+
+    def attend_log(self):
+        # Gather data from the form fields
+        first_name=self.first_name_entry.get()
+        middle_name=self.middle_name_entry.get()
+        last_name=self.last_name_entry.get()
+        contact_no=self.contact_no_entry.get()
+
+        # Validate the data
+        if not (first_name and last_name and contact_no):
+            messagebox.showerror("Validation Error", "All fields are required.")
+            return
+
+        # Create a connection to the database
+        conn=sqlite3.connect('visitors_log.db')
+        cursor=conn.cursor()
+
+        try:
+            # Insert the data into the database with the current date and time
+            current_time=datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            cursor.execute('''
+                INSERT INTO visitors (first_name, middle_name, last_name, contact_no, time)
+                VALUES (?, ?, ?, ?, ?)
+            ''', (first_name, middle_name, last_name, contact_no, current_time))
+
+            # Commit the changes and close the database connection
+            conn.commit()
+            conn.close()
+
+            # Show a success message
+            messagebox.showinfo("Attendance Recorded", "Attendance recorded successfully!")
+
+            # Clear all form fields
+            for entry in [self.first_name_entry, self.middle_name_entry, self.last_name_entry, self.contact_no_entry]:
+                entry.delete(0, tk.END)
+
+        except sqlite3.Error as e:
+            # Handle any potential SQLite errors
+            messagebox.showerror("Database Error", f"Error inserting data: {e}")
+            conn.rollback()
+            conn.close()
+
+            # Load data into the table after recording attendance
+            self.load_data_to_table()
+
+    def delete_log(self):
+        # Get the selected item in the table
+        selected_item=self.table.selection()
+
+        if not selected_item:
+            # If no item is selected, show an error message
+            messagebox.showerror("Delete Error", "Please select a record to delete.")
+            return
+
+        try:
+            # Get the values of the selected item
+            values=self.table.item(selected_item, 'values')
+            first_name, middle_name, last_name, contact_no, time=values
+
+            # Create a connection to the database
+            conn=sqlite3.connect('visitors_log.db')
+            cursor=conn.cursor()
+
+            # Delete the selected record from the database
+            cursor.execute(
+                "DELETE FROM visitors WHERE first_name=? AND middle_name=? AND last_name=? AND contact_no=? AND time=?",
+                (first_name, middle_name, last_name, contact_no, time))
+
+            # Commit the changes and close the database connection
+            conn.commit()
+            conn.close()
+
+            # Remove the selected item from the table
+            self.table.delete(selected_item)
+
+            # Show a success message
+            messagebox.showinfo("Delete Successful", "Record deleted successfully!")
+
+        except sqlite3.Error as e:
+            # Handle any potential SQLite errors
+            messagebox.showerror("Database Error", f"Error deleting record: {e}")
+
+    def back_button_event(self):
+        self.destroy()
+
+
+# -------------------- FRAME 7 --------------------#
 def create_employee_frame(frame_7):
     # Define the desired button width and height
     button_width=200
