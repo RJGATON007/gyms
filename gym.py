@@ -1815,7 +1815,7 @@ class EditRecord(ctk.CTkToplevel):
                     conn=sqlite3.connect('register_equipment.db')
                     cursor=conn.cursor()
                     try:
-                        cursor.execute("DELETE FROM registration WHERE id=?", (id_value,))
+                        cursor.execute("DELETE FROM equipment WHERE id=?", (id_value,))
                         conn.commit()  # Commit the changes to the database
                         print("Record deleted successfully.")
                     except sqlite3.Error as e:
@@ -3290,11 +3290,11 @@ class EditEmployeeForm(ctk.CTkToplevel):
         # Continue with the update logic
         try:
             self.cursor.execute('''
-                    UPDATE employees SET 
-                    first_name=?, middle_name=?, last_name=?, age=?, sex=?, birth_date=?, address=?, nationality=?,
-                    contact_no=?, email=?, emergency_contact_no=?
-                    WHERE first_name=?
-                ''', (tuple, updated_data))
+                UPDATE employees SET 
+                first_name=?, middle_name=?, last_name=?, age=?, sex=?, birth_date=?, address=?, nationality=?,
+                contact_no=?, email=?, emergency_contact_no=?
+                WHERE id=?
+            ''', (*updated_data, self.trainer_data[0]))
 
             self.conn.commit()  # Commit the changes to the database
             messagebox.showinfo("Update Successful", "Record updated successfully.")
@@ -3332,6 +3332,7 @@ class EditEmployeeForm(ctk.CTkToplevel):
                         conn.close()
 
 
+# ----------------FRAME 8------------------#
 def create_location_frame(frame_8):
     location_frame=LocationFrame(frame_8)
     location_frame.pack(fill='both', expand=True, padx=10, pady=10)
