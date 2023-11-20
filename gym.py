@@ -3,7 +3,6 @@ import tkinter as tk
 from tkinter import messagebox, simpledialog, ttk
 from PIL import Image, ImageTk
 from tkcalendar import DateEntry
-from twilio.rest import Client
 import os
 import sqlite3
 import random
@@ -3791,8 +3790,8 @@ def register(username, password, username_entry, password_entry):
         return
 
     # Connect to SQLite database
-    conn = sqlite3.connect('your_database.db')
-    cursor = conn.cursor()
+    conn=sqlite3.connect('your_database.db')
+    cursor=conn.cursor()
 
     # Create a table if it doesn't exist
     cursor.execute('''
@@ -3805,7 +3804,7 @@ def register(username, password, username_entry, password_entry):
 
     # Check if the username already exists
     cursor.execute('SELECT * FROM accounts WHERE username = ?', (username,))
-    existing_user = cursor.fetchone()
+    existing_user=cursor.fetchone()
     if existing_user:
         messagebox.showerror("Username Exists", "Username already exists. Please choose a different one.")
     else:
@@ -3843,35 +3842,44 @@ def center_window(window, width, height):
     window.geometry(f"{int(width)}x{int(height)}+{int(x)}+{int(y)}")
 
 
+def send_sms(to_phone_number, message):
+    print("PHONE NUMBER", to_phone_number)
+    print("MESSAGE", message)
+
+    api_key=''
+    url='https://api.semaphore.co/api/v4/priority'  # Using priority endpoint
+
+    payload={
+        'apikey': api_key,
+        'number': to_phone_number,
+        'message': message
+    }
+
+    try:
+        response=requests.post(url, data=payload)
+
+        if response.status_code == 200:
+            print("SEND MESSAGE SUCCESS")
+            print(response.json())
+        else:
+            print(response.text)
+            print("ERROR SENDING MESSAGE")
+            print("STATUS CODE", response.status_code)
+    except Exception as e:
+        print("failed to send message", e)
+
+
 def forgot_password():
     # Generate a random 6-character OTP
     otp=''.join(random.choices(string.digits, k=6))
 
-    # Replace these with your actual Twilio credentials
-    TWILIO_SID='ACcaf2b0445f94b586ad6105561b2f46ff'
-    TWILIO_AUTH_TOKEN='dcd1bdc389d703c25f2099c052fab288'
-    TWILIO_PHONE_NUMBER='+14698043282'
-
-    def send_otp_via_sms(phone_number, otp_to_send):
-        client=Client(TWILIO_SID, TWILIO_AUTH_TOKEN)
-
-        try:
-            message=client.messages.create(
-                body=f'Your OTP is: {otp_to_send}',
-                from_=TWILIO_PHONE_NUMBER,
-                to=phone_number
-            )
-            return message.sid
-        except Exception as e:
-            messagebox.showerror('Error', f'Error sending SMS: {str(e)}')
-
     while True:
-        user_phone_number=simpledialog.askstring('Enter Phone Number', 'Enter your phone number (e.g., +639123456789):')
+        user_phone_number=simpledialog.askstring('Enter Phone Number', 'Enter your phone number (e.g., 09123456789):')
 
         if user_phone_number is None:
             break
-        elif user_phone_number.startswith('+639') and len(user_phone_number) == 13:
-            send_otp_via_sms(user_phone_number, otp)
+        elif user_phone_number.startswith('0') and len(user_phone_number) == 11 and user_phone_number[1:].isdigit():
+            send_sms(user_phone_number, f'Your OTP is: {otp}')
 
             entered_otp=simpledialog.askstring('Enter OTP', 'Enter the OTP sent to your phone:', show='*')
 
@@ -3896,7 +3904,7 @@ def forgot_password():
                 messagebox.showerror('Invalid OTP', 'The entered OTP is incorrect.')
         else:
             messagebox.showerror('Invalid Phone Number',
-                                 'Please enter a valid Philippines phone number (e.g., +639123456789).')
+                                 'Please enter a valid phone number starting with 0 and 11 digits long (e.g., 09123456789).')
 
 
 # Create the login system
