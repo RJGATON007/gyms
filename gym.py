@@ -11,6 +11,7 @@ import string
 import qrcode
 import cv2
 import datetime
+import requests
 from datetime import datetime
 from tkintermapview import TkinterMapView
 
@@ -173,7 +174,7 @@ class MainApp(ctk.CTk):
         self.appearance_mode_menu=ctk.CTkOptionMenu(
             self.navigation_frame, values=["Light", "Dark", "System"],
             command=change_appearance_mode_event)
-        self.appearance_mode_menu.grid(row=10, column=0, padx=20, pady=20, sticky="s")
+        self.appearance_mode_menu.grid(row=10, column=0, padx=20, pady=10, sticky="s")
 
         self.logout_button=ctk.CTkButton(
             self.navigation_frame,
@@ -181,7 +182,7 @@ class MainApp(ctk.CTk):
             fg_color="Red", text_color=("gray10", "gray90"),
             hover_color=("red3", "red4"),
             command=self.logout)
-        self.logout_button.grid(row=11, column=0, padx=20, pady=10, sticky="ew")
+        self.logout_button.grid(row=11, column=0, padx=20, pady=5, sticky="ew")
 
         # create home frame
         self.home_frame=ctk.CTkFrame(self, corner_radius=0, fg_color="transparent")
@@ -517,7 +518,7 @@ class RegistrationFrame(ctk.CTkFrame):
         # Create a "Back" button to return to the previous frame
         back_button=ctk.CTkButton(self, text="Back", fg_color="Red", text_color=("gray10", "gray90"),
                                   hover_color=("red3", "red4"), command=self.back_button_event)
-        back_button.pack(pady=20, side=tk.TOP)
+        back_button.pack(pady=5, side=tk.TOP)
 
         # Store the Entry fields and other widgets as instance attributes
         self.first_name_entry=first_name_entry
@@ -574,6 +575,42 @@ class RegistrationFrame(ctk.CTkFrame):
         result_str="DG-" + ''.join(random.choice(letters) for i in range(8))
         return result_str
 
+    def send_sms(self, to_phone_number, message):
+
+        print("PHONE NUMBER", to_phone_number)
+        print("MESSAGE", message)
+
+        # delete this one kapag magpupush sa github
+        api_key=''
+
+        # # you can change this one kung gusto mo maging priority or bulk. read the docs
+        # url='https://api.semaphore.co/api/v4/messages'
+
+        # change to this one if you want na maging priority ang message kaso mas mahal ang credits
+        # 2 credits per 160 characters
+        url='https://api.semaphore.co/api/v4/priority'
+
+        payload={
+            'apikey': api_key,
+            'number': to_phone_number,
+            'message': message
+        }
+
+        # this code will connect with the API and send the data
+        try:
+            response=requests.post(url, data=payload)
+
+            if response.status_code == 200:
+
+                print("SEND MESSAGE SUCCESS")
+                print(response.json())
+            else:
+                print(response.text)
+                print("ERROR SENDING MESSAGE")
+                print("STATUS CODE", response.status_code)
+        except Exception as e:
+            print("failed to send message", e)
+
     def register_subscription(self):
         # Gather data from the form fields
         first_name=self.first_name_entry.get()
@@ -607,6 +644,11 @@ class RegistrationFrame(ctk.CTkFrame):
         except ValueError:
             messagebox.showerror("Validation Error", "Age must be a valid integer.")
             return
+        # create validation for the contact no. it must be started with no 0 for example: 09123456789
+        try:
+            contact_no=int(contact_no)
+        except ValueError:
+            messagebox.showerror("Validation Error", "Contact No must be 11-digit number.")
 
         # Create a connection to the database
         conn=sqlite3.connect('registration_form.db')
@@ -648,6 +690,11 @@ class RegistrationFrame(ctk.CTkFrame):
         file_path=os.path.join(folder_path, f"dgrit_{last_name}.png")
         qr_img.save(file_path)
 
+        # After successful registration, send an SMS
+        formatted_contact_no=self.contact_no_entry.get()  # Assuming contact_no_entry contains the formatted phone number
+        sms_message=f"Hello {first_name}!, You have Successfully Subscribed for {subscription_plan} Plan. Subscription ID:{subscription_id}. Start Date: {start_date} End Date: {end_date}, - D'GRIT GYM"
+        self.send_sms(formatted_contact_no, sms_message)
+
         # Show a success message
         messagebox.showinfo("Registration Successful", "User registered successfully!")
 
@@ -657,14 +704,6 @@ class RegistrationFrame(ctk.CTkFrame):
                       self.emergency_contact_entry, self.subscription_id_entry,
                       self.user_reference_entry]:
             entry.delete(0, tk.END)
-
-        # Set ComboBox and DateEntry widgets to default or empty values
-        self.sex_entry.set("Male")
-        self.birth_date_entry.set_date("")
-        self.nationality_combo.set("Select Nationality")
-        self.subscription_plan_entry.set("Weekly")
-        self.start_timestamp_entry.set_date("")
-        self.end_timestamp_entry.set_date("")
 
     def back_button_event(self):
         self.destroy()
@@ -1441,12 +1480,12 @@ class RegistrationEquipment(ctk.CTkFrame):
                                       text_color=("gray10", "gray90"),
                                       hover_color=("green3", "green4"),
                                       command=self.register_equipment_info)
-        register_button.pack(pady=10, side=tk.TOP)
+        register_button.pack(pady=5, side=tk.TOP)
 
         # Create a "Back" button to return to the previous frame
         back_button=ctk.CTkButton(self, text="Back", fg_color="Red", text_color=("gray10", "gray90"),
                                   hover_color=("red3", "red4"), command=self.back_button_event)
-        back_button.pack(pady=10, side=tk.TOP)
+        back_button.pack(pady=5, side=tk.TOP)
 
         # Store the Entry fields and other widgets as instance attributes
         self.equipment_name_entry=equipment_name_entry
@@ -1870,7 +1909,7 @@ def create_trainers_frame(frame_5):
         width=button_width,
         height=button_height
     )
-    register_trainer_button.place(x=200, y=200)
+    register_trainer_button.place(x=180, y=200)
 
     view_trainer_button=ctk.CTkButton(
         master=frame_5,
@@ -1881,7 +1920,7 @@ def create_trainers_frame(frame_5):
         width=button_width,
         height=button_height
     )
-    view_trainer_button.place(x=450, y=200)
+    view_trainer_button.place(x=430, y=200)
 
     trainer_attendance_button=ctk.CTkButton(
         master=frame_5,
@@ -1892,7 +1931,7 @@ def create_trainers_frame(frame_5):
         width=button_width,
         height=button_height
     )
-    trainer_attendance_button.place(x=700, y=200)
+    trainer_attendance_button.place(x=680, y=200)
 
 
 class TrainerFrame(ctk.CTkFrame):
@@ -2097,19 +2136,9 @@ class TrainerFrame(ctk.CTkFrame):
         conn.close()
 
         # Combine all the data entries into a single string
-        data_string=f"First Name: {first_name}\n" \
-                    f"Middle Name: {middle_name}\n" \
-                    f"Last Name: {last_name}\n" \
-                    f"Age: {age}\n" \
-                    f"Sex: {sex}\n" \
-                    f"Date of Birth: {birth_date}\n" \
-                    f"Address: {address}\n" \
-                    f"Nationality: {nationality}\n" \
-                    f"Contact No: {contact_no}\n" \
-                    f"Email: {email}\n" \
-                    f"Emergency Contact No: {emergency_contact_no}\n" \
- \
-            # Create a folder if it doesn't exist
+        data_string=f"{first_name},{middle_name},{last_name},{contact_no}"
+
+        # Create a folder if it doesn't exist
         folder_path="trainer_qrcodes"
         os.makedirs(folder_path, exist_ok=True)
 
@@ -2467,7 +2496,307 @@ class EditTrainerForm(ctk.CTkToplevel):
 
 
 class TrainerAttendanceFrame(ctk.CTkFrame):
-    pass
+    def __init__(self, master, **kwargs):
+        super().__init__(master, **kwargs)
+        self.create_ui_elements()
+
+    def create_ui_elements(self):
+        # Create and configure UI elements within frame
+        label=ctk.CTkLabel(self, text="", font=("Arial bold", 8))
+        label.pack(pady=5, padx=10)
+
+        # Define the desired button width and height
+        button_width=200
+        button_height=200
+
+        # Define the path to the directory containing your image files
+        frame_5_icons=os.path.join(os.path.dirname(os.path.realpath(__file__)), "frame_5_icons")
+
+        # Load and resize the images
+        scan_image=Image.open(os.path.join(frame_5_icons, 'scan_black.png'))
+        scan_image=scan_image.resize((button_width, button_height), Image.LANCZOS)
+
+        time_out_image=Image.open(os.path.join(frame_5_icons, 'list_black.png'))
+        time_out_image=time_out_image.resize((button_width, button_height), Image.LANCZOS)
+
+        # Create the buttons with the resized images
+        take_attendance_button=ctk.CTkButton(
+            master=self,
+            text="Take Attendance",
+            image=ImageTk.PhotoImage(scan_image),
+            compound=tk.TOP,
+            command=self.take_attendance,  # Call the function to open the frame
+            width=button_width,
+            height=button_height
+        )
+        take_attendance_button.place(x=300, y=150)
+
+        attendance_records_button=ctk.CTkButton(
+            master=self,
+            text="View Attendance Records",
+            image=ImageTk.PhotoImage(time_out_image),
+            compound=tk.TOP,
+            command=self.view_attendance_records,
+            width=button_width,
+            height=button_height
+        )
+        attendance_records_button.place(x=550, y=150)
+
+        # create a back button to return to the previous frame
+        back_button=ctk.CTkButton(self, text="Back", fg_color="Red", text_color=("gray10", "gray90"),
+                                  hover_color=("red3", "red4"), command=self.back_button_event)
+        back_button.pack(pady=20, side=tk.BOTTOM)
+
+    def take_attendance(self):
+        # When the "Register Members" button is clicked, create and show the registration frame
+        attendance_frame=ScanQrFrame(self)
+        attendance_frame.pack(fill='both', expand=True)
+
+    def view_attendance_records(self):
+        # When the "Register Members" button is clicked, create and show the registration frame
+        records_frame=AttendanceFrame(self)
+        records_frame.pack(fill='both', expand=True)
+
+    def back_button_event(self):
+        self.destroy()
+
+
+class ScanQrFrame(ctk.CTkFrame):
+    def __init__(self, master, **kwargs):
+        super().__init__(master, **kwargs)
+        self.create_ui_elements()
+
+    def create_ui_elements(self):
+        # Create and configure UI elements within frame
+        label=ctk.CTkLabel(self, text="", font=("Arial bold", 8))
+        label.pack(pady=5, padx=10)
+
+        # Define the desired button width and height
+        button_width=200
+        button_height=200
+
+        # Define the path to the directory containing your image files
+        frame_5_icons=os.path.join(os.path.dirname(os.path.realpath(__file__)), "frame_5_icons")
+
+        # Load and resize the images
+        time_in_image=Image.open(os.path.join(frame_5_icons, 'time_in.png'))
+        time_in_image=time_in_image.resize((button_width, button_height), Image.LANCZOS)
+
+        time_out_image=Image.open(os.path.join(frame_5_icons, 'time_out.png'))
+        time_out_image=time_out_image.resize((button_width, button_height), Image.LANCZOS)
+
+        # Create the buttons with the resized images
+        time_in_button=ctk.CTkButton(
+            master=self,
+            text="Time In",
+            image=ImageTk.PhotoImage(time_in_image),
+            compound=tk.TOP,
+            command=self.scan_qr_code_time_in,  # Call the function to open the frame
+            width=button_width,
+            height=button_height
+        )
+        time_in_button.place(x=300, y=150)
+
+        time_out_button=ctk.CTkButton(
+            master=self,
+            text="Time Out",
+            image=ImageTk.PhotoImage(time_out_image),
+            compound=tk.TOP,
+            command=self.scan_qr_code_time_out,
+            width=button_width,
+            height=button_height
+        )
+        time_out_button.place(x=550, y=150)
+
+        # create a back button to return to the previous frame
+        back_button=ctk.CTkButton(self, text="Back", fg_color="Red", text_color=("gray10", "gray90"),
+                                  hover_color=("red3", "red4"), command=self.back_button_event)
+        back_button.pack(pady=20, side=tk.BOTTOM)
+
+    def scan_qr_code_time_in(self):
+        qr_code_data=self.scan_qr_code()
+        if qr_code_data:
+            self.record_attendance(qr_code_data, "Time In")
+
+    def scan_qr_code_time_out(self):
+        qr_code_data=self.scan_qr_code()
+        if qr_code_data:
+            self.record_attendance(qr_code_data, "Time Out")
+
+    @staticmethod
+    def record_attendance(member_data, attendance_type):
+        try:
+            first_name, middle_name, last_name, contact_no=member_data.split(',')
+            current_datetime=datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+            with sqlite3.connect('trainer_attendance_records.db') as conn:
+                cursor=conn.cursor()
+
+                if attendance_type == "Time In":
+                    cursor.execute('''
+                                  INSERT INTO trainer_attendance (first_name, middle_name, last_name, contact_no, time_in)
+                                  VALUES (?, ?, ?, ?, ?)
+                              ''', (first_name, middle_name, last_name, contact_no, current_datetime))
+                elif attendance_type == "Time Out":
+                    cursor.execute('''
+                                  UPDATE trainer_attendance
+                                  SET time_out = ?
+                                  WHERE contact_no = ? AND time_out IS NULL
+                              ''', (current_datetime, contact_no))
+
+                conn.commit()
+                messagebox.showinfo("Attendance Recorded",
+                                    f"{attendance_type} recorded successfully")
+
+        except sqlite3.Error as e:
+            messagebox.showerror("Database Error", f"Error interacting with the database: {e}")
+        except Exception as e:
+            messagebox.showerror("Error", f"An unexpected error occurred: {e}")
+
+    @staticmethod
+    def scan_qr_code():
+        cap=cv2.VideoCapture(0)
+
+        while True:
+            ret, frame=cap.read()
+            cv2.imshow('QR Code Scanner', frame)
+
+            detector=cv2.QRCodeDetector()
+            data, _, _=detector.detectAndDecode(frame)
+
+            if data:
+                cap.release()
+                cv2.destroyAllWindows()
+                return data
+
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
+
+        cap.release()
+        cv2.destroyAllWindows()
+
+    def back_button_event(self):
+        self.destroy()
+
+
+class AttendanceFrame(ctk.CTkFrame):
+    def __init__(self, master, **kwargs):
+        super().__init__(master, **kwargs)
+        self.create_ui_elements()
+
+    def create_ui_elements(self):
+        # Create a frame to hold the attendance records table
+        records_table_frame=ctk.CTkFrame(self)
+        records_table_frame.pack(pady=10, padx=10, fill="both", expand=True)
+
+        table_frame=ctk.CTkFrame(records_table_frame)
+        table_frame.pack(pady=20, padx=20)
+
+        label=ctk.CTkLabel(table_frame, text="Trainer Attendance Records", font=("Arial bold", 28))
+        label.pack(pady=20, padx=10)
+
+        style=ttk.Style()
+
+        style.theme_use("default")
+
+        style.configure("Treeview",
+                        background="#2a2d2e",
+                        foreground="white",
+                        rowheight=50,
+                        fieldbackground="#343638",
+                        bordercolor="#343638",
+                        borderwidth=0,
+                        anchor="center")
+        style.map('Treeview', background=[('selected', '#22559b')])
+
+        style.configure("Treeview.Heading",
+                        background="#565b5e",
+                        foreground="white",
+                        relief="flat")
+        style.map("Treeview.Heading",
+                  background=[('active', '#3484F0')])
+
+        # Create a Treeview widget to display the attendance records
+        self.records_table=ttk.Treeview(table_frame, columns=(
+            "First Name", "Middle Name", "Last Name", "Contact No", "Time In", "Time Out"),
+                                        show="headings", height=10)
+        self.records_table.pack(side=tk.LEFT)
+
+        # Create a scrollbar for the Treeview
+        scrollbar=ttk.Scrollbar(table_frame, orient=tk.VERTICAL, command=self.records_table.yview)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        self.records_table.configure(yscrollcommand=scrollbar.set)
+
+        # Configure the columns
+        self.records_table.heading("First Name", text="First Name")
+        self.records_table.heading("Middle Name", text="Middle Name")
+        self.records_table.heading("Last Name", text="Last Name")
+        self.records_table.heading("Contact No", text="Contact No")
+        self.records_table.heading("Time In", text="Time In")
+        self.records_table.heading("Time Out", text="Time Out")
+
+        # Define the column headings and their alignment
+        columns=[
+            ("First Name", "center"),
+            ("Middle Name", "center"),
+            ("Last Name", "center"),
+            ("Contact No", "center"),
+            ("Time In", "center"),
+            ("Time Out", "center")
+        ]
+
+        for col, align in columns:
+            self.records_table.heading(col, text=col, anchor=align)
+            self.records_table.column(col, anchor=align)
+
+        # Fetch attendance records from the database
+        self.load_attendance_records()
+
+        # Create attendance record sqlite database if it doesn't exist
+        conn=sqlite3.connect('trainer_attendance_records.db')
+        cursor=conn.cursor()
+        cursor.execute('''
+               CREATE TABLE IF NOT EXISTS trainer_attendance (
+                   id INTEGER PRIMARY KEY,
+                   first_name TEXT,
+                   middle_name TEXT,
+                   last_name TEXT,
+                   contact_no TEXT,
+                   time_in TEXT,
+                   time_out TEXT
+               )
+           ''')
+        conn.commit()
+        conn.close()
+
+    def load_attendance_records(self):
+        # Fetch attendance records from the database and populate the Treeview
+        conn=sqlite3.connect('trainer_attendance_records.db')
+        cursor=conn.cursor()
+
+        try:
+            cursor.execute(
+                'SELECT first_name, middle_name, last_name, contact_no, time_in, time_out FROM trainer_attendance')
+            records=cursor.fetchall()
+
+            for record in records:
+                self.records_table.insert("", tk.END, values=record)
+
+        except sqlite3.Error as e:
+            messagebox.showerror("Error", f"Error fetching trainer attendance records: {e}")
+
+        finally:
+            cursor.close()
+            conn.close()
+
+            # create a back button to return to the previous frame
+            back_button=ctk.CTkButton(self, text="Back", fg_color="Red", text_color=("gray10", "gray90"),
+                                      hover_color=("red3", "red4"), command=self.back_button_event)
+            back_button.pack(pady=20, side=tk.BOTTOM)
+
+    def back_button_event(self):
+        # Switch back to the previous frame
+        self.destroy()
 
 
 # -------------------- FRAME 6 --------------------#
@@ -2491,7 +2820,7 @@ def create_visitors_frame(frame_6):
     # Create the buttons with the resized images
     register_employee_button=ctk.CTkButton(
         master=frame_6,
-        text="Register Employee",
+        text="Visitor Logbook",
         image=ImageTk.PhotoImage(logbook_image),
         compound=tk.TOP,
         command=register_visitors,  # Call the function to open the frame
@@ -2631,7 +2960,7 @@ class LogbookFrame(ctk.CTkFrame):
         # Back button
         back_button=ctk.CTkButton(self, text="Back", fg_color="Red", text_color=("gray10", "gray90"),
                                   hover_color=("red3", "red4"), command=self.back_button_event)
-        back_button.pack(pady=20, side=tk.TOP)
+        back_button.pack(pady=5, side=tk.TOP)
 
         # Load data into the table
         self.load_data_to_table()
@@ -3412,35 +3741,49 @@ class LocationFrame(ctk.CTkFrame):
 
 
 def create_account_management_frame(frame_9):
-    label=ctk.CTkLabel(frame_9, text="MANAGE ACCOUNT", font=("Arial bold", 34))
+    label=ctk.CTkLabel(frame_9, text="", font=("Arial bold", 28))
     label.pack(pady=30, padx=10)
 
-    fields_frame=ctk.CTkFrame(frame_9)
-    fields_frame.pack(pady=10, padx=10)
+    form_frame=ctk.CTkFrame(frame_9)
+    form_frame.pack(pady=10, padx=10)
 
-    label=ctk.CTkLabel(fields_frame, text="Create Account", font=("Arial bold", 28),
+    fields_frame=ctk.CTkFrame(form_frame)
+    fields_frame.pack(pady=10, padx=10, fill="both", expand=True)
+
+    label=ctk.CTkLabel(fields_frame, text="Create User Account", font=("Arial bold", 24),
                        fg_color="transparent")
     label.pack(pady=10, padx=10)
 
     label_font=ctk.CTkFont(family="Arial bold", size=16)  # Adjust the size as needed
 
     # Widgets
+    username_note=ctk.CTkLabel(fields_frame, text="Username must be mixed with uppercase "
+                                                  "and lowercase letters and numbers/symbols.", font=label_font)
+    username_note.pack(pady=10, padx=10)
+
     username_label=ctk.CTkLabel(fields_frame, text="Username:", font=label_font)
-    username_label.pack(pady=10, padx=10)
+    username_label.pack(pady=5, padx=10)
     username_entry=ctk.CTkEntry(fields_frame, placeholder_text="Enter new username")
-    username_entry.pack(pady=10, padx=10)
+    username_entry.pack(pady=5, padx=10)
+
+    password_note=ctk.CTkLabel(fields_frame, text="Password must be mixed with uppercase "
+                                                  "and lowercase letters and numbers/symbols.", font=label_font)
+    password_note.pack(pady=10, padx=10)
 
     password_label=ctk.CTkLabel(fields_frame, text="Password:", font=label_font)
-    password_label.pack(pady=10, padx=10)
+    password_label.pack(pady=5, padx=10)
     password_entry=ctk.CTkEntry(fields_frame, placeholder_text='Enter new password', show="*")
-    password_entry.pack(pady=10, padx=10)
+    password_entry.pack(pady=5, padx=10)
 
-    register_button=ctk.CTkButton(fields_frame, text="Register",
-                                  command=lambda: register(username_entry.get(), password_entry.get()))
+    register_button=ctk.CTkButton(
+        fields_frame,
+        text="Register",
+        command=lambda: register(username_entry.get(), password_entry.get(), username_entry, password_entry)
+    )
     register_button.pack(pady=10, padx=10)
 
 
-def register(username, password):
+def register(username, password, username_entry, password_entry):
     # Check if the username and password meet your criteria (uppercase, lowercase, symbol)
     if not is_valid(username, password):
         messagebox.showerror("Invalid Data",
@@ -3448,21 +3791,21 @@ def register(username, password):
         return
 
     # Connect to SQLite database
-    conn=sqlite3.connect('your_database.db')
-    cursor=conn.cursor()
+    conn = sqlite3.connect('your_database.db')
+    cursor = conn.cursor()
 
     # Create a table if it doesn't exist
     cursor.execute('''
-        CREATE TABLE IF NOT EXISTS accounts (
-            id INTEGER PRIMARY KEY,
-            username TEXT NOT NULL,
-            password TEXT NOT NULL
-        )
-    ''')
+            CREATE TABLE IF NOT EXISTS accounts (
+                id INTEGER PRIMARY KEY,
+                username TEXT NOT NULL,
+                password TEXT NOT NULL
+            )
+        ''')
 
     # Check if the username already exists
     cursor.execute('SELECT * FROM accounts WHERE username = ?', (username,))
-    existing_user=cursor.fetchone()
+    existing_user = cursor.fetchone()
     if existing_user:
         messagebox.showerror("Username Exists", "Username already exists. Please choose a different one.")
     else:
@@ -3472,6 +3815,10 @@ def register(username, password):
         conn.close()
 
         messagebox.showinfo("Registration Successful", "Your account has been registered successfully.")
+
+        # Clear the entry fields after successful registration
+        username_entry.delete(0, 'end')
+        password_entry.delete(0, 'end')
 
 
 def is_valid(username, password):
