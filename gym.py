@@ -3121,6 +3121,9 @@ def create_employee_frame(frame_7):
     view_image=Image.open(os.path.join(frame_7_icons, 'list_black.png'))
     view_image=view_image.resize((button_width, button_height), Image.LANCZOS)
 
+    attendance_image=Image.open(os.path.join(frame_7_icons, 'scan_black.png'))
+    attendance_image=attendance_image.resize((button_width, button_height), Image.LANCZOS)
+
     def register_employee():
         # When the "Register Members" button is clicked, create and show the registration frame
         registration_frame=RegisterEmployeeFrame(frame_7)
@@ -3130,6 +3133,11 @@ def create_employee_frame(frame_7):
         # When the "View Members" button is clicked, create and show the view members frame
         view_employee_frame=ViewEmployeeFrame(frame_7)
         view_employee_frame.pack(fill='both', expand=True)
+
+    def take_employee_attendance():
+        # When the "View Members" button is clicked, create and show the view members frame
+        attendance_frame=EmployeeAttendanceFrame(frame_7)
+        attendance_frame.pack(fill='both', expand=True)
 
     # Create the buttons with the resized images
     register_employee_button=ctk.CTkButton(
@@ -3141,7 +3149,7 @@ def create_employee_frame(frame_7):
         width=button_width,
         height=button_height
     )
-    register_employee_button.place(x=250, y=200)
+    register_employee_button.place(x=180, y=200)
 
     view_employee_button=ctk.CTkButton(
         master=frame_7,
@@ -3152,7 +3160,18 @@ def create_employee_frame(frame_7):
         width=button_width,
         height=button_height
     )
-    view_employee_button.place(x=600, y=200)
+    view_employee_button.place(x=430, y=200)
+
+    attendance_employee_button=ctk.CTkButton(
+        master=frame_7,
+        text="Employee Attendance",
+        image=ImageTk.PhotoImage(attendance_image),
+        compound=tk.TOP,
+        command=take_employee_attendance,
+        width=button_width,
+        height=button_height
+    )
+    attendance_employee_button.place(x=680, y=200)
 
 
 class RegisterEmployeeFrame(ctk.CTkFrame):
@@ -3357,8 +3376,30 @@ class RegisterEmployeeFrame(ctk.CTkFrame):
         conn.commit()
         conn.close()
 
+        # Combine all the data entries into a single string
+        data_string=f"{first_name},{middle_name},{last_name},{contact_no}"
+
+        # Create a folder if it doesn't exist
+        folder_path="employee_qrcodes"
+        os.makedirs(folder_path, exist_ok=True)
+
+        # Create a QR code containing all the data entries
+        qr=qrcode.QRCode(
+            version=1,
+            error_correction=qrcode.constants.ERROR_CORRECT_L,
+            box_size=10,
+            border=4,
+        )
+        qr.add_data(data_string)
+        qr.make(fit=True)
+        qr_img=qr.make_image(fill_color="black", back_color="white")
+
+        # Specify the file path to save the QR code in the folder
+        file_path=os.path.join(folder_path, f"dgrit_employee_{last_name}.png")
+        qr_img.save(file_path)
+
         # Show a success message
-        messagebox.showinfo("Registration Successful", "Trainer registered successfully!")
+        messagebox.showinfo("Registration Successful", "Employee registered successfully!")
 
         # Clear all form fields
         for entry in [self.first_name_entry, self.middle_name_entry, self.last_name_entry, self.age_entry,
@@ -3549,9 +3590,9 @@ class EditEmployeeForm(ctk.CTkToplevel):
 
         # Fetch data for the specified member using the provided 'id_value'
         self.cursor.execute("SELECT * FROM employees WHERE id=?", (id_value,))
-        self.trainer_data=self.cursor.fetchone()
+        self.employee_data=self.cursor.fetchone()
 
-        if self.trainer_data is None:
+        if self.employee_data is None:
             messagebox.showerror("Employee Not Found", "Employee not found in the database.")
             self.destroy()
             return
@@ -3581,8 +3622,31 @@ class EditEmployeeForm(ctk.CTkToplevel):
             label.grid(row=i, column=0, padx=10, pady=5, sticky="w")
             entry=ctk.CTkEntry(edit_frame)
             entry.grid(row=i, column=1, padx=10, pady=5, ipadx=10, ipady=3)
-            entry.insert(0, self.trainer_data[i + 1])  # Fill with data from the database
+            entry.insert(0, self.employee_data[i + 1])  # Fill with data from the database
             self.entry_fields.append(entry)
+
+        # Display the qr code of the member inside the edit form
+        qr_code_frame=ctk.CTkFrame(edit_frame)
+        qr_code_frame.grid(row=16, column=1, rowspan=16, padx=10, pady=10)
+
+        label=ctk.CTkLabel(edit_frame, text="QR Code:", font=("Arial bold", 16))
+        label.grid(row=16, column=0, padx=10, pady=10, sticky="w")
+
+        download_button_frame=ctk.CTkFrame(edit_frame)
+        download_button_frame.grid(row=50, column=1, rowspan=50, padx=10, pady=10)
+
+        # create a download button to download the qr code
+        download_button=ctk.CTkButton(download_button_frame, text="Download", command=self.download_qr_code)
+        download_button.grid(row=0, column=1, padx=10, pady=10, sticky="w")
+
+        # Display the qr code from the member_qrcodes folder based on the last name of the member
+        qr_code_path=os.path.join("employee_qrcodes", f"dgrit_employee_{self.employee_data[3]}.png")
+        qr_code_image=Image.open(qr_code_path)
+        qr_code_image=qr_code_image.resize((200, 200), Image.LANCZOS)
+        qr_code_image=ImageTk.PhotoImage(qr_code_image)
+        qr_code_label=ctk.CTkLabel(qr_code_frame, text="", image=qr_code_image)
+        qr_code_label.image=qr_code_image
+        qr_code_label.pack(pady=10, padx=10)
 
         frame_buttons=ctk.CTkFrame(main_frame)
         frame_buttons.pack(pady=20, padx=20)
@@ -3606,6 +3670,18 @@ class EditEmployeeForm(ctk.CTkToplevel):
         # Store the reference to the 'table' in EditForm
         self.table=table_reference
 
+    def download_qr_code(self):
+        # Download the displayed QR code and save it to the Downloads folder in file explorer
+        qr_code_path=os.path.join("employee_qrcodes", f"dgrit_employee_{self.employee_data[3]}.png")
+        qr_code_image=Image.open(qr_code_path)
+
+        # Assuming self.member_data[3] is the unique identifier for the member
+        save_path=os.path.join(os.path.expanduser("~"), "Downloads", f"dgrit_employee_{self.employee_data[3]}.png")
+        qr_code_image.save(save_path)
+
+        # show a success message
+        messagebox.showinfo("Download Successful", "QR Code downloaded successfully.")
+
     def update_record(self):
         # Get the updated data from the entry fields
         updated_data=[entry.get() for entry in self.entry_fields]
@@ -3622,7 +3698,7 @@ class EditEmployeeForm(ctk.CTkToplevel):
                 first_name=?, middle_name=?, last_name=?, age=?, sex=?, birth_date=?, address=?, nationality=?,
                 contact_no=?, email=?, emergency_contact_no=?
                 WHERE id=?
-            ''', (*updated_data, self.trainer_data[0]))
+            ''', (*updated_data, self.employee_data[0]))
 
             self.conn.commit()  # Commit the changes to the database
             messagebox.showinfo("Update Successful", "Record updated successfully.")
@@ -3658,6 +3734,310 @@ class EditEmployeeForm(ctk.CTkToplevel):
                     finally:
                         cursor.close()
                         conn.close()
+
+
+class EmployeeAttendanceFrame(ctk.CTkFrame):
+    def __init__(self, master, **kwargs):
+        super().__init__(master, **kwargs)
+        self.create_ui_elements()
+
+    def create_ui_elements(self):
+        # Create and configure UI elements within frame
+        label=ctk.CTkLabel(self, text="", font=("Arial bold", 8))
+        label.pack(pady=5, padx=10)
+
+        # Define the desired button width and height
+        button_width=200
+        button_height=200
+
+        # Define the path to the directory containing your image files
+        frame_7_icons=os.path.join(os.path.dirname(os.path.realpath(__file__)), "frame_7_icons")
+
+        # Load and resize the images
+        scan_image=Image.open(os.path.join(frame_7_icons, 'scan_black.png'))
+        scan_image=scan_image.resize((button_width, button_height), Image.LANCZOS)
+
+        view_image=Image.open(os.path.join(frame_7_icons, 'list_black.png'))
+        view_image=view_image.resize((button_width, button_height), Image.LANCZOS)
+
+        # Create the buttons with the resized images
+        take_attendance_button=ctk.CTkButton(
+            master=self,
+            text="Take Attendance",
+            image=ImageTk.PhotoImage(scan_image),
+            compound=tk.TOP,
+            command=self.take_attendance,  # Call the function to open the frame
+            width=button_width,
+            height=button_height
+        )
+        take_attendance_button.place(x=300, y=150)
+
+        attendance_records_button=ctk.CTkButton(
+            master=self,
+            text="View Attendance Records",
+            image=ImageTk.PhotoImage(view_image),
+            compound=tk.TOP,
+            command=self.view_attendance_records,
+            width=button_width,
+            height=button_height
+        )
+        attendance_records_button.place(x=550, y=150)
+
+        # create a back button to return to the previous frame
+        back_button=ctk.CTkButton(self, text="Back", fg_color="Red", text_color=("gray10", "gray90"),
+                                  hover_color=("red3", "red4"), command=self.back_button_event)
+        back_button.pack(pady=20, side=tk.BOTTOM)
+
+    def take_attendance(self):
+        # When the "Register Members" button is clicked, create and show the registration frame
+        attendance_frame=EmployeeScanQrFrame(self)
+        attendance_frame.pack(fill='both', expand=True)
+
+    def view_attendance_records(self):
+        # When the "Register Members" button is clicked, create and show the registration frame
+        records_frame=RecordsAttendanceFrame(self)
+        records_frame.pack(fill='both', expand=True)
+
+    def back_button_event(self):
+        self.destroy()
+
+
+class EmployeeScanQrFrame(ctk.CTkFrame):
+    def __init__(self, master, **kwargs):
+        super().__init__(master, **kwargs)
+        self.create_ui_elements()
+
+    def create_ui_elements(self):
+        # Create and configure UI elements within frame
+        label=ctk.CTkLabel(self, text="", font=("Arial bold", 8))
+        label.pack(pady=5, padx=10)
+
+        # Define the desired button width and height
+        button_width=200
+        button_height=200
+
+        # Define the path to the directory containing your image files
+        frame_7_icons=os.path.join(os.path.dirname(os.path.realpath(__file__)), "frame_7_icons")
+
+        # Load and resize the images
+        time_in_image=Image.open(os.path.join(frame_7_icons, 'time_in.png'))
+        time_in_image=time_in_image.resize((button_width, button_height), Image.LANCZOS)
+
+        time_out_image=Image.open(os.path.join(frame_7_icons, 'time_out.png'))
+        time_out_image=time_out_image.resize((button_width, button_height), Image.LANCZOS)
+
+        # Create the buttons with the resized images
+        time_in_button=ctk.CTkButton(
+            master=self,
+            text="Time In",
+            image=ImageTk.PhotoImage(time_in_image),
+            compound=tk.TOP,
+            command=self.scan_qr_code_time_in,  # Call the function to open the frame
+            width=button_width,
+            height=button_height
+        )
+        time_in_button.place(x=300, y=150)
+
+        time_out_button=ctk.CTkButton(
+            master=self,
+            text="Time Out",
+            image=ImageTk.PhotoImage(time_out_image),
+            compound=tk.TOP,
+            command=self.scan_qr_code_time_out,
+            width=button_width,
+            height=button_height
+        )
+        time_out_button.place(x=550, y=150)
+
+        # create a back button to return to the previous frame
+        back_button=ctk.CTkButton(self, text="Back", fg_color="Red", text_color=("gray10", "gray90"),
+                                  hover_color=("red3", "red4"), command=self.back_button_event)
+        back_button.pack(pady=20, side=tk.BOTTOM)
+
+    def scan_qr_code_time_in(self):
+        qr_code_data=self.scan_qr_code()
+        if qr_code_data:
+            self.record_attendance(qr_code_data, "Time In")
+
+    def scan_qr_code_time_out(self):
+        qr_code_data=self.scan_qr_code()
+        if qr_code_data:
+            self.record_attendance(qr_code_data, "Time Out")
+
+    @staticmethod
+    def record_attendance(member_data, attendance_type):
+        try:
+            first_name, middle_name, last_name, contact_no=member_data.split(',')
+            current_datetime=datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+            with sqlite3.connect('employee_attendance_records.db') as conn:
+                cursor=conn.cursor()
+
+                if attendance_type == "Time In":
+                    cursor.execute('''
+                                      INSERT INTO employee_attendance (first_name, middle_name, last_name, contact_no, time_in)
+                                      VALUES (?, ?, ?, ?, ?)
+                                  ''', (first_name, middle_name, last_name, contact_no, current_datetime))
+                elif attendance_type == "Time Out":
+                    cursor.execute('''
+                                      UPDATE employee_attendance
+                                      SET time_out = ?
+                                      WHERE contact_no = ? AND time_out IS NULL
+                                  ''', (current_datetime, contact_no))
+
+                conn.commit()
+                messagebox.showinfo("Attendance Recorded",
+                                    f"{attendance_type} recorded successfully")
+
+        except sqlite3.Error as e:
+            messagebox.showerror("Database Error", f"Error interacting with the database: {e}")
+        except Exception as e:
+            messagebox.showerror("Error", f"An unexpected error occurred: {e}")
+
+    @staticmethod
+    def scan_qr_code():
+        cap=cv2.VideoCapture(0)
+
+        while True:
+            ret, frame=cap.read()
+            cv2.imshow('QR Code Scanner', frame)
+
+            detector=cv2.QRCodeDetector()
+            data, _, _=detector.detectAndDecode(frame)
+
+            if data:
+                cap.release()
+                cv2.destroyAllWindows()
+                return data
+
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
+
+        cap.release()
+        cv2.destroyAllWindows()
+
+    def back_button_event(self):
+        self.destroy()
+
+
+class RecordsAttendanceFrame(ctk.CTkFrame):
+    def __init__(self, master, **kwargs):
+        super().__init__(master, **kwargs)
+        self.create_ui_elements()
+
+    def create_ui_elements(self):
+        # Create a frame to hold the attendance records table
+        records_table_frame=ctk.CTkFrame(self)
+        records_table_frame.pack(pady=10, padx=10, fill="both", expand=True)
+
+        table_frame=ctk.CTkFrame(records_table_frame)
+        table_frame.pack(pady=20, padx=20)
+
+        label=ctk.CTkLabel(table_frame, text="Employee Attendance Records", font=("Arial bold", 28))
+        label.pack(pady=20, padx=10)
+
+        style=ttk.Style()
+
+        style.theme_use("default")
+
+        style.configure("Treeview",
+                        background="#2a2d2e",
+                        foreground="white",
+                        rowheight=50,
+                        fieldbackground="#343638",
+                        bordercolor="#343638",
+                        borderwidth=0,
+                        anchor="center")
+        style.map('Treeview', background=[('selected', '#22559b')])
+
+        style.configure("Treeview.Heading",
+                        background="#565b5e",
+                        foreground="white",
+                        relief="flat")
+        style.map("Treeview.Heading",
+                  background=[('active', '#3484F0')])
+
+        # Create a Treeview widget to display the attendance records
+        self.records_table=ttk.Treeview(table_frame, columns=(
+            "First Name", "Middle Name", "Last Name", "Contact No", "Time In", "Time Out"),
+                                        show="headings", height=10)
+        self.records_table.pack(side=tk.LEFT)
+
+        # Create a scrollbar for the Treeview
+        scrollbar=ttk.Scrollbar(table_frame, orient=tk.VERTICAL, command=self.records_table.yview)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        self.records_table.configure(yscrollcommand=scrollbar.set)
+
+        # Configure the columns
+        self.records_table.heading("First Name", text="First Name")
+        self.records_table.heading("Middle Name", text="Middle Name")
+        self.records_table.heading("Last Name", text="Last Name")
+        self.records_table.heading("Contact No", text="Contact No")
+        self.records_table.heading("Time In", text="Time In")
+        self.records_table.heading("Time Out", text="Time Out")
+
+        # Define the column headings and their alignment
+        columns=[
+            ("First Name", "center"),
+            ("Middle Name", "center"),
+            ("Last Name", "center"),
+            ("Contact No", "center"),
+            ("Time In", "center"),
+            ("Time Out", "center")
+        ]
+
+        for col, align in columns:
+            self.records_table.heading(col, text=col, anchor=align)
+            self.records_table.column(col, anchor=align)
+
+        # Fetch attendance records from the database
+        self.load_attendance_records()
+
+        # Create attendance record sqlite database if it doesn't exist
+        conn=sqlite3.connect('employee_attendance_records.db')
+        cursor=conn.cursor()
+        cursor.execute('''
+                   CREATE TABLE IF NOT EXISTS employee_attendance (
+                       id INTEGER PRIMARY KEY,
+                       first_name TEXT,
+                       middle_name TEXT,
+                       last_name TEXT,
+                       contact_no TEXT,
+                       time_in TEXT,
+                       time_out TEXT
+                   )
+               ''')
+        conn.commit()
+        conn.close()
+
+    def load_attendance_records(self):
+        # Fetch attendance records from the database and populate the Treeview
+        conn=sqlite3.connect('employee_attendance_records.db')
+        cursor=conn.cursor()
+
+        try:
+            cursor.execute(
+                'SELECT first_name, middle_name, last_name, contact_no, time_in, time_out FROM employee_attendance')
+            records=cursor.fetchall()
+
+            for record in records:
+                self.records_table.insert("", tk.END, values=record)
+
+        except sqlite3.Error as e:
+            messagebox.showerror("Error", f"Error fetching employee attendance records: {e}")
+
+        finally:
+            cursor.close()
+            conn.close()
+
+            # create a back button to return to the previous frame
+            back_button=ctk.CTkButton(self, text="Back", fg_color="Red", text_color=("gray10", "gray90"),
+                                      hover_color=("red3", "red4"), command=self.back_button_event)
+            back_button.pack(pady=20, side=tk.BOTTOM)
+
+    def back_button_event(self):
+        # Switch back to the previous frame
+        self.destroy()
 
 
 # ----------------FRAME 8------------------#
