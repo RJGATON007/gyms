@@ -970,6 +970,8 @@ class EditForm(ctk.CTkToplevel):
         # Store the reference to the 'table' in EditForm
         self.table=table_reference
 
+    # Download qr code
+
     def download_qr_code(self):
         # Download the displayed QR code and save it to the Downloads folder in file explorer
         qr_code_path=os.path.join("member_qrcodes", f"dgrit_{self.member_data[3]}.png")
