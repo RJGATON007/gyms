@@ -12,7 +12,6 @@ import cv2
 import datetime
 import requests
 from datetime import datetime
-from tkintermapview import TkinterMapView
 
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("green")
@@ -156,19 +155,11 @@ class MainApp(ctk.CTk):
 
         self.frame_8_button=ctk.CTkButton(
             self.navigation_frame, corner_radius=0, height=40, border_spacing=10,
-            text="Location",
+            text="Create User Account",
             fg_color="transparent", text_color=("gray10", "gray90"),
             hover_color=("gray70", "gray30"),
             image=self.location_image, anchor="w", command=self.frame_8_button_event)
         self.frame_8_button.grid(row=8, column=0, sticky="ew")
-
-        self.frame_9_button=ctk.CTkButton(
-            self.navigation_frame, corner_radius=0, height=40, border_spacing=10,
-            text="Account",
-            fg_color="transparent", text_color=("gray10", "gray90"),
-            hover_color=("gray70", "gray30"),
-            image=self.add_user_image, anchor="w", command=self.frame_9_button_event)
-        self.frame_9_button.grid(row=9, column=0, sticky="ew")
 
         self.appearance_mode_menu=ctk.CTkOptionMenu(
             self.navigation_frame, values=["Light", "Dark", "System"],
@@ -204,8 +195,6 @@ class MainApp(ctk.CTk):
         self.seventh_frame=ctk.CTkFrame(self, corner_radius=0, fg_color="transparent")
         # 8
         self.eighth_frame=ctk.CTkFrame(self, corner_radius=0, fg_color="transparent")
-        # 9
-        self.ninth_frame=ctk.CTkFrame(self, corner_radius=0, fg_color="transparent")
 
         # select default frame
         self.select_frame_by_name("home")
@@ -215,8 +204,7 @@ class MainApp(ctk.CTk):
         create_trainers_frame(self.fifth_frame)
         create_visitors_frame(self.sixth_frame)
         create_employee_frame(self.seventh_frame)
-        create_location_frame(self.eighth_frame)
-        create_account_management_frame(self.ninth_frame)
+        create_account_management_frame(self.eighth_frame)
 
     def select_frame_by_name(self, name):
         # set button color for selected button
@@ -228,7 +216,6 @@ class MainApp(ctk.CTk):
         self.frame_6_button.configure(fg_color=("gray75", "gray25") if name == "frame_6" else "transparent")
         self.frame_7_button.configure(fg_color=("gray75", "gray25") if name == "frame_7" else "transparent")
         self.frame_8_button.configure(fg_color=("gray75", "gray25") if name == "frame_8" else "transparent")
-        self.frame_9_button.configure(fg_color=("gray75", "gray25") if name == "frame_9" else "transparent")
 
         # show selected frame
         if name == "home":
@@ -263,10 +250,6 @@ class MainApp(ctk.CTk):
             self.eighth_frame.grid(row=0, column=1, sticky="nsew")
         else:
             self.eighth_frame.grid_forget()
-        if name == "frame_9":
-            self.ninth_frame.grid(row=0, column=1, sticky="nsew")
-        else:
-            self.ninth_frame.grid_forget()
 
     def home_button_event(self):
         self.select_frame_by_name("home")
@@ -291,9 +274,6 @@ class MainApp(ctk.CTk):
 
     def frame_8_button_event(self):
         self.select_frame_by_name("frame_8")
-
-    def frame_9_button_event(self):
-        self.select_frame_by_name("frame_9")
 
     # Add a logout method to the MainApp class
     def logout(self):
@@ -668,7 +648,7 @@ class RegistrationFrame(ctk.CTkFrame):
         conn.close()
 
         # Combine all the data entries into a single string
-        data_string=f"{first_name},{middle_name},{last_name},{subscription_id}"
+        data_string=f"{first_name},{middle_name},{last_name},{contact_no},{subscription_id}"
 
         # Create a folder if it doesn't exist
         folder_path="member_qrcodes"
@@ -727,7 +707,7 @@ class ViewFrame(ctk.CTkFrame):
 
         # Get only the specific columns from the database
         cursor.execute(
-            "SELECT id, first_name, middle_name, last_name, subscription_id, start_date, end_date FROM registration")
+            "SELECT id, first_name, middle_name, last_name, contact_no, subscription_id, start_date, end_date FROM registration")
         records=cursor.fetchall()
 
         # Create a frame that holds the table
@@ -757,7 +737,7 @@ class ViewFrame(ctk.CTkFrame):
 
         # Create a table to display the records
         self.table=ttk.Treeview(table_frame, columns=(
-            "ID", "First Name", "Middle Name", "Last Name", "Subscription ID",
+            "ID", "First Name", "Middle Name", "Last Name", "Contact No", "Subscription ID",
             "Start Date", "End Date"), show="headings", height=10)
         self.table.pack(side=tk.LEFT)
 
@@ -771,6 +751,7 @@ class ViewFrame(ctk.CTkFrame):
         self.table.heading("First Name", text="First Name")
         self.table.heading("Middle Name", text="Middle Name")
         self.table.heading("Last Name", text="Last Name")
+        self.table.heading("Contact No", text="Contact No")
         self.table.heading("Subscription ID", text="Subscription ID")
         self.table.heading("Start Date", text="Start Date")
         self.table.heading("End Date", text="End Date")
@@ -781,6 +762,7 @@ class ViewFrame(ctk.CTkFrame):
             ("First Name", "center"),
             ("Middle Name", "center"),
             ("Last Name", "center"),
+            ("Contact No", "center"),
             ("Subscription ID", "center"),
             ("Start Date", "center"),
             ("End Date", "center")
@@ -1152,10 +1134,46 @@ class ScanFrame(ctk.CTkFrame):
         if qr_code_data:
             self.record_attendance(qr_code_data, "Time Out")
 
+    def send_sms(self, to_phone_number, message):
+
+        print("PHONE NUMBER", to_phone_number)
+        print("MESSAGE", message)
+
+        # delete this one kapag magpupush sa github
+        api_key=''
+
+        # # you can change this one kung gusto mo maging priority or bulk. read the docs
+        # url='https://api.semaphore.co/api/v4/messages'
+
+        # change to this one if you want na maging priority ang message kaso mas mahal ang credits
+        # 2 credits per 160 characters
+        url='https://api.semaphore.co/api/v4/priority'
+
+        payload={
+            'apikey': api_key,
+            'number': to_phone_number,
+            'message': message
+        }
+
+        # this code will connect with the API and send the data
+        try:
+            response=requests.post(url, data=payload)
+
+            if response.status_code == 200:
+
+                print("SEND MESSAGE SUCCESS")
+                print(response.json())
+            else:
+                print(response.text)
+                print("ERROR SENDING MESSAGE")
+                print("STATUS CODE", response.status_code)
+        except Exception as e:
+            print("failed to send message", e)
+
     @staticmethod
     def record_attendance(member_data, attendance_type):
         try:
-            first_name, middle_name, last_name, subscription_id=member_data.split(',')
+            first_name, middle_name, last_name, contact_no, subscription_id=member_data.split(',')
             current_datetime=datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
             with sqlite3.connect('attendance_records.db') as conn:
@@ -1163,15 +1181,22 @@ class ScanFrame(ctk.CTkFrame):
 
                 if attendance_type == "Time In":
                     cursor.execute('''
-                           INSERT INTO attendance_records (first_name, middle_name, last_name, subscription_id, time_in)
-                           VALUES (?, ?, ?, ?, ?)
-                       ''', (first_name, middle_name, last_name, subscription_id, current_datetime))
+                           INSERT INTO attendance_records (first_name, middle_name, last_name, contact_no, subscription_id, time_in)
+                           VALUES (?, ?, ?, ?, ?, ?)
+                       ''', (first_name, middle_name, last_name, contact_no, subscription_id, current_datetime))
+
+                    send_sms(contact_no,
+                             f"Hello {first_name}!, You have Successfully Time In. Subscription ID:{subscription_id}. Time In: {current_datetime}, - D'GRIT GYM")
+
                 elif attendance_type == "Time Out":
                     cursor.execute('''
                            UPDATE attendance_records
                            SET time_out = ?
                            WHERE subscription_id = ? AND time_out IS NULL
                        ''', (current_datetime, subscription_id))
+
+                    send_sms(contact_no,
+                             f"Hello {first_name}!, Thank you for coming. See you again! Subscription ID:{subscription_id}. Time Out: {current_datetime}, - D'GRIT GYM")
 
                 conn.commit()
                 messagebox.showinfo("Attendance Recorded",
@@ -1247,7 +1272,7 @@ class RecordsFrame(ctk.CTkFrame):
 
         # Create a Treeview widget to display the attendance records
         self.records_table=ttk.Treeview(table_frame, columns=(
-            "First Name", "Middle Name", "Last Name", "Subscription ID", "Time In", "Time Out"),
+            "First Name", "Middle Name", "Last Name", "Contact No", "Subscription ID", "Time In", "Time Out"),
                                         show="headings", height=10)
         self.records_table.pack(side=tk.LEFT)
 
@@ -1260,6 +1285,7 @@ class RecordsFrame(ctk.CTkFrame):
         self.records_table.heading("First Name", text="First Name")
         self.records_table.heading("Middle Name", text="Middle Name")
         self.records_table.heading("Last Name", text="Last Name")
+        self.records_table.heading("Contact No", text="Contact No")
         self.records_table.heading("Subscription ID", text="Subscription ID")
         self.records_table.heading("Time In", text="Time In")
         self.records_table.heading("Time Out", text="Time Out")
@@ -1269,6 +1295,7 @@ class RecordsFrame(ctk.CTkFrame):
             ("First Name", "center"),
             ("Middle Name", "center"),
             ("Last Name", "center"),
+            ("Contact No", "center"),
             ("Subscription ID", "center"),
             ("Time In", "center"),
             ("Time Out", "center")
@@ -1290,6 +1317,7 @@ class RecordsFrame(ctk.CTkFrame):
                 first_name TEXT,
                 middle_name TEXT,
                 last_name TEXT,
+                contact_no TEXT,
                 subscription_id TEXT,
                 time_in TEXT,
                 time_out TEXT
@@ -1305,7 +1333,7 @@ class RecordsFrame(ctk.CTkFrame):
 
         try:
             cursor.execute(
-                'SELECT first_name, middle_name, last_name, subscription_id, time_in, time_out FROM attendance_records')
+                'SELECT first_name, middle_name, last_name, contact_no, subscription_id, time_in, time_out FROM attendance_records')
             records=cursor.fetchall()
 
             for record in records:
@@ -2624,6 +2652,42 @@ class ScanQrFrame(ctk.CTkFrame):
         if qr_code_data:
             self.record_attendance(qr_code_data, "Time Out")
 
+    def send_sms(self, to_phone_number, message):
+
+        print("PHONE NUMBER", to_phone_number)
+        print("MESSAGE", message)
+
+        # delete this one kapag magpupush sa github
+        api_key=''
+
+        # # you can change this one kung gusto mo maging priority or bulk. read the docs
+        # url='https://api.semaphore.co/api/v4/messages'
+
+        # change to this one if you want na maging priority ang message kaso mas mahal ang credits
+        # 2 credits per 160 characters
+        url='https://api.semaphore.co/api/v4/priority'
+
+        payload={
+            'apikey': api_key,
+            'number': to_phone_number,
+            'message': message
+        }
+
+        # this code will connect with the API and send the data
+        try:
+            response=requests.post(url, data=payload)
+
+            if response.status_code == 200:
+
+                print("SEND MESSAGE SUCCESS")
+                print(response.json())
+            else:
+                print(response.text)
+                print("ERROR SENDING MESSAGE")
+                print("STATUS CODE", response.status_code)
+        except Exception as e:
+            print("failed to send message", e)
+
     @staticmethod
     def record_attendance(member_data, attendance_type):
         try:
@@ -2638,12 +2702,16 @@ class ScanQrFrame(ctk.CTkFrame):
                                   INSERT INTO trainer_attendance (first_name, middle_name, last_name, contact_no, time_in)
                                   VALUES (?, ?, ?, ?, ?)
                               ''', (first_name, middle_name, last_name, contact_no, current_datetime))
+                    send_sms(contact_no,
+                             f"Hello {first_name}!, You have Successfully Time In. Time In: {current_datetime}, - D'GRIT GYM")
                 elif attendance_type == "Time Out":
                     cursor.execute('''
                                   UPDATE trainer_attendance
                                   SET time_out = ?
                                   WHERE contact_no = ? AND time_out IS NULL
                               ''', (current_datetime, contact_no))
+                    send_sms(contact_no,
+                             f"Hello {first_name}!, You have Successfully Time Out. Time In: {current_datetime}, - D'GRIT GYM")
 
                 conn.commit()
                 messagebox.showinfo("Attendance Recorded",
@@ -3866,6 +3934,42 @@ class EmployeeScanQrFrame(ctk.CTkFrame):
         if qr_code_data:
             self.record_attendance(qr_code_data, "Time Out")
 
+    def send_sms(self, to_phone_number, message):
+
+        print("PHONE NUMBER", to_phone_number)
+        print("MESSAGE", message)
+
+        # delete this one kapag magpupush sa github
+        api_key=''
+
+        # # you can change this one kung gusto mo maging priority or bulk. read the docs
+        # url='https://api.semaphore.co/api/v4/messages'
+
+        # change to this one if you want na maging priority ang message kaso mas mahal ang credits
+        # 2 credits per 160 characters
+        url='https://api.semaphore.co/api/v4/priority'
+
+        payload={
+            'apikey': api_key,
+            'number': to_phone_number,
+            'message': message
+        }
+
+        # this code will connect with the API and send the data
+        try:
+            response=requests.post(url, data=payload)
+
+            if response.status_code == 200:
+
+                print("SEND MESSAGE SUCCESS")
+                print(response.json())
+            else:
+                print(response.text)
+                print("ERROR SENDING MESSAGE")
+                print("STATUS CODE", response.status_code)
+        except Exception as e:
+            print("failed to send message", e)
+
     @staticmethod
     def record_attendance(member_data, attendance_type):
         try:
@@ -3880,12 +3984,16 @@ class EmployeeScanQrFrame(ctk.CTkFrame):
                                       INSERT INTO employee_attendance (first_name, middle_name, last_name, contact_no, time_in)
                                       VALUES (?, ?, ?, ?, ?)
                                   ''', (first_name, middle_name, last_name, contact_no, current_datetime))
+                    send_sms(contact_no,
+                             f"Hello {first_name}!, You have Successfully Time In. Time In: {current_datetime}, - D'GRIT GYM")
                 elif attendance_type == "Time Out":
                     cursor.execute('''
                                       UPDATE employee_attendance
                                       SET time_out = ?
                                       WHERE contact_no = ? AND time_out IS NULL
                                   ''', (current_datetime, contact_no))
+                    send_sms(contact_no,
+                             f"Hello {first_name}!, You have Successfully Time Out. Time Out: {current_datetime}, - D'GRIT GYM")
 
                 conn.commit()
                 messagebox.showinfo("Attendance Recorded",
@@ -4042,90 +4150,11 @@ class RecordsAttendanceFrame(ctk.CTkFrame):
         self.destroy()
 
 
-# ----------------FRAME 8------------------#
-def create_location_frame(frame_8):
-    location_frame=LocationFrame(frame_8)
-    location_frame.pack(fill='both', expand=True, padx=10, pady=10)
-
-
-# Configure the map widget
-class LocationFrame(ctk.CTkFrame):
-    def __init__(self, master, **kwargs):
-        super().__init__(master, **kwargs)
-
-        # Create a frame to hold the map
-        map_frame=ctk.CTkFrame(self, corner_radius=0, fg_color="transparent")
-        map_frame.pack(fill='both', expand=True, padx=10, pady=10)
-
-        # Create a frame to hold the search bar
-        search_frame=ctk.CTkFrame(map_frame, corner_radius=0, fg_color="transparent")
-        search_frame.pack(fill='x', padx=10, pady=10)
-
-        search_frame.grid_rowconfigure(0, weight=1)
-        search_frame.grid_columnconfigure(0, weight=1)
-        search_frame.grid_columnconfigure(1, weight=0)
-
-        search_entry=ctk.CTkEntry(search_frame, placeholder_text="Type address")
-        search_entry.grid(row=0, column=0, sticky="we", padx=(12, 0), pady=12)
-        search_entry.bind("<Return>", self.search_event)  # Bind the Enter key to trigger the search_event
-
-        search_button=ctk.CTkButton(search_frame, text="Search", width=90, command=self.search_event)
-        search_button.grid(row=0, column=1, sticky="w", padx=(12, 0), pady=12)
-        self.search_entry=search_entry  # Store the search_entry widget as an instance variable
-
-        # Create a frame to hold the buttons
-        button_frame=ctk.CTkFrame(map_frame, corner_radius=0, fg_color="transparent")
-        button_frame.pack(fill='x', padx=10, pady=10)
-
-        set_marker_button=ctk.CTkButton(button_frame, text="Set Marker", command=self.set_marker_event)
-        set_marker_button.grid(row=0, column=0, padx=(10, 10), pady=(5, 5))
-
-        clear_marker_button=ctk.CTkButton(button_frame, text="Clear Markers", command=self.clear_marker_event)
-        clear_marker_button.grid(row=0, column=1, padx=(10, 100), pady=(5, 5))
-
-        map_option_menu=ctk.CTkOptionMenu(button_frame, values=["OpenStreetMap", "Google normal", "Google satellite"],
-                                          command=self.change_map)
-        map_option_menu.grid(row=0, column=3, padx=(450, 100), pady=(5, 5))
-
-        # Create a map widget inside the existing map_frame
-        self.map_widget=TkinterMapView(map_frame, corner_radius=0)
-        self.map_widget.pack(fill='both', expand=True)  # Use pack manager here
-
-        # Set default values
-        self.map_widget.set_address("Matnog, Sorsogon, Philippines")
-        self.map_widget.set_zoom(30)
-
-        # Initialize the marker_list as an instance variable
-        self.marker_list=[]
-
-    def search_event(self):
-        address=self.search_entry.get()
-        self.map_widget.set_address(address)
-
-    def set_marker_event(self):
-        current_position=self.map_widget.get_position()
-        self.marker_list.append(self.map_widget.set_marker(current_position[0], current_position[1]))
-
-    def clear_marker_event(self):
-        for marker in self.marker_list:
-            marker.delete()
-
-    def change_map(self, new_map: str):
-        if new_map == "OpenStreetMap":
-            self.map_widget.set_tile_server("https://a.tile.openstreetmap.org/{z}/{x}/{y}.png")
-        elif new_map == "Google normal":
-            self.map_widget.set_tile_server("https://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}&s=Ga",
-                                            max_zoom=22)
-        elif new_map == "Google satellite":
-            self.map_widget.set_tile_server("https://mt0.google.com/vt/lyrs=s&hl=en&x={x}&y={y}&z={z}&s=Ga",
-                                            max_zoom=22)
-
-
-def create_account_management_frame(frame_9):
-    label=ctk.CTkLabel(frame_9, text="", font=("Arial bold", 28))
+def create_account_management_frame(frame_8):
+    label=ctk.CTkLabel(frame_8, text="", font=("Arial bold", 28))
     label.pack(pady=30, padx=10)
 
-    form_frame=ctk.CTkFrame(frame_9)
+    form_frame=ctk.CTkFrame(frame_8)
     form_frame.pack(pady=10, padx=10)
 
     fields_frame=ctk.CTkFrame(form_frame)
