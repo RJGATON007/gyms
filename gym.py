@@ -76,9 +76,6 @@ class MainApp(ctk.CTk):
         self.trainer_image=ctk.CTkImage(
             light_image=Image.open(os.path.join(image_path, "trainer_black.png")),
             dark_image=Image.open(os.path.join(image_path, "trainer_white.png")), size=(20, 20))
-        self.location_image=ctk.CTkImage(
-            light_image=Image.open(os.path.join(image_path, "location_black.png")),
-            dark_image=Image.open(os.path.join(image_path, "location_white.png")), size=(20, 20))
         self.attendance_image=ctk.CTkImage(
             light_image=Image.open(os.path.join(image_path, "scan_black.png")),
             dark_image=Image.open(os.path.join(image_path, "scan_white.png")), size=(20, 20))
@@ -158,7 +155,7 @@ class MainApp(ctk.CTk):
             text="Create User Account",
             fg_color="transparent", text_color=("gray10", "gray90"),
             hover_color=("gray70", "gray30"),
-            image=self.location_image, anchor="w", command=self.frame_8_button_event)
+            image=self.add_user_image, anchor="w", command=self.frame_8_button_event)
         self.frame_8_button.grid(row=8, column=0, sticky="ew")
 
         self.appearance_mode_menu=ctk.CTkOptionMenu(
@@ -198,6 +195,7 @@ class MainApp(ctk.CTk):
 
         # select default frame
         self.select_frame_by_name("home")
+        create_home_frame(self.home_frame)  # Call the function to create home frame
         create_gym_membership_frame(self.second_frame)  # Call the function to create gym membership frame
         create_take_attendance_frame(self.third_frame)
         create_gym_equipment_frame(self.fourth_frame)
@@ -284,8 +282,13 @@ class MainApp(ctk.CTk):
         create_login_window()
 
 
-# ------------FRAME_2----------------------#
+# ------------HOME FRAME----------------------#
 
+def create_home_frame(home):
+    pass
+
+
+# ------------FRAME_2----------------------#
 
 def create_gym_membership_frame(frame_2):
     # Define the desired button width and height
@@ -609,8 +612,6 @@ class RegistrationFrame(ctk.CTkFrame):
         end_date=self.end_timestamp_entry.get()
         user_reference=self.user_reference_entry.get()
 
-        # Validate the data (you can add your validation logic here)
-
         # Validate the data
         if not (first_name and last_name and age and sex and birth_date and address and
                 nationality and contact_no and email and emergency_contact_no and
@@ -774,6 +775,22 @@ class ViewFrame(ctk.CTkFrame):
 
         self.table.pack(side=tk.LEFT)
 
+        # column width
+        columns=[
+            ("ID", 50),
+            ("First Name", 150),
+            ("Middle Name", 150),
+            ("Last Name", 150),
+            ("Contact No", 150),
+            ("Subscription ID", 150),
+            ("Start Date", 150),
+            ("End Date", 150)
+        ]
+
+        for col, width in columns:
+            self.table.column(col, width=width)
+            self.table.column("#0", width=0)
+
         # Add the records to the table
         for record in records:
             self.table.insert("", tk.END, values=record)
@@ -820,32 +837,51 @@ class ViewFrame(ctk.CTkFrame):
 
     def delete_record(self):
         # Get the selected item (record) from the Treeview
-        selected_item=self.table.selection()
+        selected_item = self.table.selection()
         if selected_item:
             # Prompt the user for confirmation
-            confirm=messagebox.askyesno("Delete Record", "Are you sure you want to delete this record?")
+            confirm = messagebox.askyesno("Delete Record", "Are you sure you want to delete this record?")
             if confirm:
                 # Retrieve the data of the selected record from the Treeview
-                record_data=self.table.item(selected_item)['values']
+                record_data = self.table.item(selected_item)['values']
 
-                # Delete the selected record from the database based on the 'First Name' column
+                # Delete the selected record from the database based on the 'ID' column
                 if record_data:
-                    id=record_data[0]  # Assuming 'First Name' is the first column in the 'values' list
-                    conn=sqlite3.connect('registration_form.db')
-                    cursor=conn.cursor()
+                    id_value = record_data[0]  # Assuming 'ID' is the first column in the 'values' list
+                    conn = sqlite3.connect('registration_form.db')
+                    cursor = conn.cursor()
                     try:
-                        cursor.execute("DELETE FROM registration WHERE id=?", (id,))
+                        cursor.execute("DELETE FROM registration WHERE id=?", (id_value,))
                         conn.commit()  # Commit the changes to the database
                         print("Record deleted successfully.")
                     except sqlite3.Error as e:
                         messagebox.showerror("Error", f"Error deleting record: {e}")
                         print(f"Error deleting record: {e}")
                     finally:
-                        cursor.close()  # Close the cursor
-                        conn.close()  # Close the database connection
+                        cursor.close()
+                        conn.close()
 
                     # Remove the selected item from the Treeview
                     self.table.delete(selected_item)
+
+                    # Fetch the updated data from the database
+                    conn = sqlite3.connect('registration_form.db')
+                    cursor = conn.cursor()
+                    cursor.execute(
+                        "SELECT id, first_name, middle_name, last_name, contact_no, subscription_id, start_date, end_date FROM registration")
+                    updated_records = cursor.fetchall()
+
+                    # Clear the existing table data
+                    for item in self.table.get_children():
+                        self.table.delete(item)
+
+                    # Repopulate the table with the updated records
+                    for record in updated_records:
+                        self.table.insert("", tk.END, values=record)
+
+                    # Close the cursor and connection
+                    cursor.close()
+                    conn.close()
 
 
 class EditForm(ctk.CTkToplevel):
@@ -978,37 +1014,57 @@ class EditForm(ctk.CTkToplevel):
         # Continue with the update logic
         try:
             self.cursor.execute('''
-                UPDATE registration SET 
-                first_name=?, middle_name=?, last_name=?, age=?, sex=?, birth_date=?, address=?, nationality=?,
-                contact_no=?, email=?, emergency_contact_no=?, subscription_id=?, subscription_plan=?, start_date=?,
-                end_date=?, user_reference=?
-                WHERE first_name=?
-            ''', (*updated_data, updated_data[0]))
-
+                   UPDATE registration SET 
+                   first_name=?, middle_name=?, last_name=?, age=?, sex=?, birth_date=?, address=?, nationality=?,
+                   contact_no=?, email=?, emergency_contact_no=?, subscription_id=?, subscription_plan=?, start_date=?,
+                   end_date=?, user_reference=?
+                   WHERE id=?
+               ''', (*updated_data, self.member_data[0]))
             self.conn.commit()  # Commit the changes to the database
             messagebox.showinfo("Update Successful", "Record updated successfully.")
         except sqlite3.Error as e:
             messagebox.showerror("Error", f"Error updating record: {e}")
         finally:
             self.cursor.close()  # Close the cursor
-            self.conn.close()  # Close the database connection
+            self.conn.close()
+
+        # Fetch the updated data from the database
+        conn=sqlite3.connect('registration_form.db')
+        cursor=conn.cursor()
+        cursor.execute(
+            "SELECT id, first_name, middle_name, last_name, contact_no, subscription_id, start_date, end_date FROM registration")
+        updated_records=cursor.fetchall()
+
+        # Clear the existing table data
+        for item in self.table.get_children():
+            self.table.delete(item)
+
+        # Repopulate the table with the updated records
+        for record in updated_records:
+            self.table.insert("", tk.END, values=record)
+
+        # Close the cursor and connection
+        cursor.close()
+        conn.close()
 
         # Close the edit form
         self.destroy()
 
     def delete_record(self):
-        selected_item=self.table.selection()
+        # Get the selected item (record) from the Treeview
+        selected_item = self.table.selection()
         if selected_item:
-            confirm=messagebox.askyesno("Delete Record", "Are you sure you want to delete this record?")
+            # Prompt the user for confirmation
+            confirm = messagebox.askyesno("Delete Record", "Are you sure you want to delete this record?")
             if confirm:
                 # Retrieve the data of the selected record from the Treeview
-                record_data=self.table.item(selected_item)['values']
+                record_data = self.table.item(selected_item)['values']
 
-                # Delete the selected record from the database based on the 'First Name' column
+                # Delete the selected record from the database based on the 'ID' column
                 if record_data:
-                    id_value=record_data[0]  # Assuming 'ID' is the first column in the 'values' list
-                    conn=sqlite3.connect('registration_form.db')
-                    cursor=conn.cursor()
+                    id_value = record_data[0]  # Assuming 'ID' is the first column in the 'values' list
+                    conn = sqlite3.connect('registration_form.db')
+                    cursor = conn.cursor()
                     try:
                         cursor.execute("DELETE FROM registration WHERE id=?", (id_value,))
                         conn.commit()  # Commit the changes to the database
@@ -1019,6 +1075,28 @@ class EditForm(ctk.CTkToplevel):
                     finally:
                         cursor.close()
                         conn.close()
+
+                    # Remove the selected item from the Treeview
+                    self.table.delete(selected_item)
+
+                    # Fetch the updated data from the database
+                    conn = sqlite3.connect('registration_form.db')
+                    cursor = conn.cursor()
+                    cursor.execute(
+                        "SELECT id, first_name, middle_name, last_name, contact_no, subscription_id, start_date, end_date FROM registration")
+                    updated_records = cursor.fetchall()
+
+                    # Clear the existing table data
+                    for item in self.table.get_children():
+                        self.table.delete(item)
+
+                    # Repopulate the table with the updated records
+                    for record in updated_records:
+                        self.table.insert("", tk.END, values=record)
+
+                    # Close the cursor and connection
+                    cursor.close()
+                    conn.close()
 
 
 # ------------- FRAME 3 -----------------------#
@@ -1413,7 +1491,7 @@ class RegistrationEquipment(ctk.CTkFrame):
 
         # create frame to hold all the widget frames
         outer_frame=ctk.CTkFrame(self)
-        outer_frame.pack(padx=20, pady=20, fill="both", expand=True)
+        outer_frame.pack(padx=10, pady=10)
 
         widget_frames=ctk.CTkFrame(outer_frame)
         widget_frames.pack(pady=10, padx=10)
@@ -1432,33 +1510,33 @@ class RegistrationEquipment(ctk.CTkFrame):
         equipment_details_label.grid(row=0, column=0, padx=10, pady=10, sticky="w")
         # Name
         equipment_name_label=ctk.CTkLabel(equipment_info_frame, text="Equipment Name:", font=label_font)
-        equipment_name_label.grid(row=1, column=0, padx=10, pady=20, sticky="w")
+        equipment_name_label.grid(row=1, column=0, padx=10, pady=10, sticky="w")
         equipment_name_entry=ctk.CTkEntry(equipment_info_frame, placeholder_text="Description")
-        equipment_name_entry.grid(row=1, column=1, padx=10, pady=20)
+        equipment_name_entry.grid(row=1, column=1, padx=10, pady=10)
 
         # Brand
         equipment_brand_label=ctk.CTkLabel(equipment_info_frame, text="Brand:", font=label_font)
-        equipment_brand_label.grid(row=2, column=0, padx=10, pady=20, sticky="w")
+        equipment_brand_label.grid(row=2, column=0, padx=10, pady=10, sticky="w")
         equipment_brand_entry=ctk.CTkEntry(equipment_info_frame, placeholder_text="Brand/Manufacturer")
-        equipment_brand_entry.grid(row=2, column=1, padx=10, pady=20)
+        equipment_brand_entry.grid(row=2, column=1, padx=10, pady=10)
 
         # Model
         equipment_model_label=ctk.CTkLabel(equipment_info_frame, text="Model:", font=label_font)
-        equipment_model_label.grid(row=3, column=0, padx=10, pady=20, sticky="w")
+        equipment_model_label.grid(row=3, column=0, padx=10, pady=10, sticky="w")
         equipment_model_entry=ctk.CTkEntry(equipment_info_frame, placeholder_text="Model/Year")
-        equipment_model_entry.grid(row=3, column=1, padx=10, pady=20)
+        equipment_model_entry.grid(row=3, column=1, padx=10, pady=10)
 
         # Serial Number
         equipment_serial_number_label=ctk.CTkLabel(equipment_info_frame, text="Serial No:", font=label_font)
-        equipment_serial_number_label.grid(row=4, column=0, padx=10, pady=20, sticky="w")
+        equipment_serial_number_label.grid(row=4, column=0, padx=10, pady=10, sticky="w")
         equipment_serial_number_entry=ctk.CTkEntry(equipment_info_frame, placeholder_text="Serial Number")
-        equipment_serial_number_entry.grid(row=4, column=1, padx=10, pady=20)
+        equipment_serial_number_entry.grid(row=4, column=1, padx=10, pady=10)
 
         # quantity
         equipment_quantity_label=ctk.CTkLabel(equipment_info_frame, text="Quantity:", font=label_font)
-        equipment_quantity_label.grid(row=5, column=0, padx=10, pady=20, sticky="w")
+        equipment_quantity_label.grid(row=5, column=0, padx=10, pady=10, sticky="w")
         equipment_quantity_entry=ctk.CTkEntry(equipment_info_frame, placeholder_text="Quantity")
-        equipment_quantity_entry.grid(row=5, column=1, padx=10, pady=20)
+        equipment_quantity_entry.grid(row=5, column=1, padx=10, pady=10)
 
         second_frame=ctk.CTkFrame(widget_frames)
         second_frame.grid(row=0, column=1, padx=10, pady=10)
@@ -1509,7 +1587,7 @@ class RegistrationEquipment(ctk.CTkFrame):
                                       text_color=("gray10", "gray90"),
                                       hover_color=("green3", "green4"),
                                       command=self.register_equipment_info)
-        register_button.pack(pady=5, side=tk.TOP)
+        register_button.pack(pady=15, side=tk.TOP)
 
         # Create a "Back" button to return to the previous frame
         back_button=ctk.CTkButton(self, text="Back", fg_color="Red", text_color=("gray10", "gray90"),
@@ -1682,6 +1760,20 @@ class EquipmentRecords(ctk.CTkFrame):
             self.table.heading(col, text=col, anchor=align)
             self.table.column(col, anchor=align)
 
+        # Column width
+        columns=[
+            ("ID", 50),
+            ("Equipment Name", 200),
+            ("Equipment Quantity", 200),
+            ("Equipment Type", 200),
+            ("Equipment Status", 200),
+            ("Equipment Training Required", 300)
+        ]
+
+        for col, width in columns:
+            self.table.column(col, width=width)
+            self.table.column("#0", width=0)
+
         self.table.pack(side=tk.LEFT)
 
         # Add the records to the table
@@ -1841,6 +1933,23 @@ class EditRecord(ctk.CTkToplevel):
         # Store the reference to the 'table' in EditForm
         self.table=table_reference
 
+    def refresh_table(self):
+        # Clear existing records from the table
+        for item in self.table.get_children():
+            self.table.delete(item)
+
+        # Fetch and add the updated records to the table
+        conn=sqlite3.connect('register_equipment.db')
+        cursor=conn.cursor()
+        cursor.execute(
+            "SELECT id, equipment_name, equipment_quantity, equipment_type, equipment_status, equipment_training_required FROM equipment")
+        records=cursor.fetchall()
+        for record in records:
+            self.table.insert("", tk.END, values=record)
+
+        cursor.close()
+        conn.close()
+
     def update_record(self):
         # Get the updated data from the entry fields
         updated_data=[entry.get() for entry in self.entry_fields]
@@ -1865,6 +1974,9 @@ class EditRecord(ctk.CTkToplevel):
         finally:
             self.cursor.close()  # Close the cursor
             self.conn.close()  # Close the database connection
+
+        # Call the refresh_table method in the main frame to update the table
+        self.refresh_table()
 
         # Close the edit form
         self.destroy()
@@ -1892,6 +2004,12 @@ class EditRecord(ctk.CTkToplevel):
                     finally:
                         cursor.close()
                         conn.close()
+
+            # Call the refresh_table method in the main frame to update the table
+            self.refresh_table()
+
+            # Close the edit form
+            self.destroy()
 
 
 # --------------------------FRAME 5 -----------------------------------------#
@@ -2470,6 +2588,21 @@ class EditTrainerForm(ctk.CTkToplevel):
         # show a success message
         messagebox.showinfo("Download Successful", "QR Code downloaded successfully.")
 
+    def refresh_table(self):
+        # Fetch the updated records from the database
+        conn=sqlite3.connect('register_trainer.db')
+        cursor=conn.cursor()
+        cursor.execute("SELECT id, first_name, middle_name, last_name, age, sex, contact_no FROM trainer")
+        updated_records=cursor.fetchall()
+        conn.close()
+
+        # Clear existing records in the table
+        self.table.delete(*self.table.get_children())
+
+        # Insert the updated records into the table
+        for record in updated_records:
+            self.table.insert("", tk.END, values=record)
+
     def update_record(self):
         # Get the updated data from the entry fields
         updated_data=[entry.get() for entry in self.entry_fields]
@@ -2495,6 +2628,9 @@ class EditTrainerForm(ctk.CTkToplevel):
         finally:
             self.cursor.close()  # Close the cursor
             self.conn.close()  # Close the database connection
+
+        # Call the refresh_table method in the parent ViewTrainerFrame
+        self.refresh_table()
 
         # Close the edit form
         self.destroy()
@@ -2522,6 +2658,11 @@ class EditTrainerForm(ctk.CTkToplevel):
                     finally:
                         cursor.close()
                         conn.close()
+        # Call the refresh_table method in the parent ViewTrainerFrame
+        self.refresh_table()
+
+        # Close the edit form
+        self.destroy()
 
 
 class TrainerAttendanceFrame(ctk.CTkFrame):
@@ -3026,6 +3167,19 @@ class LogbookFrame(ctk.CTkFrame):
             self.table.heading(col, text=col, anchor=align)
             self.table.column(col, anchor=align)
 
+        # column width
+        columns=[
+            ("First Name", 200),
+            ("Middle Name", 150),
+            ("Last Name", 200),
+            ("Contact No", 200),
+            ("Time", 200)
+        ]
+
+        for col, width in columns:
+            self.table.column(col, width=width)
+            self.table.column("#0", width=0)
+
         # Back button
         back_button=ctk.CTkButton(self, text="Back", fg_color="Red", text_color=("gray10", "gray90"),
                                   hover_color=("red3", "red4"), command=self.back_button_event)
@@ -3090,6 +3244,42 @@ class LogbookFrame(ctk.CTkFrame):
             # Handle any potential SQLite errors
             print(f"SQLite error: {e}")
 
+    def send_sms(self, to_phone_number, message):
+
+        print("PHONE NUMBER", to_phone_number)
+        print("MESSAGE", message)
+
+        # delete this one kapag magpupush sa github
+        api_key=''
+
+        # # you can change this one kung gusto mo maging priority or bulk. read the docs
+        # url='https://api.semaphore.co/api/v4/messages'
+
+        # change to this one if you want na maging priority ang message kaso mas mahal ang credits
+        # 2 credits per 160 characters
+        url='https://api.semaphore.co/api/v4/priority'
+
+        payload={
+            'apikey': api_key,
+            'number': to_phone_number,
+            'message': message
+        }
+
+        # this code will connect with the API and send the data
+        try:
+            response=requests.post(url, data=payload)
+
+            if response.status_code == 200:
+
+                print("SEND MESSAGE SUCCESS")
+                print(response.json())
+            else:
+                print(response.text)
+                print("ERROR SENDING MESSAGE")
+                print("STATUS CODE", response.status_code)
+        except Exception as e:
+            print("failed to send message", e)
+
     def attend_log(self):
         # Gather data from the form fields
         first_name=self.first_name_entry.get()
@@ -3113,7 +3303,9 @@ class LogbookFrame(ctk.CTkFrame):
                 INSERT INTO visitors (first_name, middle_name, last_name, contact_no, time)
                 VALUES (?, ?, ?, ?, ?)
             ''', (first_name, middle_name, last_name, contact_no, current_time))
-
+            # Message that visitor has attended
+            send_sms(contact_no,
+                     f"Hello {first_name}!, Thank You for attending D'GRIT GYM. Time In: {current_time}")
             # Commit the changes and close the database connection
             conn.commit()
             conn.close()
@@ -3752,6 +3944,25 @@ class EditEmployeeForm(ctk.CTkToplevel):
         # show a success message
         messagebox.showinfo("Download Successful", "QR Code downloaded successfully.")
 
+    def update_records(self):
+        # Clear existing records in the Treeview
+        for item in self.table.get_children():
+            self.table.delete(item)
+
+        # Fetch the updated records from the database
+        conn=sqlite3.connect('register_employee.db')
+        cursor=conn.cursor()
+        cursor.execute("SELECT id, first_name, middle_name, last_name, age, sex, contact_no FROM employees")
+        records=cursor.fetchall()
+
+        # Add the updated records to the Treeview
+        for record in records:
+            self.table.insert("", tk.END, values=record)
+
+        # Close the cursor and connection
+        cursor.close()
+        conn.close()
+
     def update_record(self):
         # Get the updated data from the entry fields
         updated_data=[entry.get() for entry in self.entry_fields]
@@ -3777,6 +3988,9 @@ class EditEmployeeForm(ctk.CTkToplevel):
         finally:
             self.cursor.close()  # Close the cursor
             self.conn.close()  # Close the database connection
+
+        # Fetch the updated records from the database
+        self.update_records()
 
         # Close the edit form
         self.destroy()
@@ -3804,6 +4018,12 @@ class EditEmployeeForm(ctk.CTkToplevel):
                     finally:
                         cursor.close()
                         conn.close()
+
+            # Fetch the updated records from the database
+            self.update_records()
+
+            # Close the edit form
+            self.destroy()
 
 
 class EmployeeAttendanceFrame(ctk.CTkFrame):
