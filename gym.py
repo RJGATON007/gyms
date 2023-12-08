@@ -11,7 +11,13 @@ import qrcode
 import cv2
 import datetime
 import requests
+import calendar
+import numpy as np
 from datetime import datetime
+from dateutil.relativedelta import relativedelta
+from datetime import timedelta
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("green")
@@ -21,10 +27,73 @@ def change_appearance_mode_event(new_appearance_mode):
     ctk.set_appearance_mode(new_appearance_mode)
 
 
+def send_sms_notification(to_phone_number, message):
+    print("PHONE NUMBER", to_phone_number)
+    print("MESSAGE", message)
+
+    # Use environment variables or a configuration file to manage API keys
+    api_key=''
+
+    # Change this URL based on your requirements
+    url='https://api.semaphore.co/api/v4/priority'
+
+    payload={
+        'apikey': api_key,
+        'number': to_phone_number,
+        'message': message
+    }
+
+    # Handle specific exceptions
+    try:
+        response=requests.post(url, data=payload)
+
+        if response.status_code == 200:
+            print("SEND MESSAGE SUCCESS")
+            print(response.json())
+        else:
+            print(response.text)
+            print("ERROR SENDING MESSAGE")
+            print("STATUS CODE", response.status_code)
+    except requests.exceptions.RequestException as req_exc:
+        print("Request Exception:", req_exc)
+    except Exception as e:
+        print("Failed to send message", e)
+
+
+def check_date():
+    current_date=datetime.now()
+
+    # Get all instances in the registration table
+    conn=sqlite3.connect('registration_form.db')
+    cursor=conn.cursor()
+
+    cursor.execute("SELECT * FROM registration")
+    registrations=cursor.fetchall()
+
+    for registration in registrations:
+        # Get the end_date and contact_no from the registration
+        end_date=registration[15]
+        contact_no=registration[9]
+        print("Testing: ", end_date)
+        if datetime.strptime(end_date, '%Y-%m-%d') < current_date:
+            print("Expired")
+            # Update the status of the registration to "Expired"
+            cursor.execute("UPDATE registration SET status=? WHERE id=?", ("Expired", registration[0]))
+            conn.commit()
+
+            # Send SMS to the member
+            sms_message="Your gym membership has expired. Renew your subscription to continue accessing D'GRIT GYM."
+            send_sms_notification(contact_no, sms_message)
+
+
 class MainApp(ctk.CTk):
+    check_date()
+
     def __init__(self):
         super().__init__()
 
+        # Fixed size of the window, and cannot be resized
+        self.resizable(False, False)
         self.title("D'Grit Gym Management System")
         self.geometry("1240x600")
 
@@ -80,9 +149,9 @@ class MainApp(ctk.CTk):
             light_image=Image.open(os.path.join(image_path, "scan_black.png")),
             dark_image=Image.open(os.path.join(image_path, "scan_white.png")), size=(20, 20))
 
-        # Load the large image you want to insert
-        large_image=Image.open("test_images/gym_cover.png")
-        large_image=ImageTk.PhotoImage(large_image)
+        # # Load the large image you want to insert
+        # large_image=Image.open("test_images/gym_cover.png")
+        # large_image=ImageTk.PhotoImage(large_image)
 
         # create navigation frame
         self.navigation_frame=ctk.CTkFrame(self, corner_radius=0)
@@ -95,7 +164,7 @@ class MainApp(ctk.CTk):
         self.navigation_frame_label.grid(row=0, column=0, padx=20, pady=20)
 
         self.home_button=ctk.CTkButton(
-            self.navigation_frame, corner_radius=0, height=40, border_spacing=10,
+            self.navigation_frame, corner_radius=0, height=50, border_spacing=10,
             text="Home",
             fg_color="transparent", text_color=("gray10", "gray90"),
             hover_color=("gray70", "gray30"),
@@ -103,7 +172,7 @@ class MainApp(ctk.CTk):
         self.home_button.grid(row=1, column=0, sticky="ew")
 
         self.frame_2_button=ctk.CTkButton(
-            self.navigation_frame, corner_radius=0, height=40, border_spacing=10,
+            self.navigation_frame, corner_radius=0, height=50, border_spacing=10,
             text="Membership",
             fg_color="transparent", text_color=("gray10", "gray90"),
             hover_color=("gray70", "gray30"),
@@ -111,7 +180,7 @@ class MainApp(ctk.CTk):
         self.frame_2_button.grid(row=2, column=0, sticky="ew")
 
         self.frame_3_button=ctk.CTkButton(
-            self.navigation_frame, corner_radius=0, height=40, border_spacing=10,
+            self.navigation_frame, corner_radius=0, height=50, border_spacing=10,
             text="Take Attendance",
             fg_color="transparent", text_color=("gray10", "gray90"),
             hover_color=("gray70", "gray30"),
@@ -119,7 +188,7 @@ class MainApp(ctk.CTk):
         self.frame_3_button.grid(row=3, column=0, sticky="ew")
 
         self.frame_4_button=ctk.CTkButton(
-            self.navigation_frame, corner_radius=0, height=40, border_spacing=10,
+            self.navigation_frame, corner_radius=0, height=50, border_spacing=10,
             text="Gym Equipment",
             fg_color="transparent", text_color=("gray10", "gray90"),
             hover_color=("gray70", "gray30"),
@@ -127,7 +196,7 @@ class MainApp(ctk.CTk):
         self.frame_4_button.grid(row=4, column=0, sticky="ew")
 
         self.frame_5_button=ctk.CTkButton(
-            self.navigation_frame, corner_radius=0, height=40, border_spacing=10,
+            self.navigation_frame, corner_radius=0, height=50, border_spacing=10,
             text="Trainers",
             fg_color="transparent", text_color=("gray10", "gray90"),
             hover_color=("gray70", "gray30"),
@@ -135,15 +204,15 @@ class MainApp(ctk.CTk):
         self.frame_5_button.grid(row=5, column=0, sticky="ew")
 
         self.frame_6_button=ctk.CTkButton(
-            self.navigation_frame, corner_radius=0, height=40, border_spacing=10,
-            text="Visitors",
+            self.navigation_frame, corner_radius=0, height=50, border_spacing=10,
+            text="Gymers",
             fg_color="transparent", text_color=("gray10", "gray90"),
             hover_color=("gray70", "gray30"),
             image=self.visitor_image, anchor="w", command=self.frame_6_button_event)
         self.frame_6_button.grid(row=6, column=0, sticky="ew")
 
         self.frame_7_button=ctk.CTkButton(
-            self.navigation_frame, corner_radius=0, height=40, border_spacing=10,
+            self.navigation_frame, corner_radius=0, height=50, border_spacing=10,
             text="Employees",
             fg_color="transparent", text_color=("gray10", "gray90"),
             hover_color=("gray70", "gray30"),
@@ -151,7 +220,7 @@ class MainApp(ctk.CTk):
         self.frame_7_button.grid(row=7, column=0, sticky="ew")
 
         self.frame_8_button=ctk.CTkButton(
-            self.navigation_frame, corner_radius=0, height=40, border_spacing=10,
+            self.navigation_frame, corner_radius=0, height=50, border_spacing=10,
             text="Create User Account",
             fg_color="transparent", text_color=("gray10", "gray90"),
             hover_color=("gray70", "gray30"),
@@ -159,7 +228,7 @@ class MainApp(ctk.CTk):
         self.frame_8_button.grid(row=8, column=0, sticky="ew")
 
         self.appearance_mode_menu=ctk.CTkOptionMenu(
-            self.navigation_frame, values=["Light", "Dark", "System"],
+            self.navigation_frame, values=["Dark", "Light", "System"],
             command=change_appearance_mode_event)
         self.appearance_mode_menu.grid(row=10, column=0, padx=20, pady=10, sticky="s")
 
@@ -174,8 +243,8 @@ class MainApp(ctk.CTk):
         # create home frame
         self.home_frame=ctk.CTkFrame(self, corner_radius=0, fg_color="transparent")
         self.home_frame.grid_columnconfigure(0, weight=1)
-        self.large_image_label=ctk.CTkLabel(self.home_frame, text="", image=large_image)
-        self.large_image_label.grid(row=4, column=0, padx=20, pady=10)
+        # self.large_image_label=ctk.CTkLabel(self.home_frame, text="", image=large_image)
+        # self.large_image_label.grid(row=4, column=0, padx=20, pady=10)
 
         # create frames
         # 2
@@ -285,15 +354,379 @@ class MainApp(ctk.CTk):
 # ------------HOME FRAME----------------------#
 
 def create_home_frame(home):
-    pass
+    dashboard_frame=ctk.CTkScrollableFrame(home)
+    dashboard_frame.pack(pady=10, padx=10, fill="both", expand=True)
+
+    # label frame
+    label_frame=ctk.CTkFrame(dashboard_frame)
+    label_frame.pack(pady=10, padx=10, fill="both", expand=True)
+
+    # dashboard label align left
+    dashboard_label=ctk.CTkLabel(label_frame, text="Dashboard | Overview", font=("Arial bold", 30))
+    dashboard_label.pack(pady=5, padx=10, side=tk.LEFT)
+
+    # Display the current time on the left side of the dashboard label
+    current_time=datetime.now().strftime("%I:%M:%S %p")
+    current_time_label=ctk.CTkLabel(label_frame, text=current_time, font=("Agency FB bold", 46))
+    current_time_label.pack(pady=5, padx=10, side=tk.RIGHT)
+
+    # Function to update the clock
+    def update_clock():
+        current_time=datetime.now().strftime("%I:%M:%S %p")
+        current_time_label.configure(text=current_time)
+        home.after(1000, update_clock)  # Schedule the next update after 1000 milliseconds (1 second)
+
+    # Start the clock update
+    update_clock()
+
+    # frame
+    panel_frame=ctk.CTkFrame(dashboard_frame)
+    panel_frame.pack(pady=10, padx=10, fill="both", expand=True)
+
+    # member panel frame
+    member_panel_frame=ctk.CTkFrame(panel_frame, fg_color="#00C957")
+    member_panel_frame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
+
+    # create a small rectangular label to display the no. of members
+    members_label=ctk.CTkLabel(member_panel_frame, text="Members", font=("Arial bold", 14))
+    members_label.pack(pady=5, padx=60, anchor="w")
+
+    # create a counter label to display the no. of members
+    members_counter_label=ctk.CTkLabel(member_panel_frame, text="", font=("Arial bold", 50))
+    members_counter_label.pack(pady=10, padx=10, anchor="center")
+
+    def get_members_count():
+        # get the no. of members from the database
+        conn=sqlite3.connect('registration_form.db')
+        cursor=conn.cursor()
+        cursor.execute("SELECT COUNT(*) FROM registration")
+        members_count=cursor.fetchone()[0]
+        members_counter_label.configure(text=members_count)
+        conn.close()
+        home.after(1000, get_members_count)
+
+    get_members_count()
+
+    # visitor panel frame
+    visitors_panel_frame=ctk.CTkFrame(panel_frame, fg_color="orange")
+    visitors_panel_frame.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")
+
+    # create a small rectangular label to display the no. of members
+    visitors_label=ctk.CTkLabel(visitors_panel_frame, text="Visitors", font=("Arial bold", 14))
+    visitors_label.pack(pady=5, padx=65, anchor="w")
+
+    # create a counter label to display the no. of members
+    visitor_counter_label=ctk.CTkLabel(visitors_panel_frame, text="", font=("Arial bold", 50))
+    visitor_counter_label.pack(pady=10, padx=10, anchor="center")
+
+    def get_visitors_count():
+        # get the no. of members from the database
+        conn=sqlite3.connect('visitors_log.db')
+        cursor=conn.cursor()
+        cursor.execute("SELECT COUNT(*) FROM visitors")
+        visitors_count=cursor.fetchone()[0]
+        visitor_counter_label.configure(text=visitors_count)
+        conn.close()
+        home.after(1000, get_visitors_count)
+
+    get_visitors_count()
+
+    # employee panel frame
+    employee_panel_frame=ctk.CTkFrame(panel_frame, fg_color="blue")
+    employee_panel_frame.grid(row=0, column=2, padx=10, pady=10, sticky="nsew")
+
+    # create a small rectangular label to display the no. of employees
+    employee_label=ctk.CTkLabel(employee_panel_frame, text="Employees", font=("Arial bold", 14))
+    employee_label.pack(pady=5, padx=50, anchor="w")
+
+    # create a counter label to display the no. of employees
+    employee_counter_label=ctk.CTkLabel(employee_panel_frame, text="", font=("Arial bold", 50))
+    employee_counter_label.pack(pady=10, padx=10, anchor="center")
+
+    def get_employee_count():
+        # get the no. of members from the database
+        conn=sqlite3.connect('register_employee.db')
+        cursor=conn.cursor()
+        cursor.execute("SELECT COUNT(*) FROM employees")
+        employee_count=cursor.fetchone()[0]
+        employee_counter_label.configure(text=employee_count)
+        conn.close()
+        home.after(1000, get_employee_count)
+
+    get_employee_count()
+
+    # trainer panel frame
+    trainer_panel_frame=ctk.CTkFrame(panel_frame, fg_color="purple")
+    trainer_panel_frame.grid(row=0, column=3, padx=10, pady=10, sticky="nsew")
+
+    # create a small rectangular label to display the no. of trainers
+    trainer_label=ctk.CTkLabel(trainer_panel_frame, text="Trainers", font=("Arial bold", 14))
+    trainer_label.pack(pady=5, padx=60, anchor="w")
+
+    # create a counter label to display the no. of trainers
+    trainer_counter_label=ctk.CTkLabel(trainer_panel_frame, text="", font=("Arial bold", 50))
+    trainer_counter_label.pack(pady=10, padx=10, anchor="center")
+
+    def get_trainer_count():
+        # get the no. of members from the database
+        conn=sqlite3.connect('register_trainer.db')
+        cursor=conn.cursor()
+        cursor.execute("SELECT COUNT(*) FROM trainer")
+        trainer_count=cursor.fetchone()[0]
+        trainer_counter_label.configure(text=trainer_count)
+        conn.close()
+        home.after(1000, get_trainer_count)
+
+    get_trainer_count()
+
+    # gym equipment panel frame
+    gym_equipment_panel_frame=ctk.CTkFrame(panel_frame, fg_color="red")
+    gym_equipment_panel_frame.grid(row=0, column=4, padx=10, pady=10, sticky="nsew")
+
+    # create a small rectangular label to display the no. of gym equipment
+    gym_equipment_label=ctk.CTkLabel(gym_equipment_panel_frame, text="Gym Equipment", font=("Arial bold", 14))
+    gym_equipment_label.pack(pady=5, padx=30, anchor="w")
+
+    # create a counter label to display the no. of gym equipment
+    gym_equipment_counter_label=ctk.CTkLabel(gym_equipment_panel_frame, text="", font=("Arial bold", 50))
+    gym_equipment_counter_label.pack(pady=10, padx=10, anchor="center")
+
+    def get_gym_equipment_count():
+        # get the no. of members from the database
+        conn=sqlite3.connect('register_equipment.db')
+        cursor=conn.cursor()
+        cursor.execute("SELECT COUNT(*) FROM equipment")
+        gym_equipment_count=cursor.fetchone()[0]
+        gym_equipment_counter_label.configure(text=gym_equipment_count)
+        conn.close()
+        home.after(1000, get_gym_equipment_count)
+
+    get_gym_equipment_count()
+
+    # -------------------FRAME 1 ----------------------#
+    graph_frame=ctk.CTkFrame(dashboard_frame)
+    graph_frame.pack(pady=10, padx=10, fill="both", expand=True)
+
+    # Monthly Income Report Graph
+    income_frame=ctk.CTkFrame(graph_frame)
+    income_frame.grid(row=0, column=0, padx=20, pady=10, sticky="nsew")
+
+    # Create a small rectangular label for the income report
+    income_label=ctk.CTkLabel(income_frame, text="Monthly Income (PHP)", font=("Arial bold", 16))
+    income_label.pack(pady=5, padx=10, anchor="w")
+
+    # Create a figure and axis for the income report graph
+    fig, ax=plt.subplots(figsize=(6, 4), dpi=100)
+    canvas=FigureCanvasTkAgg(fig, master=income_frame)
+    canvas_widget=canvas.get_tk_widget()
+    canvas_widget.pack(fill="both", expand=True)
+
+    # Update the income report graph
+    update_income_report(home, ax, canvas)
+    canvas.draw()
+
+    # Make the rows and columns resizable
+    for i in range(5):
+        panel_frame.grid_columnconfigure(i, weight=1)
+
+    panel_frame.grid_rowconfigure(0, weight=1)
+
+    # ------------FRAME 2----------------------#
+    graph_frame2=ctk.CTkFrame(graph_frame)
+    graph_frame2.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")
+    sub_frame=ctk.CTkFrame(graph_frame2)
+    sub_frame.pack(pady=10, padx=10, fill="both", expand=True)
+
+    # COUNT FRAME 1
+    counter_frame=ctk.CTkFrame(sub_frame)
+    counter_frame.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")
+
+    # total membership income label
+    total_membership_income_label=ctk.CTkLabel(counter_frame, text="Total Membership Income (PHP)",
+                                               font=("Arial bold", 12))
+    total_membership_income_label.pack(pady=10, padx=10, anchor="w")
+
+    # count label frame 1
+    count_frame1=ctk.CTkFrame(counter_frame, fg_color="#00C957")
+    count_frame1.pack(pady=10, padx=10, fill="both", expand=True)
+
+    # create a counter label 1
+    count_label1=ctk.CTkLabel(count_frame1, text="", font=("Arial bold", 30))
+    count_label1.pack(pady=10, padx=30, anchor="center")
+
+    def get_total_membership_income():
+        # get the no. of members from the database
+        conn=sqlite3.connect('registration_form.db')
+        cursor=conn.cursor()
+        cursor.execute("SELECT COUNT(*) FROM registration")
+        members_count=cursor.fetchone()[0]
+        total_membership_income=members_count * 700
+        count_label1.configure(text=f"{total_membership_income}")
+        conn.close()
+        home.after(1000, get_total_membership_income)
+
+    get_total_membership_income()
+
+    # COUNT FRAME 2
+    counter_frame2=ctk.CTkFrame(sub_frame)
+    counter_frame2.grid(row=1, column=1, padx=10, pady=10, sticky="nsew")
+
+    # total visitor income label
+    total_visitor_income_label=ctk.CTkLabel(counter_frame2, text="Total Visitor Income (PHP)", font=("Arial bold", 12))
+    total_visitor_income_label.pack(pady=10, padx=10, anchor="w")
+
+    # count label frame 2
+    count_frame2=ctk.CTkFrame(counter_frame2, fg_color="orange")
+    count_frame2.pack(pady=10, padx=10, fill="both", expand=True)
+
+    # count label 2
+    count_label2=ctk.CTkLabel(count_frame2, text="", font=("Arial bold", 30))
+    count_label2.pack(pady=10, padx=30, anchor="center")
+
+    def get_total_visitor_income():
+        # get the no. of members from the database
+        conn=sqlite3.connect('visitors_log.db')
+        cursor=conn.cursor()
+        cursor.execute("SELECT COUNT(*) FROM visitors")
+        visitors_count=cursor.fetchone()[0]
+        total_visitor_income=visitors_count * 50
+        count_label2.configure(text=f"{total_visitor_income}")
+        conn.close()
+        home.after(1000, get_total_visitor_income)
+
+    get_total_visitor_income()
+
+    # -------------------FRAME 3 ----------------------#
+    graph_frame3=ctk.CTkFrame(graph_frame)
+    graph_frame3.grid(row=0, column=2, padx=10, pady=10, sticky="nsew")
+    sub_frame2=ctk.CTkFrame(graph_frame3)
+    sub_frame2.pack(pady=10, padx=10, fill="both", expand=True)
+
+    # COUNT FRAME 3
+    counter_frame3=ctk.CTkFrame(sub_frame2)
+    counter_frame3.grid(row=0, column=2, padx=10, pady=10, sticky="nsew")
+
+    # total membership income label
+    total_time_in_label=ctk.CTkLabel(counter_frame3, text="Total Attendance Time In:",
+                                     font=("Arial bold", 14))
+    total_time_in_label.pack(pady=10, padx=10, anchor="w")
+
+    # count label frame 3
+    count_frame3=ctk.CTkFrame(counter_frame3, fg_color="#007FFF")
+    count_frame3.pack(pady=10, padx=10, fill="both", expand=True)
+    # count label 3
+    count_label3=ctk.CTkLabel(count_frame3, text="", font=("Arial bold", 30))
+    count_label3.pack(pady=10, padx=50, anchor="center")
+
+    # COUNT FRAME 4
+    counter_frame4=ctk.CTkFrame(sub_frame2)
+    counter_frame4.grid(row=1, column=2, padx=10, pady=10, sticky="nsew")
+    # total visitor income label
+    total_time_out_label=ctk.CTkLabel(counter_frame4, text="Total Time Out:", font=("Arial bold", 14))
+    total_time_out_label.pack(pady=10, padx=10, anchor="w")
+
+    # count label frame 4
+    count_frame4=ctk.CTkFrame(counter_frame4, fg_color="#FF0000")
+    count_frame4.pack(pady=10, padx=10, fill="both", expand=True)
+    # count label 4
+    count_label4=ctk.CTkLabel(count_frame4, text="", font=("Arial bold", 30))
+    count_label4.pack(pady=10, padx=50, anchor="center")
+
+    def get_time_in_and_out():
+        # Update count of time-in and time-out for membership
+        conn=sqlite3.connect('attendance_records.db')
+        cursor=conn.cursor()
+        cursor.execute("SELECT COUNT(time_in), COUNT(time_out) FROM attendance_records")
+        count_time_in, count_time_out=cursor.fetchone()
+        conn.close()
+
+        # Update count labels for time-in and time-out
+        count_label3.configure(text=f"{count_time_in}")
+        count_label4.configure(text=f"{count_time_out}")
+        home.after(1000, get_time_in_and_out)
+
+    get_time_in_and_out()
+
+
+# Graph
+def update_income_report(root, ax, canvas):
+    # Get the current month
+    current_month=datetime.now().strftime('%Y-%m')
+
+    # Connect to the visitors database
+    conn_visitors=sqlite3.connect('visitors_log.db')
+    cursor_visitors=conn_visitors.cursor()
+
+    # Retrieve monthly visitor count
+    cursor_visitors.execute("SELECT strftime('%Y-%m', time) as month, COUNT(*) FROM visitors GROUP BY month")
+    visitors_data=cursor_visitors.fetchall()
+
+    conn_visitors.close()
+
+    # Connect to the members database
+    conn_members=sqlite3.connect('registration_form.db')
+    cursor_members=conn_members.cursor()
+
+    # Retrieve monthly member count
+    cursor_members.execute("SELECT strftime('%Y-%m', start_date) as month, COUNT(*) FROM registration GROUP BY month")
+    members_data=cursor_members.fetchall()
+
+    conn_members.close()
+
+    # Merge the data for common months
+    merged_data={}
+    for month, visitors_count in visitors_data:
+        merged_data[month]={'visitors': visitors_count * 50, 'members': 0}
+
+    for month, members_count in members_data:
+        if month in merged_data:
+            merged_data[month]['members']=members_count * 700
+        else:
+            merged_data[month]={'visitors': 0, 'members': members_count * 700}
+
+    # Extract month labels and total income values
+    months, visitor_incomes, member_incomes=zip(
+        *[(month if month != 'None' else 'Visitors', data['visitors'], data['members']) for month, data in
+          merged_data.items()])
+
+    # Convert months to a NumPy array with a specific data type (e.g., float)
+    months_array=np.array(months, dtype=str)
+
+    # Plot the monthly income report with inverted colors
+    ax.clear()
+    visitors_bar=ax.bar(months_array, visitor_incomes, color='orange', alpha=0.7, label='Visitors')
+    members_bar=ax.bar(months_array, member_incomes, bottom=visitor_incomes, color='#00C957', alpha=0.7,
+                       label='Members')
+    ax.set_ylabel('Income (PHP)')
+
+    # Update the title based on the current month
+    ax.set_title(
+        f'Monthly Income Report ({calendar.month_name[int(current_month.split("-")[1])]} {current_month.split("-")[0]})')
+
+    # Show legend to distinguish between visitors and members
+    ax.legend()
+
+    # Annotate each bar with the total income value
+    for bar, visitors_income, members_income in zip(visitors_bar, visitor_incomes, member_incomes):
+        total_income=visitors_income + members_income
+        ax.text(bar.get_x() + bar.get_width() / 2, total_income,
+                f'{total_income} PHP', ha='center', va='bottom', color='black', fontweight='bold')
+
+    ax.grid(True)
+
+    # Redraw the canvas
+    canvas.draw()
+
+    # Schedule the next update
+    root.after(1000, update_income_report, root, ax, canvas)
 
 
 # ------------FRAME_2----------------------#
 
 def create_gym_membership_frame(frame_2):
     # Define the desired button width and height
-    button_width=200
-    button_height=200
+    button_width=300
+    button_height=300
 
     # Define the path to the directory containing your image files
     frame_2_icons=os.path.join(os.path.dirname(os.path.realpath(__file__)), "frame_2_icons")
@@ -323,9 +756,11 @@ def create_gym_membership_frame(frame_2):
         compound=tk.TOP,
         command=register_member,  # Call the function to open the frame
         width=button_width,
-        height=button_height
+        height=button_height,
+        fg_color="#00C957",
+        text_color=("gray10", "gray90")
     )
-    register_member_button.place(x=250, y=200)
+    register_member_button.place(x=150, y=150)
 
     view_member_button=ctk.CTkButton(
         master=frame_2,
@@ -334,9 +769,11 @@ def create_gym_membership_frame(frame_2):
         compound=tk.TOP,
         command=view_member,
         width=button_width,
-        height=button_height
+        height=button_height,
+        fg_color="#00C957",
+        text_color=("gray10", "gray90"),
     )
-    view_member_button.place(x=600, y=200)
+    view_member_button.place(x=600, y=150)
 
 
 class RegistrationFrame(ctk.CTkFrame):
@@ -349,7 +786,7 @@ class RegistrationFrame(ctk.CTkFrame):
 
         # STEP 1: PERSONAL INFORMATION
         # Define and configure widgets within the frame
-        label=ctk.CTkLabel(self, text="Member Registration", font=("Arial bold", 26))
+        label=ctk.CTkLabel(self, text="D'Grit Gym Membership Registration", font=("Arial bold", 26))
         label.pack(pady=20, padx=10)
 
         # outer frame
@@ -387,21 +824,26 @@ class RegistrationFrame(ctk.CTkFrame):
 
         # Age
         age_label=ctk.CTkLabel(personal_info_frame, text="Age:", font=label_font)
-        age_label.grid(row=5, column=0, padx=20, pady=5, sticky="w")
+        age_label.grid(row=6, column=0, padx=20, pady=5, sticky="w")
         age_entry=ctk.CTkEntry(personal_info_frame, placeholder_text="Enter your age")
-        age_entry.grid(row=5, column=1, padx=20, pady=5)
+        age_entry.grid(row=6, column=1, padx=20, pady=5)
 
         # Sex
         sex_label=ctk.CTkLabel(personal_info_frame, text="Sex:", font=label_font)
-        sex_label.grid(row=6, column=0, padx=20, pady=5, sticky="w")
+        sex_label.grid(row=7, column=0, padx=20, pady=5, sticky="w")
         sex_entry=ctk.CTkComboBox(personal_info_frame, values=["Male", "Female", "Other"])
-        sex_entry.grid(row=6, column=1, padx=20, pady=5)
+        sex_entry.grid(row=7, column=1, padx=20, pady=5)
 
         # Create a DateEntry widget for the birthdate
         birth_date_label=ctk.CTkLabel(personal_info_frame, text="Date of Birth:", font=label_font)
-        birth_date_label.grid(row=7, column=0, padx=20, pady=5, sticky="w")
-        birth_date_entry=DateEntry(personal_info_frame, width=20, date_pattern="yyyy-mm-dd")
-        birth_date_entry.grid(row=7, column=1, padx=20, pady=15, sticky="w")
+        birth_date_label.grid(row=5, column=0, padx=20, pady=5, sticky="w")
+
+        # Use the existing birth_date_entry you created
+        self.birth_date_entry=DateEntry(personal_info_frame, width=20, date_pattern="yyyy-mm-dd")
+        self.birth_date_entry.grid(row=5, column=1, padx=20, pady=15, sticky="w")
+
+        # Bind the function to the <<DateEntrySelected>> event
+        self.birth_date_entry.bind("<<DateEntrySelected>>", self.calculate_age)
 
         # Address
         address_label=ctk.CTkLabel(personal_info_frame, text="Address:", font=label_font)
@@ -464,25 +906,43 @@ class RegistrationFrame(ctk.CTkFrame):
         self.subscription_id_entry=ctk.CTkEntry(subscription_frame, placeholder_text="DG-XXXXXXXX")
         self.subscription_id_entry.grid(row=1, column=1, padx=20, pady=15)
 
+        self.subscription_id_entry.configure(state="disabled")
+
         # Set the subscription ID based on the last inserted ID
         self.set_subscription_id()
 
         # Create the widgets for subscription plan, start date, and end date
         subscription_plan_label=ctk.CTkLabel(subscription_frame, text="Subscription Plan:", font=label_font)
         subscription_plan_label.grid(row=2, column=0, padx=20, pady=10, sticky="w")
+
         subscription_plan_options=["Weekly", "Monthly", "Yearly"]
-        subscription_plan_entry=ctk.CTkComboBox(subscription_frame, values=subscription_plan_options)
-        subscription_plan_entry.grid(row=2, column=1, padx=20, pady=15)
+        self.subscription_plan_entry=ctk.CTkComboBox(subscription_frame, values=subscription_plan_options)
+
+        # Set "Monthly" as the default value
+        self.subscription_plan_entry.set("Monthly")
+
+        self.subscription_plan_entry.grid(row=2, column=1, padx=20, pady=15)
+
+        # Bind the function to the <<ComboboxSelected>> event
+        self.subscription_plan_entry.bind("<<ComboboxSelected>>", self.update_dates_on_subscription_change)
 
         start_timestamp_label=ctk.CTkLabel(subscription_frame, text="Start:", font=label_font)
         start_timestamp_label.grid(row=3, column=0, padx=20, pady=10, sticky="w")
-        start_timestamp_entry=DateEntry(subscription_frame, width=20, date_pattern="yyyy-mm-dd")
-        start_timestamp_entry.grid(row=3, column=1, padx=20, pady=15, sticky="w")
+
+        # Use the existing start_timestamp_entry you created
+        self.start_timestamp_entry=DateEntry(subscription_frame, width=20, date_pattern="yyyy-mm-dd")
+        self.start_timestamp_entry.grid(row=3, column=1, padx=20, pady=15, sticky="w")
 
         end_timestamp_label=ctk.CTkLabel(subscription_frame, text="End:", font=label_font)
         end_timestamp_label.grid(row=4, column=0, padx=20, pady=10, sticky="w")
-        end_timestamp_entry=DateEntry(subscription_frame, width=20, date_pattern="yyyy-mm-dd")
-        end_timestamp_entry.grid(row=4, column=1, padx=20, pady=15, sticky="w")
+
+        # Use the existing end_timestamp_entry you created
+        self.end_timestamp_entry=DateEntry(subscription_frame, width=20, date_pattern="yyyy-mm-dd")
+        self.end_timestamp_entry.grid(row=4, column=1, padx=20, pady=15, sticky="w")
+
+        # disable the start and end date
+        self.start_timestamp_entry.configure(state="disabled")
+        self.end_timestamp_entry.configure(state="disabled")
 
         # Reference to the user who owns the subscription
         user_reference_label=ctk.CTkLabel(subscription_frame, text="User Reference:", font=label_font)
@@ -497,10 +957,10 @@ class RegistrationFrame(ctk.CTkFrame):
                                       command=self.register_subscription)
         register_button.pack(pady=20, side=tk.TOP)
 
-        # Create a "Back" button to return to the previous frame
+        # create a back button to return to the previous frame
         back_button=ctk.CTkButton(self, text="Back", fg_color="Red", text_color=("gray10", "gray90"),
                                   hover_color=("red3", "red4"), command=self.back_button_event)
-        back_button.pack(pady=5, side=tk.TOP)
+        back_button.place(x=450, y=550)
 
         # Store the Entry fields and other widgets as instance attributes
         self.first_name_entry=first_name_entry
@@ -508,16 +968,14 @@ class RegistrationFrame(ctk.CTkFrame):
         self.last_name_entry=last_name_entry
         self.age_entry=age_entry
         self.sex_entry=sex_entry
-        self.birth_date_entry=birth_date_entry
         self.address_entry=address_entry
         self.nationality_combo=nationality_combo
         self.contact_no_entry=contact_no_entry
         self.email_entry=email_entry
         self.emergency_contact_entry=emergency_contact_entry
         self.subscription_id_entry=self.subscription_id_entry
-        self.subscription_plan_entry=subscription_plan_entry
-        self.start_timestamp_entry=start_timestamp_entry
-        self.end_timestamp_entry=end_timestamp_entry
+        self.start_timestamp_entry=self.start_timestamp_entry
+        self.end_timestamp_entry=self.end_timestamp_entry
         self.user_reference_entry=user_reference_entry
 
         with sqlite3.connect('registration_form.db') as conn:
@@ -526,7 +984,7 @@ class RegistrationFrame(ctk.CTkFrame):
         # Create a table to store registration information
         cursor.execute('''
                    CREATE TABLE IF NOT EXISTS registration (
-                       id INTEGER PRIMARY KEY,
+                       id INTEGER PRIMARY KEY AUTOINCREMENT,
                        first_name TEXT,
                        middle_name TEXT,
                        last_name TEXT,
@@ -542,13 +1000,60 @@ class RegistrationFrame(ctk.CTkFrame):
                        subscription_plan TEXT,
                        start_date DATE,
                        end_date DATE,
-                       user_reference TEXT
+                       user_reference TEXT,
+                       status TEXT DEFAULT 'Ongoing'
                    )
                ''')
 
         # Commit the changes and close the database connection
         conn.commit()
         conn.close()
+
+    def calculate_age(self, event):
+        # Get the selected birthdate
+        birth_date_str=self.birth_date_entry.get()
+
+        try:
+            # Extract the date part without the time
+            birth_date_str=birth_date_str.split()[0]
+
+            # Convert the birthdate string to a datetime object
+            birth_date_obj=datetime.strptime(birth_date_str, '%Y-%m-%d')
+
+            # Calculate the age based on the birthdate
+            current_date=datetime.now()
+            age=current_date.year - birth_date_obj.year - (
+                    (current_date.month, current_date.day) < (birth_date_obj.month, birth_date_obj.day)
+            )
+
+            # Update the age entry
+            self.age_entry.delete(0, tk.END)
+            self.age_entry.insert(0, str(age))
+        except ValueError:
+            # Handle invalid date format
+            messagebox.showerror("Invalid Date", "Please enter a valid date in the format YYYY-MM-DD.")
+
+    def update_dates_on_subscription_change(self, event):
+        subscription_plan=self.subscription_plan_entry.get()
+
+        # Calculate start and end dates based on the selected subscription plan
+        current_date=datetime.now()
+
+        if subscription_plan == "Weekly":
+            start_date=current_date
+            end_date=start_date + timedelta(weeks=1)
+        elif subscription_plan == "Monthly":
+            start_date=current_date
+            end_date=start_date + timedelta(weeks=4)
+        elif subscription_plan == "Yearly":
+            start_date=current_date
+            end_date=start_date + timedelta(weeks=52)
+        else:
+            return  # Do nothing for invalid plans
+
+        # Update the DateEntry widgets
+        self.start_timestamp_entry.set_date(start_date.strftime('%Y-%m-%d'))
+        self.end_timestamp_entry.set_date(end_date.strftime('%Y-%m-%d'))
 
     @staticmethod
     def set_subscription_id():
@@ -630,19 +1135,65 @@ class RegistrationFrame(ctk.CTkFrame):
         except ValueError:
             messagebox.showerror("Validation Error", "Contact No must be 11-digit number.")
 
+        # Calculate the age based on the provided birthdate
+        birth_date_obj=datetime.strptime(birth_date, '%Y-%m-%d')
+        current_date=datetime.now()
+        age=current_date.year - birth_date_obj.year - (
+                (current_date.month, current_date.day) < (birth_date_obj.month, birth_date_obj.day))
+
         # Create a connection to the database
         conn=sqlite3.connect('registration_form.db')
         cursor=conn.cursor()
 
+        # Calculate the expiration date
+        expiration_date=datetime.strptime(end_date, '%Y-%m-%d') if end_date else None
+
+        # Check if the end date is before the current date
+        current_date=datetime.now()
+        if expiration_date and expiration_date <= current_date:
+            status="Expired"
+        else:
+            status="Ongoing"
+
+        try:
+            age=int(age)
+        except ValueError:
+            messagebox.showerror("Validation Error", "Age must be a valid integer.")
+            return
+
+        try:
+            contact_no=int(contact_no)
+        except ValueError:
+            messagebox.showerror("Validation Error", "Contact No must be an 11-digit number.")
+            return
+
+        # Calculate the expiration date based on the subscription plan
+        if subscription_plan == "Weekly":
+            duration=timedelta(days=7)
+        elif subscription_plan == "Monthly":
+            duration=timedelta(weeks=4)  # Assuming 4 weeks in a month for simplicity
+        elif subscription_plan == "Yearly":
+            duration=timedelta(weeks=52)  # Assuming 52 weeks in a year for simplicity
+        else:
+            messagebox.showerror("Validation Error", "Invalid subscription plan.")
+            return
+
+        start_date=datetime.strptime(start_date, '%Y-%m-%d')
+        end_date=start_date + duration
+
+        # Format the date to include only the date part
+        start_date_str=start_date.strftime('%Y-%m-%d')
+        end_date_str=end_date.strftime('%Y-%m-%d')
+
         # Insert the data into the database
         cursor.execute('''
-                   INSERT INTO registration (first_name, middle_name, last_name, age, sex, birth_date, address,
-                                            nationality, contact_no, email, emergency_contact_no, subscription_id,
-                                            subscription_plan, start_date, end_date, user_reference)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-               ''', (first_name, middle_name, last_name, age, sex, birth_date, address, nationality, contact_no,
-                     email, emergency_contact_no, subscription_id, subscription_plan, start_date, end_date,
-                     user_reference))
+            INSERT INTO registration (first_name, middle_name, last_name, age, sex, birth_date, address,
+                                    nationality, contact_no, email, emergency_contact_no, subscription_id,
+                                    subscription_plan, start_date, end_date, user_reference)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (first_name, middle_name, last_name, age, sex, birth_date, address, nationality, contact_no,
+              email, emergency_contact_no, subscription_id, subscription_plan, start_date_str, end_date_str,
+              user_reference))
 
         # Commit the changes and close the database connection
         conn.commit()
@@ -695,11 +1246,12 @@ def back_button_event(self):
 
 
 class ViewFrame(ctk.CTkFrame):
+
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
 
         # Define and configure widgets within the frame
-        label=ctk.CTkLabel(self, text="Members Records", font=("Arial bold", 28))
+        label=ctk.CTkLabel(self, text="Gym Members' Information", font=("Arial bold", 28))
         label.pack(pady=20, padx=10)
 
         # Create a connection to the database
@@ -708,7 +1260,7 @@ class ViewFrame(ctk.CTkFrame):
 
         # Get only the specific columns from the database
         cursor.execute(
-            "SELECT id, first_name, middle_name, last_name, contact_no, subscription_id, start_date, end_date FROM registration")
+            "SELECT id, first_name, middle_name, last_name, contact_no, subscription_id, start_date, end_date, status FROM registration")
         records=cursor.fetchall()
 
         # Create a frame that holds the table
@@ -725,21 +1277,21 @@ class ViewFrame(ctk.CTkFrame):
                         rowheight=50,
                         fieldbackground="#343638",
                         bordercolor="#343638",
-                        borderwidth=0,
+                        borderwidth=5,
                         anchor="center")
         style.map('Treeview', background=[('selected', '#22559b')])
 
         style.configure("Treeview.Heading",
                         background="#565b5e",
                         foreground="white",
-                        relief="flat")
+                        relief="groove")
         style.map("Treeview.Heading",
                   background=[('active', '#3484F0')])
 
         # Create a table to display the records
         self.table=ttk.Treeview(table_frame, columns=(
             "ID", "First Name", "Middle Name", "Last Name", "Contact No", "Subscription ID",
-            "Start Date", "End Date"), show="headings", height=10)
+            "Start Date", "End Date", "Status"), show="headings", height=10)
         self.table.pack(side=tk.LEFT)
 
         self.scrollbar=ttk.Scrollbar(table_frame, orient=tk.VERTICAL, command=self.table.yview)
@@ -756,6 +1308,7 @@ class ViewFrame(ctk.CTkFrame):
         self.table.heading("Subscription ID", text="Subscription ID")
         self.table.heading("Start Date", text="Start Date")
         self.table.heading("End Date", text="End Date")
+        self.table.heading("Status", text="Status")
 
         # Define the column headings and their alignment
         columns=[
@@ -766,7 +1319,8 @@ class ViewFrame(ctk.CTkFrame):
             ("Contact No", "center"),
             ("Subscription ID", "center"),
             ("Start Date", "center"),
-            ("End Date", "center")
+            ("End Date", "center"),
+            ("Status", "center")
         ]
 
         for col, align in columns:
@@ -784,7 +1338,8 @@ class ViewFrame(ctk.CTkFrame):
             ("Contact No", 150),
             ("Subscription ID", 150),
             ("Start Date", 150),
-            ("End Date", 150)
+            ("End Date", 150),
+            ("Status", 150)
         ]
 
         for col, width in columns:
@@ -799,13 +1354,6 @@ class ViewFrame(ctk.CTkFrame):
         button_frames=ctk.CTkFrame(self)
         button_frames.pack(pady=10, padx=10)
 
-        # create a frame to hold the return button
-        return_button_frame=ctk.CTkFrame(button_frames)
-        return_button_frame.grid(row=0, column=0, padx=10, pady=10)
-        # Create a "Return" button in the first column
-        return_button=ctk.CTkButton(return_button_frame, text="Return", command=self.back_button_event)
-        return_button.pack(padx=10, pady=10)
-
         # Create a frame to hold the edit button
         view_button_frame=ctk.CTkFrame(button_frames)
         view_button_frame.grid(row=0, column=1, padx=10, pady=10)
@@ -813,12 +1361,10 @@ class ViewFrame(ctk.CTkFrame):
         view_button=ctk.CTkButton(view_button_frame, text="View", command=self.edit_record)
         view_button.pack(padx=10, pady=10)
 
-        # Create a frame to hold the delete button
-        delete_button_frame=ctk.CTkFrame(button_frames)
-        delete_button_frame.grid(row=0, column=2, padx=10, pady=10)
-        # Create a "Delete" button in the third column
-        delete_button=ctk.CTkButton(delete_button_frame, text="Delete", command=self.delete_record)
-        delete_button.pack(padx=10, pady=10)
+        # Create a "Back" button to return to the previous frame
+        back_button=ctk.CTkButton(self, text="Back", fg_color="Red", text_color=("gray10", "gray90"),
+                                  hover_color=("red3", "red4"), command=self.back_button_event)
+        back_button.pack(pady=5, side=tk.TOP)
 
     def back_button_event(self):
         # Switch back to the previous frame (e.g., the gym membership frame)
@@ -835,61 +1381,14 @@ class ViewFrame(ctk.CTkFrame):
                 first_name=record_data[1]
                 edit_form=EditForm(self, first_name, id_value, self.table)
 
-    def delete_record(self):
-        # Get the selected item (record) from the Treeview
-        selected_item = self.table.selection()
-        if selected_item:
-            # Prompt the user for confirmation
-            confirm = messagebox.askyesno("Delete Record", "Are you sure you want to delete this record?")
-            if confirm:
-                # Retrieve the data of the selected record from the Treeview
-                record_data = self.table.item(selected_item)['values']
-
-                # Delete the selected record from the database based on the 'ID' column
-                if record_data:
-                    id_value = record_data[0]  # Assuming 'ID' is the first column in the 'values' list
-                    conn = sqlite3.connect('registration_form.db')
-                    cursor = conn.cursor()
-                    try:
-                        cursor.execute("DELETE FROM registration WHERE id=?", (id_value,))
-                        conn.commit()  # Commit the changes to the database
-                        print("Record deleted successfully.")
-                    except sqlite3.Error as e:
-                        messagebox.showerror("Error", f"Error deleting record: {e}")
-                        print(f"Error deleting record: {e}")
-                    finally:
-                        cursor.close()
-                        conn.close()
-
-                    # Remove the selected item from the Treeview
-                    self.table.delete(selected_item)
-
-                    # Fetch the updated data from the database
-                    conn = sqlite3.connect('registration_form.db')
-                    cursor = conn.cursor()
-                    cursor.execute(
-                        "SELECT id, first_name, middle_name, last_name, contact_no, subscription_id, start_date, end_date FROM registration")
-                    updated_records = cursor.fetchall()
-
-                    # Clear the existing table data
-                    for item in self.table.get_children():
-                        self.table.delete(item)
-
-                    # Repopulate the table with the updated records
-                    for record in updated_records:
-                        self.table.insert("", tk.END, values=record)
-
-                    # Close the cursor and connection
-                    cursor.close()
-                    conn.close()
-
 
 class EditForm(ctk.CTkToplevel):
     def __init__(self, master, first_name, id_value, table_reference):
         super().__init__(master)
 
         # Set the title for the edit form
-        self.title("Edit Member Record")
+        self.resizable(False, False)
+        self.title("Edit Info")
         self.geometry("500x550")
 
         # Center-align the window
@@ -915,7 +1414,7 @@ class EditForm(ctk.CTkToplevel):
             return
 
         # Create and configure widgets within the edit form
-        label=ctk.CTkLabel(self, text="Edit Member Record", font=("Arial bold", 20))
+        label=ctk.CTkLabel(self, text="Edit Member Information", font=("Arial bold", 20))
         label.pack(pady=10)
 
         # Create a frame to hold edit form frames
@@ -924,7 +1423,7 @@ class EditForm(ctk.CTkToplevel):
 
         # Create a frame to hold the form fields with custom width and height
         edit_frame=ctk.CTkScrollableFrame(main_frame, width=450, height=300)
-        edit_frame.pack(pady=20, padx=20)
+        edit_frame.pack(pady=10, padx=20)
 
         # Define a custom font style for entry labels
         label_font=ctk.CTkFont(family="Arial", size=16, weight="bold")
@@ -932,7 +1431,7 @@ class EditForm(ctk.CTkToplevel):
         # Create labels and entry fields for editing the record
         labels=["First Name:", "Middle Name:", "Last Name:", "Age:", "Sex:", "Date of Birth:", "Address:",
                 "Nationality:", "Contact No:", "Email Address:", "Emergency Contact No:", "Subscription ID:",
-                "Subscription Plan:", "Start Date:", "End Date:", "User Reference:"]
+                "Subscription Plan:", "Start Date:", "End Date:", "User Reference:", "Status:"]
         self.entry_fields=[]
 
         for i, label_text in enumerate(labels):
@@ -945,10 +1444,10 @@ class EditForm(ctk.CTkToplevel):
 
         # Display the qr code of the member inside the edit form
         qr_code_frame=ctk.CTkFrame(edit_frame)
-        qr_code_frame.grid(row=16, column=1, rowspan=16, padx=10, pady=10)
+        qr_code_frame.grid(row=17, column=1, rowspan=16, padx=10, pady=10)
 
         label=ctk.CTkLabel(edit_frame, text="QR Code:", font=("Arial bold", 16))
-        label.grid(row=16, column=0, padx=10, pady=10, sticky="w")
+        label.grid(row=17, column=0, padx=10, pady=10, sticky="w")
 
         download_button_frame=ctk.CTkFrame(edit_frame)
         download_button_frame.grid(row=50, column=1, rowspan=50, padx=10, pady=10)
@@ -967,29 +1466,47 @@ class EditForm(ctk.CTkToplevel):
         qr_code_label.pack(pady=10, padx=10)
 
         frame_buttons=ctk.CTkFrame(main_frame)
-        frame_buttons.pack(pady=20, padx=20)
+        frame_buttons.pack(pady=10, padx=10)
 
         # create frame to hold the buttons
         update_button_frame=ctk.CTkFrame(frame_buttons)
-        update_button_frame.grid(row=0, column=0, padx=20, pady=20)
+        update_button_frame.grid(row=0, column=0, padx=10, pady=10)
 
         # Create an "Update" button
         update_button=ctk.CTkButton(update_button_frame, text="Update", command=self.update_record)
-        update_button.grid(row=0, column=0, padx=20, pady=20)
+        update_button.grid(row=0, column=0, padx=10, pady=10)
 
         # create a frame to hold the delete button
         delete_button_frame=ctk.CTkFrame(frame_buttons)
-        delete_button_frame.grid(row=0, column=1, padx=20, pady=20)
+        delete_button_frame.grid(row=0, column=1, padx=10, pady=10)
 
-        # Create Delete button to remove data from the database
-        delete_button=ctk.CTkButton(delete_button_frame, text="Delete", command=self.delete_record)
-        delete_button.grid(row=0, column=1, padx=20, pady=20)
+        # Create Red Delete button
+        delete_button=ctk.CTkButton(delete_button_frame, text="Delete", fg_color="Red",
+                                    text_color=("gray10", "gray90"),
+                                    hover_color=("red3", "red4"), command=self.delete_record)
+        delete_button.grid(row=0, column=0, padx=10, pady=10)
+
+        # renew button
+        renew_button_frame=ctk.CTkFrame(main_frame)
+        renew_button_frame.pack(pady=10, padx=10)
+
+        # Create a "Renew" button blue
+        renew_button=ctk.CTkButton(renew_button_frame, text="Renew", fg_color="Blue",
+                                   text_color=("gray10", "gray90"),
+                                   hover_color=("blue3", "blue4"), command=self.renew_membership)
+        renew_button.pack(pady=10, padx=10)
 
         # Store the reference to the 'table' in EditForm
         self.table=table_reference
 
-    # Download qr code
+    def renew_membership(self):
+        # Hide the current EditForm
+        self.withdraw()
 
+        # Create an instance of RenewSubscriptionFrame
+        renew_subscription_frame=RenewSubscriptionFrame(self, self.member_data[0], self.table)
+
+    # Download qr code
     def download_qr_code(self):
         # Download the displayed QR code and save it to the Downloads folder in file explorer
         qr_code_path=os.path.join("member_qrcodes", f"dgrit_{self.member_data[3]}.png")
@@ -1002,69 +1519,135 @@ class EditForm(ctk.CTkToplevel):
         # show a success message
         messagebox.showinfo("Download Successful", "QR Code downloaded successfully.")
 
+    def send_sms(self, to_phone_number, message):
+
+        print("PHONE NUMBER", to_phone_number)
+        print("MESSAGE", message)
+
+        # delete this one kapag magpupush sa github
+        api_key=''
+
+        # # you can change this one kung gusto mo maging priority or bulk. read the docs
+        # url='https://api.semaphore.co/api/v4/messages'
+
+        # change to this one if you want na maging priority ang message kaso mas mahal ang credits
+        # 2 credits per 160 characters
+        url='https://api.semaphore.co/api/v4/priority'
+
+        payload={
+            'apikey': api_key,
+            'number': to_phone_number,
+            'message': message
+        }
+
+        # this code will connect with the API and send the data
+        try:
+            response=requests.post(url, data=payload)
+
+            if response.status_code == 200:
+
+                print("SEND MESSAGE SUCCESS")
+                print(response.json())
+            else:
+                print(response.text)
+                print("ERROR SENDING MESSAGE")
+                print("STATUS CODE", response.status_code)
+        except Exception as e:
+            print("failed to send message", e)
+
     def update_record(self):
         # Get the updated data from the entry fields
         updated_data=[entry.get() for entry in self.entry_fields]
+
+        # Print the updated data to check if the end_date is being updated correctly
+        print(f"Updated data: {updated_data}")
 
         # Validate the updated data
         if not all(updated_data):
             messagebox.showerror("Validation Error", "All fields are required.")
             return
 
-        # Continue with the update logic
         try:
+            # Update the data in the database
             self.cursor.execute('''
-                   UPDATE registration SET 
-                   first_name=?, middle_name=?, last_name=?, age=?, sex=?, birth_date=?, address=?, nationality=?,
-                   contact_no=?, email=?, emergency_contact_no=?, subscription_id=?, subscription_plan=?, start_date=?,
-                   end_date=?, user_reference=?
-                   WHERE id=?
-               ''', (*updated_data, self.member_data[0]))
+                UPDATE registration SET 
+                first_name=?, middle_name=?, last_name=?, age=?, sex=?, birth_date=?, address=?, nationality=?,
+                contact_no=?, email=?, emergency_contact_no=?, subscription_id=?, subscription_plan=?, start_date=?,
+                end_date=?, user_reference=?, status=?
+                WHERE id=?
+            ''', (*updated_data, self.member_data[0]))
+
+            # Print the updated end_date to check if it's changed
+            print(f"Updated end_date: {updated_data[14]}")
+
+            # If end_date is set to the expiration day, update status to "Expired"
+            end_date=datetime.strptime(updated_data[14], '%Y-%m-%d').date()
+            current_date=datetime.now().date()
+
+            print(f"end_date: {end_date}")
+            print(f"current_date: {current_date}")
+
+            if end_date <= current_date:
+                print("Updating status to 'Expired'")
+                self.cursor.execute("UPDATE registration SET status=? WHERE id=?", ("Expired", self.member_data[0]))
+                # SMS for expired
+                # get the formatted contact no of the edit form
+                formatted_contact_no=self.entry_fields[8].get()
+                sms_message="Your gym membership has expired. Renew your subscription to continue accessing D'GRIT GYM."
+                self.send_sms(formatted_contact_no, sms_message)
+
+            elif end_date > current_date:
+                print("Updating status to 'Ongoing'")
+                self.cursor.execute("UPDATE registration SET status=? WHERE id=?", ("Ongoing", self.member_data[0]))
+
             self.conn.commit()  # Commit the changes to the database
             messagebox.showinfo("Update Successful", "Record updated successfully.")
         except sqlite3.Error as e:
             messagebox.showerror("Error", f"Error updating record: {e}")
         finally:
-            self.cursor.close()  # Close the cursor
-            self.conn.close()
+            # Note: Do not close the cursor here to avoid the "Cannot operate on a closed database" error
 
-        # Fetch the updated data from the database
-        conn=sqlite3.connect('registration_form.db')
-        cursor=conn.cursor()
-        cursor.execute(
-            "SELECT id, first_name, middle_name, last_name, contact_no, subscription_id, start_date, end_date FROM registration")
-        updated_records=cursor.fetchall()
+            # Fetch the updated data from the database
+            conn=sqlite3.connect('registration_form.db')
+            cursor=conn.cursor()
 
-        # Clear the existing table data
-        for item in self.table.get_children():
-            self.table.delete(item)
+            try:
+                cursor.execute(
+                    "SELECT id, first_name, middle_name, last_name, contact_no, subscription_id, start_date, end_date, status FROM registration")
+                updated_records=cursor.fetchall()
 
-        # Repopulate the table with the updated records
-        for record in updated_records:
-            self.table.insert("", tk.END, values=record)
+                # Clear the existing table data
+                for item in self.table.get_children():
+                    self.table.delete(item)
 
-        # Close the cursor and connection
-        cursor.close()
-        conn.close()
+                # Repopulate the table with the updated records
+                for record in updated_records:
+                    self.table.insert("", tk.END, values=record)
+            except sqlite3.Error as e:
+                messagebox.showerror("Error", f"Error fetching updated records: {e}")
+            finally:
+                # Close the cursor and connection
+                cursor.close()
+                conn.close()
 
-        # Close the edit form
-        self.destroy()
+            # Close the edit form
+            self.destroy()
 
     def delete_record(self):
         # Get the selected item (record) from the Treeview
-        selected_item = self.table.selection()
+        selected_item=self.table.selection()
         if selected_item:
             # Prompt the user for confirmation
-            confirm = messagebox.askyesno("Delete Record", "Are you sure you want to delete this record?")
+            confirm=messagebox.askyesno("Delete Record", "Are you sure you want to delete this record?")
             if confirm:
                 # Retrieve the data of the selected record from the Treeview
-                record_data = self.table.item(selected_item)['values']
+                record_data=self.table.item(selected_item)['values']
 
                 # Delete the selected record from the database based on the 'ID' column
                 if record_data:
-                    id_value = record_data[0]  # Assuming 'ID' is the first column in the 'values' list
-                    conn = sqlite3.connect('registration_form.db')
-                    cursor = conn.cursor()
+                    id_value=record_data[0]  # Assuming 'ID' is the first column in the 'values' list
+                    conn=sqlite3.connect('registration_form.db')
+                    cursor=conn.cursor()
                     try:
                         cursor.execute("DELETE FROM registration WHERE id=?", (id_value,))
                         conn.commit()  # Commit the changes to the database
@@ -1080,11 +1663,11 @@ class EditForm(ctk.CTkToplevel):
                     self.table.delete(selected_item)
 
                     # Fetch the updated data from the database
-                    conn = sqlite3.connect('registration_form.db')
-                    cursor = conn.cursor()
+                    conn=sqlite3.connect('registration_form.db')
+                    cursor=conn.cursor()
                     cursor.execute(
-                        "SELECT id, first_name, middle_name, last_name, contact_no, subscription_id, start_date, end_date FROM registration")
-                    updated_records = cursor.fetchall()
+                        "SELECT id, first_name, middle_name, last_name, contact_no, subscription_id, start_date, end_date, status FROM registration")
+                    updated_records=cursor.fetchall()
 
                     # Clear the existing table data
                     for item in self.table.get_children():
@@ -1098,13 +1681,202 @@ class EditForm(ctk.CTkToplevel):
                     cursor.close()
                     conn.close()
 
+                    self.destroy()
+
+
+class RenewSubscriptionFrame(ctk.CTkToplevel):
+    def __init__(self, master, id_value, table_reference):
+        super().__init__(master)
+
+        # Set the title for the edit form
+        self.resizable(False, False)
+        self.title("Membership Renewal")
+        self.geometry("500x500")
+
+        # Center-align the window
+        window_width=self.winfo_reqwidth()
+        window_height=self.winfo_reqheight()
+        screen_width=self.winfo_screenwidth()
+        screen_height=self.winfo_screenheight()
+        x=(screen_width - window_width) // 2
+        y=(screen_height - window_height) // 5
+        self.geometry(f"+{x}+{y}")
+
+        # Create and configure widgets within the edit form
+        label=ctk.CTkLabel(self, text="Renew Membership", font=("Arial bold", 20))
+        label.pack(pady=10)
+
+        # Create a frame to hold edit form frames
+        main_frame=ctk.CTkFrame(self)
+        main_frame.pack(fill="both", expand=True)
+
+        # Create a frame to hold the form fields with custom width and height
+        edit_frame=ctk.CTkFrame(main_frame, width=450, height=450)
+        edit_frame.pack(pady=20, padx=20)
+
+        # Define a custom font style for entry labels
+        label_font=ctk.CTkFont(family="Arial", size=16, weight="bold")
+
+        # Create labels and entry fields for editing the record
+        labels=["ID:", "Contact No:", "Subscription ID:", "Subscription Plan:", "Start Date:", "End Date:"]
+        self.entry_fields=[]
+
+        # Create a connection to the database
+        self.conn=sqlite3.connect('registration_form.db')
+        self.cursor=self.conn.cursor()
+
+        # Fetch data for the specified member using the provided 'id_value'
+        self.cursor.execute(
+            "SELECT id, contact_no, subscription_id, subscription_plan, start_date, end_date FROM registration WHERE id=?",
+            (id_value,))
+        self.member_data=self.cursor.fetchone()
+
+        if self.member_data is None:
+            messagebox.showerror("Member Not Found", "Member not found in the database.")
+            self.destroy()
+            return
+
+        for i, label_text in enumerate(labels):
+            label=ctk.CTkLabel(edit_frame, text=label_text, font=label_font)
+            label.grid(row=i, column=0, padx=10, pady=10, sticky="w")
+            entry=ctk.CTkEntry(edit_frame)
+            entry.grid(row=i, column=1, padx=10, pady=10, ipadx=10, ipady=3)
+            entry.insert(0, self.member_data[i])  # Fill with data from the database
+            self.entry_fields.append(entry)
+
+        # Add a member variable to store the reference to the table
+        self.table=table_reference
+
+        # Add label and entry for Renew button
+        renew_button_frame=ctk.CTkFrame(main_frame)
+        renew_button_frame.pack(pady=10, padx=10)
+
+        renew_button=ctk.CTkButton(renew_button_frame, text="Renew", fg_color="Blue",
+                                   text_color=("gray10", "gray90"),
+                                   hover_color=("blue3", "blue4"), command=self.renew_membership)
+        renew_button.pack(pady=10, padx=10)
+
+    def renew_membership(self):
+        # Gather data from the form fields
+        updated_data=[entry.get() for entry in self.entry_fields]
+
+        # Validate the updated data
+        if not all(updated_data):
+            messagebox.showerror("Validation Error", "All fields are required.")
+            return
+
+        # Update the data in the database
+        conn=sqlite3.connect('registration_form.db')
+        cursor=conn.cursor()
+
+        try:
+            # Logic to renew subscription
+            # Set the start date to the current date
+            start_date=datetime.now().strftime('%Y-%m-%d')
+
+            # Get the end date and add 1 month
+            end_date=self.member_data[4]
+            end_date=datetime.strptime(end_date, '%Y-%m-%d')
+            end_date=end_date + relativedelta(months=1)
+            end_date=end_date.strftime('%Y-%m-%d')
+
+            # Check if subscription is expiring soon and send SMS
+            expiration_threshold=datetime.now() + relativedelta(weeks=2)
+            print("End Date:", end_date)
+            print("Expiration Threshold:", expiration_threshold.strftime('%Y-%m-%d'))
+
+            # Check if the end date is reached and send SMS
+            if end_date <= datetime.now().strftime('%Y-%m-%d'):
+                print("Sending SMS for expiration (End Date Reached)")
+                self.send_sms_expiration(self.member_data[1], start_date, end_date)
+
+            # Update the start_date and end_date in the database
+            cursor.execute("UPDATE registration SET start_date=?, end_date=? WHERE id=?",
+                           (start_date, end_date, self.member_data[0]))
+
+            # Update the status to 'Ongoing'
+            cursor.execute("UPDATE registration SET status=? WHERE id=?", ('Ongoing', self.member_data[0]))
+
+            # Send an SMS to the member for renewal
+            formatted_contact_no=self.member_data[1]
+            sms_message=f"Hello {self.member_data[2]}!, Your Subscription has been Renewed. Start Date: {start_date} End Date: {end_date}"
+            self.send_sms(formatted_contact_no, sms_message)
+
+            conn.commit()
+
+            # Fetch the updated data from the database
+            cursor.execute(
+                "SELECT id, first_name, middle_name, last_name, contact_no, subscription_id, start_date, end_date, status FROM registration")
+            updated_records=cursor.fetchall()
+
+            # Clear the existing table data
+            for item in self.table.get_children():
+                self.table.delete(item)
+
+            # Repopulate the table with the updated records
+            for record in updated_records:
+                self.table.insert("", tk.END, values=record)
+
+            print("Subscription renewed successfully.")
+        except sqlite3.Error as e:
+            messagebox.showerror("Error", f"Error renewing subscription: {e}")
+            print(f"Error renewing subscription: {e}")
+        finally:
+            cursor.close()
+            messagebox.showinfo("Renewal Successful", "Subscription renewed successfully.")
+
+            self.destroy()
+
+    def send_sms_expiration(self, contact_no, start_date, end_date):
+        # Send an SMS to the member for subscription expiration
+        formatted_contact_no=contact_no
+        sms_message=f"Hello {self.member_data[2]}!, Your subscription is expiring soon. Expiration date: {end_date}."
+        self.send_sms(formatted_contact_no, sms_message)
+
+    def send_sms(self, to_phone_number, message):
+
+        print("PHONE NUMBER", to_phone_number)
+        print("MESSAGE", message)
+
+        # delete this one kapag magpupush sa github
+        api_key=''
+
+        # # you can change this one kung gusto mo maging priority or bulk. read the docs
+        # url='https://api.semaphore.co/api/v4/messages'
+
+        # change to this one if you want na maging priority ang message kaso mas mahal ang credits
+        # 2 credits per 160 characters
+        url='https://api.semaphore.co/api/v4/priority'
+
+        payload={
+            'apikey': api_key,
+            'number': to_phone_number,
+            'message': message
+        }
+
+        # this code will connect with the API and send the data
+        try:
+            response=requests.post(url, data=payload)
+
+            if response.status_code == 200:
+
+                print("SEND MESSAGE SUCCESS")
+                print(response.json())
+            else:
+                print(response.text)
+                print("ERROR SENDING MESSAGE")
+                print("STATUS CODE", response.status_code)
+        except Exception as e:
+            print("failed to send message", e)
+
 
 # ------------- FRAME 3 -----------------------#
 
+
 def create_take_attendance_frame(frame_3):
     # Define the desired button width and height
-    button_width=200
-    button_height=200
+    button_width=300
+    button_height=300
 
     # Define the path to the directory containing your image files
     frame_3_icons=os.path.join(os.path.dirname(os.path.realpath(__file__)), "frame_3_icons")
@@ -1134,9 +1906,11 @@ def create_take_attendance_frame(frame_3):
         compound=tk.TOP,
         command=scan_qr,  # Call the function to open the frame
         width=button_width,
-        height=button_height
+        height=button_height,
+        fg_color="#00C957",
+        text_color=("gray10", "gray90"),
     )
-    scan_qr_button.place(x=250, y=200)
+    scan_qr_button.place(x=150, y=150)
 
     view_records_button=ctk.CTkButton(
         master=frame_3,
@@ -1145,9 +1919,11 @@ def create_take_attendance_frame(frame_3):
         compound=tk.TOP,
         command=view_records,
         width=button_width,
-        height=button_height
+        height=button_height,
+        fg_color="#00C957",
+        text_color=("gray10", "gray90"),
     )
-    view_records_button.place(x=600, y=200)
+    view_records_button.place(x=600, y=150)
 
 
 class ScanFrame(ctk.CTkFrame):
@@ -1182,7 +1958,9 @@ class ScanFrame(ctk.CTkFrame):
             compound=tk.TOP,
             command=self.scan_qr_code_time_in,  # Call the function to open the frame
             width=button_width,
-            height=button_height
+            height=button_height,
+            fg_color="#00C957",
+            text_color=("gray10", "gray90"),
         )
         time_in_button.place(x=300, y=150)
 
@@ -1193,14 +1971,16 @@ class ScanFrame(ctk.CTkFrame):
             compound=tk.TOP,
             command=self.scan_qr_code_time_out,
             width=button_width,
-            height=button_height
+            height=button_height,
+            fg_color="#00C957",
+            text_color=("gray10", "gray90"),
         )
         time_out_button.place(x=550, y=150)
 
         # create a back button to return to the previous frame
         back_button=ctk.CTkButton(self, text="Back", fg_color="Red", text_color=("gray10", "gray90"),
                                   hover_color=("red3", "red4"), command=self.back_button_event)
-        back_button.pack(pady=20, side=tk.BOTTOM)
+        back_button.place(x=450, y=550)
 
     def scan_qr_code_time_in(self):
         qr_code_data=self.scan_qr_code()
@@ -1252,7 +2032,7 @@ class ScanFrame(ctk.CTkFrame):
     def record_attendance(member_data, attendance_type):
         try:
             first_name, middle_name, last_name, contact_no, subscription_id=member_data.split(',')
-            current_datetime=datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            current_datetime=datetime.now().strftime("%Y-%m-%d %I:%M:%S %p")
 
             with sqlite3.connect('attendance_records.db') as conn:
                 cursor=conn.cursor()
@@ -1321,11 +2101,11 @@ class RecordsFrame(ctk.CTkFrame):
         records_table_frame=ctk.CTkFrame(self)
         records_table_frame.pack(pady=10, padx=10, fill="both", expand=True)
 
-        table_frame=ctk.CTkFrame(records_table_frame)
-        table_frame.pack(pady=20, padx=20)
-
-        label=ctk.CTkLabel(table_frame, text="Attendance Records", font=("Arial bold", 28))
+        label=ctk.CTkLabel(records_table_frame, text="Members' Attendance Records", font=("Arial bold", 28))
         label.pack(pady=20, padx=10)
+
+        table_frame=ctk.CTkFrame(records_table_frame)
+        table_frame.pack(pady=10, padx=10)
 
         style=ttk.Style()
 
@@ -1337,22 +2117,22 @@ class RecordsFrame(ctk.CTkFrame):
                         rowheight=50,
                         fieldbackground="#343638",
                         bordercolor="#343638",
-                        borderwidth=0,
+                        borderwidth=5,
                         anchor="center")
         style.map('Treeview', background=[('selected', '#22559b')])
 
         style.configure("Treeview.Heading",
                         background="#565b5e",
                         foreground="white",
-                        relief="flat")
+                        relief="groove")
         style.map("Treeview.Heading",
                   background=[('active', '#3484F0')])
 
         # Create a Treeview widget to display the attendance records
         self.records_table=ttk.Treeview(table_frame, columns=(
-            "First Name", "Middle Name", "Last Name", "Contact No", "Subscription ID", "Time In", "Time Out"),
+            "First Name", "M.I", "Last Name", "Contact No", "Subscription ID", "Time In", "Time Out"),
                                         show="headings", height=10)
-        self.records_table.pack(side=tk.LEFT)
+        self.records_table.pack(padx=10, pady=10, side=tk.LEFT)
 
         # Create a scrollbar for the Treeview
         scrollbar=ttk.Scrollbar(table_frame, orient=tk.VERTICAL, command=self.records_table.yview)
@@ -1361,7 +2141,7 @@ class RecordsFrame(ctk.CTkFrame):
 
         # Configure the columns
         self.records_table.heading("First Name", text="First Name")
-        self.records_table.heading("Middle Name", text="Middle Name")
+        self.records_table.heading("M.I", text="M.I")
         self.records_table.heading("Last Name", text="Last Name")
         self.records_table.heading("Contact No", text="Contact No")
         self.records_table.heading("Subscription ID", text="Subscription ID")
@@ -1371,7 +2151,7 @@ class RecordsFrame(ctk.CTkFrame):
         # Define the column headings and their alignment
         columns=[
             ("First Name", "center"),
-            ("Middle Name", "center"),
+            ("M.I", "center"),
             ("Last Name", "center"),
             ("Contact No", "center"),
             ("Subscription ID", "center"),
@@ -1382,6 +2162,21 @@ class RecordsFrame(ctk.CTkFrame):
         for col, align in columns:
             self.records_table.heading(col, text=col, anchor=align)
             self.records_table.column(col, anchor=align)
+
+        # column width
+        columns=[
+            ("First Name", 150),
+            ("M.I", 100),
+            ("Last Name", 150),
+            ("Contact No", 150),
+            ("Subscription ID", 150),
+            ("Time In", 300),
+            ("Time Out", 300),
+        ]
+
+        for col, width in columns:
+            self.records_table.column(col, width=width)
+            self.records_table.column("#0", width=0)
 
         # Fetch attendance records from the database
         self.load_attendance_records()
@@ -1410,8 +2205,11 @@ class RecordsFrame(ctk.CTkFrame):
         cursor=conn.cursor()
 
         try:
-            cursor.execute(
-                'SELECT first_name, middle_name, last_name, contact_no, subscription_id, time_in, time_out FROM attendance_records')
+            cursor.execute('''
+                    SELECT first_name, middle_name, last_name, contact_no, subscription_id, time_in, time_out
+                    FROM attendance_records
+                    ORDER BY DATETIME(time_in) DESC
+                ''')
             records=cursor.fetchall()
 
             for record in records:
@@ -1425,8 +2223,10 @@ class RecordsFrame(ctk.CTkFrame):
             conn.close()
 
             # create a back button to return to the previous frame
-            back_button=ctk.CTkButton(self, text="Back", fg_color="Red", text_color=("gray10", "gray90"),
-                                      hover_color=("red3", "red4"), command=self.back_button_event)
+            back_button=ctk.CTkButton(
+                self, text="Back", fg_color="Red", text_color=("gray10", "gray90"),
+                hover_color=("red3", "red4"), command=self.back_button_event
+            )
             back_button.pack(pady=20, side=tk.BOTTOM)
 
     def back_button_event(self):
@@ -1438,8 +2238,8 @@ class RecordsFrame(ctk.CTkFrame):
 
 def create_gym_equipment_frame(frame_4):
     # Define the desired button width and height
-    button_width=200
-    button_height=200
+    button_width=300
+    button_height=300
 
     # Define the path to the directory containing your image files
     frame_4_icons=os.path.join(os.path.dirname(os.path.realpath(__file__)), "frame_4_icons")
@@ -1469,20 +2269,24 @@ def create_gym_equipment_frame(frame_4):
         compound=tk.TOP,
         command=register_equipment,  # Call the function to open the frame
         width=button_width,
-        height=button_height
+        height=button_height,
+        fg_color="#00C957",
+        text_color=("gray10", "gray90")
     )
-    register_equipment_button.place(x=250, y=200)
+    register_equipment_button.place(x=150, y=150)
 
-    view_member_button=ctk.CTkButton(
+    view_equipment_button=ctk.CTkButton(
         master=frame_4,
         text="View Equipment Records",
         image=ImageTk.PhotoImage(view_image),
         compound=tk.TOP,
         command=view_member,
         width=button_width,
-        height=button_height
+        height=button_height,
+        fg_color="#00C957",
+        text_color=("gray10", "gray90")
     )
-    view_member_button.place(x=600, y=200)
+    view_equipment_button.place(x=600, y=150)
 
 
 class RegistrationEquipment(ctk.CTkFrame):
@@ -1589,10 +2393,10 @@ class RegistrationEquipment(ctk.CTkFrame):
                                       command=self.register_equipment_info)
         register_button.pack(pady=15, side=tk.TOP)
 
-        # Create a "Back" button to return to the previous frame
+        # create a back button to return to the previous frame
         back_button=ctk.CTkButton(self, text="Back", fg_color="Red", text_color=("gray10", "gray90"),
                                   hover_color=("red3", "red4"), command=self.back_button_event)
-        back_button.pack(pady=5, side=tk.TOP)
+        back_button.place(x=450, y=550)
 
         # Store the Entry fields and other widgets as instance attributes
         self.equipment_name_entry=equipment_name_entry
@@ -1690,7 +2494,7 @@ class EquipmentRecords(ctk.CTkFrame):
         super().__init__(master, **kwargs)
 
         # Define and configure widgets within the frame
-        label=ctk.CTkLabel(self, text="Gym Equipment Records", font=("Arial bold", 28))
+        label=ctk.CTkLabel(self, text="Gym Equipment Inventory", font=("Arial bold", 28))
         label.pack(pady=20, padx=10)
 
         # Create a connection to the database
@@ -1716,21 +2520,21 @@ class EquipmentRecords(ctk.CTkFrame):
                         rowheight=50,
                         fieldbackground="#343638",
                         bordercolor="#343638",
-                        borderwidth=0,
+                        borderwidth=10,
                         anchor="center")
         style.map('Treeview', background=[('selected', '#22559b')])
 
         style.configure("Treeview.Heading",
                         background="#565b5e",
                         foreground="white",
-                        relief="flat")
+                        relief="groove")
         style.map("Treeview.Heading",
                   background=[('active', '#3484F0')])
 
         # Create a table to display the records
         self.table=ttk.Treeview(table_frame, columns=(
-            "ID", "Equipment Name", "Equipment Quantity", "Equipment Type", "Equipment Status",
-            "Equipment Training Required"), show="headings", height=10)
+            "ID", "Equipment Name", "Quantity", "Type", "Status",
+            "Training Required"), show="headings", height=10)
         self.table.pack(side=tk.LEFT)
 
         self.scrollbar=ttk.Scrollbar(table_frame, orient=tk.VERTICAL, command=self.table.yview)
@@ -1741,19 +2545,19 @@ class EquipmentRecords(ctk.CTkFrame):
         # Configure the columns
         self.table.heading("ID", text="ID")
         self.table.heading("Equipment Name", text="Equipment Name")
-        self.table.heading("Equipment Quantity", text="Quantity")
-        self.table.heading("Equipment Type", text="Type")
-        self.table.heading("Equipment Status", text="Status")
-        self.table.heading("Equipment Training Required", text="Training Required")
+        self.table.heading("Quantity", text="Quantity")
+        self.table.heading("Type", text="Type")
+        self.table.heading("Status", text="Status")
+        self.table.heading("Training Required", text="Training Required")
 
         # Define the column headings and their alignment
         columns=[
             ("ID", "center"),
             ("Equipment Name", "center"),
-            ("Equipment Quantity", "center"),
-            ("Equipment Type", "center"),
-            ("Equipment Status", "center"),
-            ("Equipment Training Required", "center")
+            ("Quantity", "center"),
+            ("Type", "center"),
+            ("Status", "center"),
+            ("Training Required", "center")
         ]
 
         for col, align in columns:
@@ -1762,12 +2566,12 @@ class EquipmentRecords(ctk.CTkFrame):
 
         # Column width
         columns=[
-            ("ID", 50),
+            ("ID", 100),
             ("Equipment Name", 200),
-            ("Equipment Quantity", 200),
-            ("Equipment Type", 200),
-            ("Equipment Status", 200),
-            ("Equipment Training Required", 300)
+            ("Quantity", 200),
+            ("Type", 200),
+            ("Status", 200),
+            ("Training Required", 300)
         ]
 
         for col, width in columns:
@@ -1782,14 +2586,7 @@ class EquipmentRecords(ctk.CTkFrame):
 
         # create a frame to hold sub-frames
         button_frames=ctk.CTkFrame(self)
-        button_frames.pack(pady=20, padx=10)
-
-        # create a frame to hold the return button
-        return_button_frame=ctk.CTkFrame(button_frames)
-        return_button_frame.grid(row=0, column=0, padx=10, pady=10)
-        # Create a "Return" button in the first column
-        return_button=ctk.CTkButton(return_button_frame, text="Return", command=self.back_button_event)
-        return_button.pack(padx=10, pady=10)
+        button_frames.pack(pady=10, padx=10)
 
         # Create a frame to hold the edit button
         view_button_frame=ctk.CTkFrame(button_frames)
@@ -1798,12 +2595,10 @@ class EquipmentRecords(ctk.CTkFrame):
         view_button=ctk.CTkButton(view_button_frame, text="View", command=self.edit_record)
         view_button.pack(padx=10, pady=10)
 
-        # Create a frame to hold the delete button
-        delete_button_frame=ctk.CTkFrame(button_frames)
-        delete_button_frame.grid(row=0, column=2, padx=10, pady=10)
-        # Create a "Delete" button in the third column
-        delete_button=ctk.CTkButton(delete_button_frame, text="Delete", command=self.delete_record)
-        delete_button.pack(padx=10, pady=10)
+        # create a back button to return to the previous frame
+        back_button=ctk.CTkButton(self, text="Back", fg_color="Red", text_color=("gray10", "gray90"),
+                                  hover_color=("red3", "red4"), command=self.back_button_event)
+        back_button.place(x=450, y=550)
 
     def back_button_event(self):
         # Switch back to the previous frame (e.g., the gym membership frame)
@@ -1855,7 +2650,8 @@ class EditRecord(ctk.CTkToplevel):
         super().__init__(master)
 
         # Set the title for the edit form
-        self.title("Edit Equipment Record")
+        self.resizable(False, False)
+        self.title("Edit Info")
         self.geometry("500x550")
 
         # Center-align the window
@@ -1881,7 +2677,7 @@ class EditRecord(ctk.CTkToplevel):
             return
 
         # Create and configure widgets within the edit form
-        label=ctk.CTkLabel(self, text="Edit Equipment Record", font=("Arial bold", 20))
+        label=ctk.CTkLabel(self, text="Edit Equipment Information", font=("Arial bold", 20))
         label.pack(pady=10)
 
         # Create a frame to hold edit form frames
@@ -1926,9 +2722,11 @@ class EditRecord(ctk.CTkToplevel):
         delete_button_frame=ctk.CTkFrame(frame_buttons)
         delete_button_frame.grid(row=0, column=1, padx=20, pady=20)
 
-        # Create Delete button to remove data from the database
-        delete_button=ctk.CTkButton(delete_button_frame, text="Delete", command=self.delete_record)
-        delete_button.grid(row=0, column=1, padx=20, pady=20)
+        # Create Red Delete button
+        delete_button=ctk.CTkButton(delete_button_frame, text="Delete", fg_color="Red",
+                                    text_color=("gray10", "gray90"),
+                                    hover_color=("red3", "red4"), command=self.delete_record)
+        delete_button.grid(row=0, column=0, padx=20, pady=20)
 
         # Store the reference to the 'table' in EditForm
         self.table=table_reference
@@ -2016,8 +2814,8 @@ class EditRecord(ctk.CTkToplevel):
 
 def create_trainers_frame(frame_5):
     # Define the desired button width and height
-    button_width=200
-    button_height=200
+    button_width=250
+    button_height=250
 
     # Define the path to the directory containing your image files
     frame_5_icons=os.path.join(os.path.dirname(os.path.realpath(__file__)), "frame_5_icons")
@@ -2054,9 +2852,11 @@ def create_trainers_frame(frame_5):
         compound=tk.TOP,
         command=register_trainer,  # Call the function to open the frame
         width=button_width,
-        height=button_height
+        height=button_height,
+        fg_color="#00C957",
+        text_color=("gray10", "gray90")
     )
-    register_trainer_button.place(x=180, y=200)
+    register_trainer_button.place(x=100, y=180)
 
     view_trainer_button=ctk.CTkButton(
         master=frame_5,
@@ -2065,9 +2865,11 @@ def create_trainers_frame(frame_5):
         compound=tk.TOP,
         command=view_trainer,
         width=button_width,
-        height=button_height
+        height=button_height,
+        fg_color="#00C957",
+        text_color=("gray10", "gray90")
     )
-    view_trainer_button.place(x=430, y=200)
+    view_trainer_button.place(x=400, y=180)
 
     trainer_attendance_button=ctk.CTkButton(
         master=frame_5,
@@ -2076,9 +2878,11 @@ def create_trainers_frame(frame_5):
         compound=tk.TOP,
         command=trainer_attendance,
         width=button_width,
-        height=button_height
+        height=button_height,
+        fg_color="#00C957",
+        text_color=("gray10", "gray90")
     )
-    trainer_attendance_button.place(x=680, y=200)
+    trainer_attendance_button.place(x=700, y=180)
 
 
 class TrainerFrame(ctk.CTkFrame):
@@ -2087,7 +2891,7 @@ class TrainerFrame(ctk.CTkFrame):
 
         # STEP 1: PERSONAL INFORMATION
         # Define and configure widgets within the frame
-        label=ctk.CTkLabel(self, text="Trainer Registration", font=("Arial bold", 26))
+        label=ctk.CTkLabel(self, text="Register Trainer", font=("Arial bold", 26))
         label.pack(pady=20, padx=10)
 
         # outer frame
@@ -2125,21 +2929,26 @@ class TrainerFrame(ctk.CTkFrame):
 
         # Age
         age_label=ctk.CTkLabel(personal_info_frame, text="Age:", font=label_font)
-        age_label.grid(row=5, column=0, padx=20, pady=5, sticky="w")
+        age_label.grid(row=6, column=0, padx=20, pady=5, sticky="w")
         age_entry=ctk.CTkEntry(personal_info_frame, placeholder_text="Enter your age")
-        age_entry.grid(row=5, column=1, padx=20, pady=5)
+        age_entry.grid(row=6, column=1, padx=20, pady=5)
 
         # Sex
         sex_label=ctk.CTkLabel(personal_info_frame, text="Sex:", font=label_font)
-        sex_label.grid(row=6, column=0, padx=20, pady=5, sticky="w")
+        sex_label.grid(row=7, column=0, padx=20, pady=5, sticky="w")
         sex_entry=ctk.CTkComboBox(personal_info_frame, values=["Male", "Female", "Other"])
-        sex_entry.grid(row=6, column=1, padx=20, pady=5)
+        sex_entry.grid(row=7, column=1, padx=20, pady=5)
 
         # Create a DateEntry widget for the birthdate
         birth_date_label=ctk.CTkLabel(personal_info_frame, text="Date of Birth:", font=label_font)
-        birth_date_label.grid(row=7, column=0, padx=20, pady=5, sticky="w")
-        birth_date_entry=DateEntry(personal_info_frame, width=20, date_pattern="yyyy-mm-dd")
-        birth_date_entry.grid(row=7, column=1, padx=20, pady=15, sticky="w")
+        birth_date_label.grid(row=5, column=0, padx=20, pady=5, sticky="w")
+
+        # Use the existing birth_date_entry you created
+        self.birth_date_entry=DateEntry(personal_info_frame, width=20, date_pattern="yyyy-mm-dd")
+        self.birth_date_entry.grid(row=5, column=1, padx=20, pady=15, sticky="w")
+
+        # Bind the function to the <<DateEntrySelected>> event
+        self.birth_date_entry.bind("<<DateEntrySelected>>", self.calculate_age)
 
         # Address
         address_label=ctk.CTkLabel(personal_info_frame, text="Address:", font=label_font)
@@ -2203,7 +3012,6 @@ class TrainerFrame(ctk.CTkFrame):
         self.last_name_entry=last_name_entry
         self.age_entry=age_entry
         self.sex_entry=sex_entry
-        self.birth_date_entry=birth_date_entry
         self.address_entry=address_entry
         self.nationality_combo=nationality_combo
         self.contact_no_entry=contact_no_entry
@@ -2237,6 +3045,66 @@ class TrainerFrame(ctk.CTkFrame):
         # Commit the changes and close the database connection
         conn.commit()
         conn.close()
+
+    def calculate_age(self, event):
+        # Get the selected birthdate
+        birth_date_str=self.birth_date_entry.get()
+
+        try:
+            # Extract the date part without the time
+            birth_date_str=birth_date_str.split()[0]
+
+            # Convert the birthdate string to a datetime object
+            birth_date_obj=datetime.strptime(birth_date_str, '%Y-%m-%d')
+
+            # Calculate the age based on the birthdate
+            current_date=datetime.now()
+            age=current_date.year - birth_date_obj.year - (
+                    (current_date.month, current_date.day) < (birth_date_obj.month, birth_date_obj.day)
+            )
+
+            # Update the age entry
+            self.age_entry.delete(0, tk.END)
+            self.age_entry.insert(0, str(age))
+        except ValueError:
+            # Handle invalid date format
+            messagebox.showerror("Invalid Date", "Please enter a valid date in the format YYYY-MM-DD.")
+
+    def send_sms(self, to_phone_number, message):
+
+        print("PHONE NUMBER", to_phone_number)
+        print("MESSAGE", message)
+
+        # delete this one kapag magpupush sa github
+        api_key=''
+
+        # # you can change this one kung gusto mo maging priority or bulk. read the docs
+        # url='https://api.semaphore.co/api/v4/messages'
+
+        # change to this one if you want na maging priority ang message kaso mas mahal ang credits
+        # 2 credits per 160 characters
+        url='https://api.semaphore.co/api/v4/priority'
+
+        payload={
+            'apikey': api_key,
+            'number': to_phone_number,
+            'message': message
+        }
+
+        # this code will connect with the API and send the data
+        try:
+            response=requests.post(url, data=payload)
+
+            if response.status_code == 200:
+
+                print("SEND MESSAGE SUCCESS")
+                print(response.json())
+            else:
+                print(response.text)
+                print("ERROR SENDING MESSAGE")
+                print("STATUS CODE", response.status_code)
+        except Exception as e:
+            print("failed to send message", e)
 
     def register_subscription(self):
         # Gather data from the form fields
@@ -2304,6 +3172,11 @@ class TrainerFrame(ctk.CTkFrame):
         file_path=os.path.join(folder_path, f"dgrit_trainer_{last_name}.png")
         qr_img.save(file_path)
 
+        # After successful registration, send an SMS
+        formatted_contact_no=self.contact_no_entry.get()  # Assuming contact_no_entry contains the formatted phone number
+        sms_message=f"Hello {first_name}!, You are registered as a Trainer in D'GRIT Gym."
+        self.send_sms(formatted_contact_no, sms_message)
+
         # Show a success message
         messagebox.showinfo("Registration Successful", "Trainer registered successfully!")
 
@@ -2327,7 +3200,7 @@ class ViewTrainerFrame(ctk.CTkFrame):
         super().__init__(master, **kwargs)
 
         # Define and configure widgets within the frame
-        label=ctk.CTkLabel(self, text="Trainer Records", font=("Arial bold", 28))
+        label=ctk.CTkLabel(self, text="Trainer Information", font=("Arial bold", 28))
         label.pack(pady=20, padx=10)
 
         # Create a connection to the database
@@ -2353,14 +3226,14 @@ class ViewTrainerFrame(ctk.CTkFrame):
                         rowheight=50,
                         fieldbackground="#343638",
                         bordercolor="#343638",
-                        borderwidth=0,
+                        borderwidth=10,
                         anchor="center")
         style.map('Treeview', background=[('selected', '#22559b')])
 
         style.configure("Treeview.Heading",
                         background="#565b5e",
                         foreground="white",
-                        relief="flat")
+                        relief="groove")
         style.map("Treeview.Heading",
                   background=[('active', '#3484F0')])
 
@@ -2407,13 +3280,6 @@ class ViewTrainerFrame(ctk.CTkFrame):
         button_frames=ctk.CTkFrame(self)
         button_frames.pack(pady=10, padx=10)
 
-        # create a frame to hold the return button
-        return_button_frame=ctk.CTkFrame(button_frames)
-        return_button_frame.grid(row=0, column=0, padx=10, pady=10)
-        # Create a "Return" button in the first column
-        return_button=ctk.CTkButton(return_button_frame, text="Return", command=self.back_button_event)
-        return_button.pack(padx=10, pady=10)
-
         # Create a frame to hold the edit button
         view_button_frame=ctk.CTkFrame(button_frames)
         view_button_frame.grid(row=0, column=1, padx=10, pady=10)
@@ -2421,12 +3287,10 @@ class ViewTrainerFrame(ctk.CTkFrame):
         view_button=ctk.CTkButton(view_button_frame, text="View", command=self.edit_record)
         view_button.pack(padx=10, pady=10)
 
-        # Create a frame to hold the delete button
-        delete_button_frame=ctk.CTkFrame(button_frames)
-        delete_button_frame.grid(row=0, column=2, padx=10, pady=10)
-        # Create a "Delete" button in the third column
-        delete_button=ctk.CTkButton(delete_button_frame, text="Delete", command=self.delete_record)
-        delete_button.pack(padx=10, pady=10)
+        # Create a "Back" button to return to the previous frame
+        back_button=ctk.CTkButton(self, text="Back", fg_color="Red", text_color=("gray10", "gray90"),
+                                  hover_color=("red3", "red4"), command=self.back_button_event)
+        back_button.pack(pady=5, side=tk.TOP)
 
     def back_button_event(self):
         # Switch back to the previous frame (e.g., the gym membership frame)
@@ -2478,7 +3342,8 @@ class EditTrainerForm(ctk.CTkToplevel):
         super().__init__(master)
 
         # Set the title for the edit form
-        self.title("Edit Trainer Record")
+        self.resizable(False, False)
+        self.title("Edit Info")
         self.geometry("500x550")
 
         # Center-align the window
@@ -2504,7 +3369,7 @@ class EditTrainerForm(ctk.CTkToplevel):
             return
 
         # Create and configure widgets within the edit form
-        label=ctk.CTkLabel(self, text="Edit Trainer Record", font=("Arial bold", 20))
+        label=ctk.CTkLabel(self, text="Edit Trainer Information", font=("Arial bold", 20))
         label.pack(pady=10)
 
         # Create a frame to hold edit form frames
@@ -2569,9 +3434,11 @@ class EditTrainerForm(ctk.CTkToplevel):
         delete_button_frame=ctk.CTkFrame(frame_buttons)
         delete_button_frame.grid(row=0, column=1, padx=20, pady=20)
 
-        # Create Delete button to remove data from the database
-        delete_button=ctk.CTkButton(delete_button_frame, text="Delete", command=self.delete_record)
-        delete_button.grid(row=0, column=1, padx=20, pady=20)
+        # Create Red Delete button
+        delete_button=ctk.CTkButton(delete_button_frame, text="Delete", fg_color="Red",
+                                    text_color=("gray10", "gray90"),
+                                    hover_color=("red3", "red4"), command=self.delete_record)
+        delete_button.grid(row=0, column=0, padx=20, pady=20)
 
         # Store the reference to the 'table' in EditForm
         self.table=table_reference
@@ -2668,14 +3535,7 @@ class EditTrainerForm(ctk.CTkToplevel):
 class TrainerAttendanceFrame(ctk.CTkFrame):
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
-        self.create_ui_elements()
 
-    def create_ui_elements(self):
-        # Create and configure UI elements within frame
-        label=ctk.CTkLabel(self, text="", font=("Arial bold", 8))
-        label.pack(pady=5, padx=10)
-
-        # Define the desired button width and height
         button_width=200
         button_height=200
 
@@ -2695,9 +3555,11 @@ class TrainerAttendanceFrame(ctk.CTkFrame):
             text="Take Attendance",
             image=ImageTk.PhotoImage(scan_image),
             compound=tk.TOP,
-            command=self.take_attendance,  # Call the function to open the frame
+            command=self.take_attendance,
             width=button_width,
-            height=button_height
+            height=button_height,
+            fg_color="#00C957",
+            text_color=("gray10", "gray90")
         )
         take_attendance_button.place(x=300, y=150)
 
@@ -2708,22 +3570,24 @@ class TrainerAttendanceFrame(ctk.CTkFrame):
             compound=tk.TOP,
             command=self.view_attendance_records,
             width=button_width,
-            height=button_height
+            height=button_height,
+            fg_color="#00C957",
+            text_color=("gray10", "gray90")
         )
         attendance_records_button.place(x=550, y=150)
 
         # create a back button to return to the previous frame
         back_button=ctk.CTkButton(self, text="Back", fg_color="Red", text_color=("gray10", "gray90"),
                                   hover_color=("red3", "red4"), command=self.back_button_event)
-        back_button.pack(pady=20, side=tk.BOTTOM)
+        back_button.place(x=450, y=550)
 
     def take_attendance(self):
-        # When the "Register Members" button is clicked, create and show the registration frame
+        # When the "Take Attendance" button is clicked, create and show the ScanQrFrame
         attendance_frame=ScanQrFrame(self)
         attendance_frame.pack(fill='both', expand=True)
 
     def view_attendance_records(self):
-        # When the "Register Members" button is clicked, create and show the registration frame
+        # When the "View Attendance Records" button is clicked, create and show the AttendanceFrame
         records_frame=AttendanceFrame(self)
         records_frame.pack(fill='both', expand=True)
 
@@ -2734,14 +3598,7 @@ class TrainerAttendanceFrame(ctk.CTkFrame):
 class ScanQrFrame(ctk.CTkFrame):
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
-        self.create_ui_elements()
 
-    def create_ui_elements(self):
-        # Create and configure UI elements within frame
-        label=ctk.CTkLabel(self, text="", font=("Arial bold", 8))
-        label.pack(pady=5, padx=10)
-
-        # Define the desired button width and height
         button_width=200
         button_height=200
 
@@ -2763,9 +3620,11 @@ class ScanQrFrame(ctk.CTkFrame):
             compound=tk.TOP,
             command=self.scan_qr_code_time_in,  # Call the function to open the frame
             width=button_width,
-            height=button_height
+            height=button_height,
+            fg_color="#00C957",
+            text_color=("gray10", "gray90")
         )
-        time_in_button.place(x=300, y=150)
+        time_in_button.place(x=300, y=200)
 
         time_out_button=ctk.CTkButton(
             master=self,
@@ -2774,9 +3633,11 @@ class ScanQrFrame(ctk.CTkFrame):
             compound=tk.TOP,
             command=self.scan_qr_code_time_out,
             width=button_width,
-            height=button_height
+            height=button_height,
+            fg_color="#00C957",
+            text_color=("gray10", "gray90")
         )
-        time_out_button.place(x=550, y=150)
+        time_out_button.place(x=550, y=200)
 
         # create a back button to return to the previous frame
         back_button=ctk.CTkButton(self, text="Back", fg_color="Red", text_color=("gray10", "gray90"),
@@ -2886,24 +3747,26 @@ class ScanQrFrame(ctk.CTkFrame):
         cv2.destroyAllWindows()
 
     def back_button_event(self):
+        # Destroy the current frame and show the parent frame
         self.destroy()
 
 
 class AttendanceFrame(ctk.CTkFrame):
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
-        self.create_ui_elements()
 
-    def create_ui_elements(self):
         # Create a frame to hold the attendance records table
         records_table_frame=ctk.CTkFrame(self)
         records_table_frame.pack(pady=10, padx=10, fill="both", expand=True)
 
         table_frame=ctk.CTkFrame(records_table_frame)
-        table_frame.pack(pady=20, padx=20)
+        table_frame.pack(pady=10, padx=20, fill="both", expand=True)
 
         label=ctk.CTkLabel(table_frame, text="Trainer Attendance Records", font=("Arial bold", 28))
         label.pack(pady=20, padx=10)
+
+        table_inner_frame=ctk.CTkFrame(table_frame)
+        table_inner_frame.pack(pady=10, padx=20)
 
         style=ttk.Style()
 
@@ -2915,26 +3778,31 @@ class AttendanceFrame(ctk.CTkFrame):
                         rowheight=50,
                         fieldbackground="#343638",
                         bordercolor="#343638",
-                        borderwidth=0,
+                        borderwidth=10,
                         anchor="center")
         style.map('Treeview', background=[('selected', '#22559b')])
 
         style.configure("Treeview.Heading",
                         background="#565b5e",
                         foreground="white",
-                        relief="flat")
+                        relief="groove")
         style.map("Treeview.Heading",
                   background=[('active', '#3484F0')])
 
         # Create a Treeview widget to display the attendance records
-        self.records_table=ttk.Treeview(table_frame, columns=(
+        self.records_table=ttk.Treeview(table_inner_frame, columns=(
             "First Name", "Middle Name", "Last Name", "Contact No", "Time In", "Time Out"),
                                         show="headings", height=10)
         self.records_table.pack(side=tk.LEFT)
 
+        # create a back button to return to the previous frame
+        back_button=ctk.CTkButton(self, text="Back", fg_color="Red", text_color=("gray10", "gray90"),
+                                  hover_color=("red3", "red4"), command=self.back_button_event)
+        back_button.pack(pady=20, side=tk.BOTTOM)
+
         # Create a scrollbar for the Treeview
-        scrollbar=ttk.Scrollbar(table_frame, orient=tk.VERTICAL, command=self.records_table.yview)
-        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        scrollbar=ttk.Scrollbar(table_inner_frame, orient=tk.VERTICAL, command=self.records_table.yview)
+        scrollbar.pack(side=ctk.RIGHT, fill=tk.Y)
         self.records_table.configure(yscrollcommand=scrollbar.set)
 
         # Configure the columns
@@ -2999,11 +3867,6 @@ class AttendanceFrame(ctk.CTkFrame):
             cursor.close()
             conn.close()
 
-            # create a back button to return to the previous frame
-            back_button=ctk.CTkButton(self, text="Back", fg_color="Red", text_color=("gray10", "gray90"),
-                                      hover_color=("red3", "red4"), command=self.back_button_event)
-            back_button.pack(pady=20, side=tk.BOTTOM)
-
     def back_button_event(self):
         # Switch back to the previous frame
         self.destroy()
@@ -3012,8 +3875,8 @@ class AttendanceFrame(ctk.CTkFrame):
 # -------------------- FRAME 6 --------------------#
 def create_visitors_frame(frame_6):
     # Define the desired button width and height
-    button_width=200
-    button_height=200
+    button_width=350
+    button_height=350
 
     # Define the path to the directory containing your image files
     frame_6_icons=os.path.join(os.path.dirname(os.path.realpath(__file__)), "frame_6_icons")
@@ -3028,16 +3891,18 @@ def create_visitors_frame(frame_6):
         registration_frame.pack(fill='both', expand=True)
 
     # Create the buttons with the resized images
-    register_employee_button=ctk.CTkButton(
+    register_visitor_button=ctk.CTkButton(
         master=frame_6,
-        text="Visitor Logbook",
+        text="Gymers Logbook",
         image=ImageTk.PhotoImage(logbook_image),
         compound=tk.TOP,
         command=register_visitors,  # Call the function to open the frame
         width=button_width,
-        height=button_height
+        height=button_height,
+        fg_color="#00C957",
+        text_color=("gray10", "gray90")
     )
-    register_employee_button.place(x=450, y=200)
+    register_visitor_button.place(y=130, x=350)
 
 
 class LogbookFrame(ctk.CTkFrame):
@@ -3046,7 +3911,7 @@ class LogbookFrame(ctk.CTkFrame):
 
         # STEP 1: PERSONAL INFORMATION
         # Define and configure widgets within the frame
-        label=ctk.CTkLabel(self, text="VISITORS LOG BOOK", font=("Arial bold", 26))
+        label=ctk.CTkLabel(self, text="GYMERS DAILY LOG", font=("Arial bold", 26))
         label.pack(pady=25, padx=10)
 
         # outer frame
@@ -3126,20 +3991,20 @@ class LogbookFrame(ctk.CTkFrame):
                         rowheight=50,
                         fieldbackground="#343638",
                         bordercolor="#343638",
-                        borderwidth=0,
+                        borderwidth=10,
                         anchor="center")
         style.map('Treeview', background=[('selected', '#22559b')])
 
         style.configure("Treeview.Heading",
                         background="#565b5e",
                         foreground="white",
-                        relief="flat")
+                        relief="groove")
         style.map("Treeview.Heading",
                   background=[('active', '#3484F0')])
 
         # Create a table to display the records
         self.table=ttk.Treeview(table_frame, columns=(
-            "First Name", "Middle Name", "Last Name", "Contact No", "Time"), show="headings", height=10)
+            "First Name", "M.I", "Last Name", "Contact No", "Time"), show="headings", height=10)
         self.table.pack(side=tk.LEFT)
 
         scrollbar=ttk.Scrollbar(table_frame, orient=tk.VERTICAL, command=self.table.yview)
@@ -3149,7 +4014,7 @@ class LogbookFrame(ctk.CTkFrame):
 
         # Configure the columns
         self.table.heading("First Name", text="First Name")
-        self.table.heading("Middle Name", text="Middle Name")
+        self.table.heading("M.I", text="Middle Name")
         self.table.heading("Last Name", text="Last Name")
         self.table.heading("Contact No", text="Contact No")
         self.table.heading("Time", text="Time")
@@ -3157,7 +4022,7 @@ class LogbookFrame(ctk.CTkFrame):
         # Define the column headings and their alignment
         columns=[
             ("First Name", "center"),
-            ("Middle Name", "center"),
+            ("M.I", "center"),
             ("Last Name", "center"),
             ("Contact No", "center"),
             ("Time", "center")
@@ -3169,11 +4034,11 @@ class LogbookFrame(ctk.CTkFrame):
 
         # column width
         columns=[
-            ("First Name", 200),
-            ("Middle Name", 150),
+            ("First Name", 150),
+            ("M.I", 50),
             ("Last Name", 200),
             ("Contact No", 200),
-            ("Time", 200)
+            ("Time", 250)
         ]
 
         for col, width in columns:
@@ -3224,8 +4089,9 @@ class LogbookFrame(ctk.CTkFrame):
             conn=sqlite3.connect('visitors_log.db')
             cursor=conn.cursor()
 
-            # Fetch records from the database
-            cursor.execute("SELECT first_name, middle_name, last_name, contact_no, time FROM visitors")
+            # Fetch records from the database ordered by time in descending order
+            cursor.execute(
+                "SELECT first_name, middle_name, last_name, contact_no, time FROM visitors ORDER BY time DESC")
             records=cursor.fetchall()
 
             # Clear existing data in the table
@@ -3297,15 +4163,18 @@ class LogbookFrame(ctk.CTkFrame):
         cursor=conn.cursor()
 
         try:
-            # Insert the data into the database with the current date and time
-            current_time=datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            # Insert the data into the database with the current date and time in 12-hour format
+            current_time=datetime.now().strftime("%Y-%m-%d %I:%M:%S %p")
+
             cursor.execute('''
-                INSERT INTO visitors (first_name, middle_name, last_name, contact_no, time)
-                VALUES (?, ?, ?, ?, ?)
-            ''', (first_name, middle_name, last_name, contact_no, current_time))
+                        INSERT INTO visitors (first_name, middle_name, last_name, contact_no, time)
+                        VALUES (?, ?, ?, ?, ?)
+                    ''', (first_name, middle_name, last_name, contact_no, current_time))
+
             # Message that visitor has attended
-            send_sms(contact_no,
-                     f"Hello {first_name}!, Thank You for attending D'GRIT GYM. Time In: {current_time}")
+            self.send_sms(contact_no,
+                          f"Hello {first_name}!, Thank You for attending D'GRIT GYM. Time In: {current_time}")
+
             # Commit the changes and close the database connection
             conn.commit()
             conn.close()
@@ -3317,14 +4186,14 @@ class LogbookFrame(ctk.CTkFrame):
             for entry in [self.first_name_entry, self.middle_name_entry, self.last_name_entry, self.contact_no_entry]:
                 entry.delete(0, tk.END)
 
+            # Load data into the table after recording attendance with the latest entry on top
+            self.load_data_to_table()
+
         except sqlite3.Error as e:
             # Handle any potential SQLite errors
             messagebox.showerror("Database Error", f"Error inserting data: {e}")
             conn.rollback()
             conn.close()
-
-            # Load data into the table after recording attendance
-            self.load_data_to_table()
 
     def delete_log(self):
         # Get the selected item in the table
@@ -3370,8 +4239,8 @@ class LogbookFrame(ctk.CTkFrame):
 # -------------------- FRAME 7 --------------------#
 def create_employee_frame(frame_7):
     # Define the desired button width and height
-    button_width=200
-    button_height=200
+    button_width=250
+    button_height=250
 
     # Define the path to the directory containing your image files
     frame_7_icons=os.path.join(os.path.dirname(os.path.realpath(__file__)), "frame_7_icons")
@@ -3409,9 +4278,11 @@ def create_employee_frame(frame_7):
         compound=tk.TOP,
         command=register_employee,  # Call the function to open the frame
         width=button_width,
-        height=button_height
+        height=button_height,
+        fg_color="#00C957",
+        text_color=("gray10", "gray90")
     )
-    register_employee_button.place(x=180, y=200)
+    register_employee_button.place(x=100, y=180)
 
     view_employee_button=ctk.CTkButton(
         master=frame_7,
@@ -3420,9 +4291,11 @@ def create_employee_frame(frame_7):
         compound=tk.TOP,
         command=view_employee_information,
         width=button_width,
-        height=button_height
+        height=button_height,
+        fg_color="#00C957",
+        text_color=("gray10", "gray90")
     )
-    view_employee_button.place(x=430, y=200)
+    view_employee_button.place(x=400, y=180)
 
     attendance_employee_button=ctk.CTkButton(
         master=frame_7,
@@ -3431,9 +4304,11 @@ def create_employee_frame(frame_7):
         compound=tk.TOP,
         command=take_employee_attendance,
         width=button_width,
-        height=button_height
+        height=button_height,
+        fg_color="#00C957",
+        text_color=("gray10", "gray90")
     )
-    attendance_employee_button.place(x=680, y=200)
+    attendance_employee_button.place(x=700, y=180)
 
 
 class RegisterEmployeeFrame(ctk.CTkFrame):
@@ -3442,7 +4317,7 @@ class RegisterEmployeeFrame(ctk.CTkFrame):
 
         # STEP 1: PERSONAL INFORMATION
         # Define and configure widgets within the frame
-        label=ctk.CTkLabel(self, text="Employee Registration", font=("Arial bold", 26))
+        label=ctk.CTkLabel(self, text="Register Employee", font=("Arial bold", 26))
         label.pack(pady=20, padx=10)
 
         # outer frame
@@ -3480,21 +4355,26 @@ class RegisterEmployeeFrame(ctk.CTkFrame):
 
         # Age
         age_label=ctk.CTkLabel(personal_info_frame, text="Age:", font=label_font)
-        age_label.grid(row=5, column=0, padx=20, pady=5, sticky="w")
+        age_label.grid(row=6, column=0, padx=20, pady=5, sticky="w")
         age_entry=ctk.CTkEntry(personal_info_frame, placeholder_text="Enter your age")
-        age_entry.grid(row=5, column=1, padx=20, pady=5)
+        age_entry.grid(row=6, column=1, padx=20, pady=5)
 
         # Sex
         sex_label=ctk.CTkLabel(personal_info_frame, text="Sex:", font=label_font)
-        sex_label.grid(row=6, column=0, padx=20, pady=5, sticky="w")
+        sex_label.grid(row=7, column=0, padx=20, pady=5, sticky="w")
         sex_entry=ctk.CTkComboBox(personal_info_frame, values=["Male", "Female", "Other"])
-        sex_entry.grid(row=6, column=1, padx=20, pady=5)
+        sex_entry.grid(row=7, column=1, padx=20, pady=5)
 
         # Create a DateEntry widget for the birthdate
         birth_date_label=ctk.CTkLabel(personal_info_frame, text="Date of Birth:", font=label_font)
-        birth_date_label.grid(row=7, column=0, padx=20, pady=5, sticky="w")
-        birth_date_entry=DateEntry(personal_info_frame, width=20, date_pattern="yyyy-mm-dd")
-        birth_date_entry.grid(row=7, column=1, padx=20, pady=15, sticky="w")
+        birth_date_label.grid(row=5, column=0, padx=20, pady=5, sticky="w")
+
+        # Use the existing birth_date_entry you created
+        self.birth_date_entry=DateEntry(personal_info_frame, width=20, date_pattern="yyyy-mm-dd")
+        self.birth_date_entry.grid(row=5, column=1, padx=20, pady=15, sticky="w")
+
+        # Bind the function to the <<DateEntrySelected>> event
+        self.birth_date_entry.bind("<<DateEntrySelected>>", self.calculate_age)
 
         # Address
         address_label=ctk.CTkLabel(personal_info_frame, text="Address:", font=label_font)
@@ -3558,7 +4438,6 @@ class RegisterEmployeeFrame(ctk.CTkFrame):
         self.last_name_entry=last_name_entry
         self.age_entry=age_entry
         self.sex_entry=sex_entry
-        self.birth_date_entry=birth_date_entry
         self.address_entry=address_entry
         self.nationality_combo=nationality_combo
         self.contact_no_entry=contact_no_entry
@@ -3592,6 +4471,66 @@ class RegisterEmployeeFrame(ctk.CTkFrame):
         # Commit the changes and close the database connection
         conn.commit()
         conn.close()
+
+    def calculate_age(self, event):
+        # Get the selected birthdate
+        birth_date_str=self.birth_date_entry.get()
+
+        try:
+            # Extract the date part without the time
+            birth_date_str=birth_date_str.split()[0]
+
+            # Convert the birthdate string to a datetime object
+            birth_date_obj=datetime.strptime(birth_date_str, '%Y-%m-%d')
+
+            # Calculate the age based on the birthdate
+            current_date=datetime.now()
+            age=current_date.year - birth_date_obj.year - (
+                    (current_date.month, current_date.day) < (birth_date_obj.month, birth_date_obj.day)
+            )
+
+            # Update the age entry
+            self.age_entry.delete(0, tk.END)
+            self.age_entry.insert(0, str(age))
+        except ValueError:
+            # Handle invalid date format
+            messagebox.showerror("Invalid Date", "Please enter a valid date in the format YYYY-MM-DD.")
+
+    def send_sms(self, to_phone_number, message):
+
+        print("PHONE NUMBER", to_phone_number)
+        print("MESSAGE", message)
+
+        # delete this one kapag magpupush sa github
+        api_key=''
+
+        # # you can change this one kung gusto mo maging priority or bulk. read the docs
+        # url='https://api.semaphore.co/api/v4/messages'
+
+        # change to this one if you want na maging priority ang message kaso mas mahal ang credits
+        # 2 credits per 160 characters
+        url='https://api.semaphore.co/api/v4/priority'
+
+        payload={
+            'apikey': api_key,
+            'number': to_phone_number,
+            'message': message
+        }
+
+        # this code will connect with the API and send the data
+        try:
+            response=requests.post(url, data=payload)
+
+            if response.status_code == 200:
+
+                print("SEND MESSAGE SUCCESS")
+                print(response.json())
+            else:
+                print(response.text)
+                print("ERROR SENDING MESSAGE")
+                print("STATUS CODE", response.status_code)
+        except Exception as e:
+            print("failed to send message", e)
 
     def register_employees(self):
         # Gather data from the form fields
@@ -3660,6 +4599,11 @@ class RegisterEmployeeFrame(ctk.CTkFrame):
         file_path=os.path.join(folder_path, f"dgrit_employee_{last_name}.png")
         qr_img.save(file_path)
 
+        # After successful registration, send an SMS
+        formatted_contact_no=self.contact_no_entry.get()  # Assuming contact_no_entry contains the formatted phone number
+        sms_message=f"Hello {first_name}!, You are registered as an Employee of D'GRIT Gym."
+        self.send_sms(formatted_contact_no, sms_message)
+
         # Show a success message
         messagebox.showinfo("Registration Successful", "Employee registered successfully!")
 
@@ -3709,14 +4653,14 @@ class ViewEmployeeFrame(ctk.CTkFrame):
                         rowheight=50,
                         fieldbackground="#343638",
                         bordercolor="#343638",
-                        borderwidth=0,
+                        borderwidth=10,
                         anchor="center")
         style.map('Treeview', background=[('selected', '#22559b')])
 
         style.configure("Treeview.Heading",
                         background="#565b5e",
                         foreground="white",
-                        relief="flat")
+                        relief="groove")
         style.map("Treeview.Heading",
                   background=[('active', '#3484F0')])
 
@@ -3763,13 +4707,6 @@ class ViewEmployeeFrame(ctk.CTkFrame):
         button_frames=ctk.CTkFrame(self)
         button_frames.pack(pady=10, padx=10)
 
-        # create a frame to hold the return button
-        return_button_frame=ctk.CTkFrame(button_frames)
-        return_button_frame.grid(row=0, column=0, padx=10, pady=10)
-        # Create a "Return" button in the first column
-        return_button=ctk.CTkButton(return_button_frame, text="Return", command=self.back_button_event)
-        return_button.pack(padx=10, pady=10)
-
         # Create a frame to hold the edit button
         view_button_frame=ctk.CTkFrame(button_frames)
         view_button_frame.grid(row=0, column=1, padx=10, pady=10)
@@ -3777,12 +4714,10 @@ class ViewEmployeeFrame(ctk.CTkFrame):
         view_button=ctk.CTkButton(view_button_frame, text="View", command=self.edit_record)
         view_button.pack(padx=10, pady=10)
 
-        # Create a frame to hold the delete button
-        delete_button_frame=ctk.CTkFrame(button_frames)
-        delete_button_frame.grid(row=0, column=2, padx=10, pady=10)
-        # Create a "Delete" button in the third column
-        delete_button=ctk.CTkButton(delete_button_frame, text="Delete", command=self.delete_record)
-        delete_button.pack(padx=10, pady=10)
+        # create a back button to return to the previous frame
+        back_button=ctk.CTkButton(self, text="Back", fg_color="Red", text_color=("gray10", "gray90"),
+                                  hover_color=("red3", "red4"), command=self.back_button_event)
+        back_button.pack(pady=5, side=tk.TOP)
 
     def back_button_event(self):
         # Switch back to the previous frame (e.g., the gym membership frame)
@@ -3834,6 +4769,7 @@ class EditEmployeeForm(ctk.CTkToplevel):
         super().__init__(master)
 
         # Set the title for the edit form
+        self.resizable(False, False)
         self.title("Edit Employee Record")
         self.geometry("500x550")
 
@@ -3925,9 +4861,11 @@ class EditEmployeeForm(ctk.CTkToplevel):
         delete_button_frame=ctk.CTkFrame(frame_buttons)
         delete_button_frame.grid(row=0, column=1, padx=20, pady=20)
 
-        # Create Delete button to remove data from the database
-        delete_button=ctk.CTkButton(delete_button_frame, text="Delete", command=self.delete_record)
-        delete_button.grid(row=0, column=1, padx=20, pady=20)
+        # Create Red Delete button
+        delete_button=ctk.CTkButton(delete_button_frame, text="Delete", fg_color="Red",
+                                    text_color=("gray10", "gray90"),
+                                    hover_color=("red3", "red4"), command=self.delete_record)
+        delete_button.grid(row=0, column=0, padx=20, pady=20)
 
         # Store the reference to the 'table' in EditForm
         self.table=table_reference
@@ -4058,7 +4996,9 @@ class EmployeeAttendanceFrame(ctk.CTkFrame):
             compound=tk.TOP,
             command=self.take_attendance,  # Call the function to open the frame
             width=button_width,
-            height=button_height
+            height=button_height,
+            fg_color="#00C957",
+            text_color=("gray10", "gray90")
         )
         take_attendance_button.place(x=300, y=150)
 
@@ -4069,14 +5009,16 @@ class EmployeeAttendanceFrame(ctk.CTkFrame):
             compound=tk.TOP,
             command=self.view_attendance_records,
             width=button_width,
-            height=button_height
+            height=button_height,
+            fg_color="#00C957",
+            text_color=("gray10", "gray90")
         )
         attendance_records_button.place(x=550, y=150)
 
         # create a back button to return to the previous frame
         back_button=ctk.CTkButton(self, text="Back", fg_color="Red", text_color=("gray10", "gray90"),
                                   hover_color=("red3", "red4"), command=self.back_button_event)
-        back_button.pack(pady=20, side=tk.BOTTOM)
+        back_button.place(x=450, y=550)
 
     def take_attendance(self):
         # When the "Register Members" button is clicked, create and show the registration frame
@@ -4095,16 +5037,13 @@ class EmployeeAttendanceFrame(ctk.CTkFrame):
 class EmployeeScanQrFrame(ctk.CTkFrame):
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
-        self.create_ui_elements()
-
-    def create_ui_elements(self):
-        # Create and configure UI elements within frame
-        label=ctk.CTkLabel(self, text="", font=("Arial bold", 8))
-        label.pack(pady=5, padx=10)
 
         # Define the desired button width and height
         button_width=200
         button_height=200
+
+        # Configure pack to maximize the frame
+        self.pack(fill='both', expand=True)
 
         # Define the path to the directory containing your image files
         frame_7_icons=os.path.join(os.path.dirname(os.path.realpath(__file__)), "frame_7_icons")
@@ -4124,7 +5063,9 @@ class EmployeeScanQrFrame(ctk.CTkFrame):
             compound=tk.TOP,
             command=self.scan_qr_code_time_in,  # Call the function to open the frame
             width=button_width,
-            height=button_height
+            height=button_height,
+            fg_color="#00C957",
+            text_color=("gray10", "gray90")
         )
         time_in_button.place(x=300, y=150)
 
@@ -4135,7 +5076,9 @@ class EmployeeScanQrFrame(ctk.CTkFrame):
             compound=tk.TOP,
             command=self.scan_qr_code_time_out,
             width=button_width,
-            height=button_height
+            height=button_height,
+            fg_color="#00C957",
+            text_color=("gray10", "gray90")
         )
         time_out_button.place(x=550, y=150)
 
@@ -4253,18 +5196,19 @@ class EmployeeScanQrFrame(ctk.CTkFrame):
 class RecordsAttendanceFrame(ctk.CTkFrame):
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
-        self.create_ui_elements()
 
-    def create_ui_elements(self):
         # Create a frame to hold the attendance records table
         records_table_frame=ctk.CTkFrame(self)
         records_table_frame.pack(pady=10, padx=10, fill="both", expand=True)
 
         table_frame=ctk.CTkFrame(records_table_frame)
-        table_frame.pack(pady=20, padx=20)
+        table_frame.pack(pady=10, padx=20, fill="both", expand=True)
 
         label=ctk.CTkLabel(table_frame, text="Employee Attendance Records", font=("Arial bold", 28))
         label.pack(pady=20, padx=10)
+
+        inner_table_frame=ctk.CTkFrame(table_frame)
+        inner_table_frame.pack(pady=10, padx=20)
 
         style=ttk.Style()
 
@@ -4276,27 +5220,32 @@ class RecordsAttendanceFrame(ctk.CTkFrame):
                         rowheight=50,
                         fieldbackground="#343638",
                         bordercolor="#343638",
-                        borderwidth=0,
+                        borderwidth=10,
                         anchor="center")
         style.map('Treeview', background=[('selected', '#22559b')])
 
         style.configure("Treeview.Heading",
                         background="#565b5e",
                         foreground="white",
-                        relief="flat")
+                        relief="groove")
         style.map("Treeview.Heading",
                   background=[('active', '#3484F0')])
 
         # Create a Treeview widget to display the attendance records
-        self.records_table=ttk.Treeview(table_frame, columns=(
+        self.records_table=ttk.Treeview(inner_table_frame, columns=(
             "First Name", "Middle Name", "Last Name", "Contact No", "Time In", "Time Out"),
                                         show="headings", height=10)
         self.records_table.pack(side=tk.LEFT)
 
         # Create a scrollbar for the Treeview
-        scrollbar=ttk.Scrollbar(table_frame, orient=tk.VERTICAL, command=self.records_table.yview)
+        scrollbar=ttk.Scrollbar(inner_table_frame, orient=tk.VERTICAL, command=self.records_table.yview)
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         self.records_table.configure(yscrollcommand=scrollbar.set)
+
+        # back button
+        back_button=ctk.CTkButton(self, text="Back", fg_color="Red", text_color=("gray10", "gray90"),
+                                  hover_color=("red3", "red4"), command=self.back_button_event)
+        back_button.pack(pady=20, side=tk.BOTTOM)
 
         # Configure the columns
         self.records_table.heading("First Name", text="First Name")
@@ -4360,95 +5309,130 @@ class RecordsAttendanceFrame(ctk.CTkFrame):
             cursor.close()
             conn.close()
 
-            # create a back button to return to the previous frame
-            back_button=ctk.CTkButton(self, text="Back", fg_color="Red", text_color=("gray10", "gray90"),
-                                      hover_color=("red3", "red4"), command=self.back_button_event)
-            back_button.pack(pady=20, side=tk.BOTTOM)
-
     def back_button_event(self):
         # Switch back to the previous frame
         self.destroy()
 
 
 def create_account_management_frame(frame_8):
-    label=ctk.CTkLabel(frame_8, text="", font=("Arial bold", 28))
-    label.pack(pady=30, padx=10)
-
+    # Create the main frame for account management
     form_frame=ctk.CTkFrame(frame_8)
-    form_frame.pack(pady=10, padx=10)
+    form_frame.pack(pady=10, padx=10, fill="both", expand=True)
 
+    # Add a title label to the form frame
+    label=ctk.CTkLabel(form_frame, text="", font=("Agency FB bold", 24))
+    label.pack(pady=25, padx=10)
+
+    # Create a frame for input fields
     fields_frame=ctk.CTkFrame(form_frame)
-    fields_frame.pack(pady=10, padx=10, fill="both", expand=True)
+    fields_frame.pack(pady=20, padx=20)
 
-    label=ctk.CTkLabel(fields_frame, text="Create User Account", font=("Arial bold", 24),
-                       fg_color="transparent")
-    label.pack(pady=10, padx=10)
+    # Create a sub-frame for information
+    info_frame=ctk.CTkFrame(fields_frame)
+    info_frame.grid(row=0, column=0, padx=20, pady=20)
 
-    label_font=ctk.CTkFont(family="Arial bold", size=16)  # Adjust the size as needed
+    # Create a sub-sub-frame for organizing input fields
+    sub_frame=ctk.CTkFrame(info_frame)
+    sub_frame.pack(pady=20, padx=20)
 
-    # Widgets
-    username_note=ctk.CTkLabel(fields_frame, text="Username must be mixed with uppercase "
-                                                  "and lowercase letters and numbers/symbols.", font=label_font)
-    username_note.pack(pady=10, padx=10)
+    # Set the font for labels
+    label_font=ctk.CTkFont(family="Arial bold", size=24)
 
-    username_label=ctk.CTkLabel(fields_frame, text="Username:", font=label_font)
-    username_label.pack(pady=5, padx=10)
-    username_entry=ctk.CTkEntry(fields_frame, placeholder_text="Enter new username")
-    username_entry.pack(pady=5, padx=10)
+    # Add Full Name entry
+    full_name_label=ctk.CTkLabel(sub_frame, text="Full Name:", font=label_font)
+    full_name_label.grid(row=1, column=0, padx=20, pady=20)
+    full_name_entry=ctk.CTkEntry(sub_frame, placeholder_text="Enter your full name")
+    full_name_entry.grid(row=1, column=1, padx=20, pady=20, sticky="ew")
 
-    password_note=ctk.CTkLabel(fields_frame, text="Password must be mixed with uppercase "
-                                                  "and lowercase letters and numbers/symbols.", font=label_font)
-    password_note.pack(pady=10, padx=10)
+    # Add Contact Number entry
+    contact_no_label=ctk.CTkLabel(sub_frame, text="Contact No:", font=label_font)
+    contact_no_label.grid(row=2, column=0, padx=20, pady=20)
+    contact_no_entry=ctk.CTkEntry(sub_frame, placeholder_text="Enter your contact number")
+    contact_no_entry.grid(row=2, column=1, padx=20, pady=20, sticky="ew")
 
-    password_label=ctk.CTkLabel(fields_frame, text="Password:", font=label_font)
-    password_label.pack(pady=5, padx=10)
-    password_entry=ctk.CTkEntry(fields_frame, placeholder_text='Enter new password', show="*")
-    password_entry.pack(pady=5, padx=10)
+    # Add Username entry
+    username_label=ctk.CTkLabel(sub_frame, text="Username:", font=label_font)
+    username_label.grid(row=3, column=0, padx=20, pady=20)
+    username_entry=ctk.CTkEntry(sub_frame, placeholder_text="Enter your new username")
+    username_entry.grid(row=3, column=1, padx=20, pady=20, sticky="ew")
+
+    # Add Password entry
+    password_label=ctk.CTkLabel(sub_frame, text="Password:", font=label_font)
+    password_label.grid(row=4, column=0, padx=20, pady=20)
+    password_entry=ctk.CTkEntry(sub_frame, placeholder_text='Enter your new password', show="*")
+    password_entry.grid(row=4, column=1, padx=20, pady=20, sticky="ew")
 
     register_button=ctk.CTkButton(
-        fields_frame,
-        text="Register",
-        command=lambda: register(username_entry.get(), password_entry.get(), username_entry, password_entry)
+        info_frame,
+        text="Create",
+        command=lambda: register(
+            full_name_entry.get(),  # Add this line to include full name
+            contact_no_entry.get(),  # Assuming you have a contact_no_entry widget
+            username_entry.get(),
+            password_entry.get(),
+            full_name_entry,
+            contact_no_entry,
+            username_entry,
+            password_entry
+        )
     )
     register_button.pack(pady=10, padx=10)
 
 
-def register(username, password, username_entry, password_entry):
+def register(full_name, contact_no, username, password, contact_no_entry, full_name_entry, username_entry,
+             password_entry):
     # Check if the username and password meet your criteria (uppercase, lowercase, symbol)
     if not is_valid(username, password):
         messagebox.showerror("Invalid Data",
                              "Username and Password must be mixed with uppercase and lowercase letters and numbers/symbols.")
         return
 
+    # Validate the contact number format (11 digits starting with 0)
+    if not (contact_no.startswith('0') and len(contact_no) == 11 and contact_no[1:].isdigit()):
+        messagebox.showerror("Invalid Contact Number",
+                             "Please enter a valid contact number starting with 0 and 11 digits long (e.g., 09123456789).")
+        return
+
     # Connect to SQLite database
-    conn=sqlite3.connect('your_database.db')
+    conn=sqlite3.connect('registered_users.db')
     cursor=conn.cursor()
 
-    # Create a table if it doesn't exist
-    cursor.execute('''
+    try:
+        # Create a table if it doesn't exist
+        cursor.execute('''
             CREATE TABLE IF NOT EXISTS accounts (
                 id INTEGER PRIMARY KEY,
+                full_name TEXT,
+                contact_no TEXT,
                 username TEXT NOT NULL,
                 password TEXT NOT NULL
             )
         ''')
 
-    # Check if the username already exists
-    cursor.execute('SELECT * FROM accounts WHERE username = ?', (username,))
-    existing_user=cursor.fetchone()
-    if existing_user:
-        messagebox.showerror("Username Exists", "Username already exists. Please choose a different one.")
-    else:
-        # Insert the data into the database
-        cursor.execute('INSERT INTO accounts (username, password) VALUES (?, ?)', (username, password))
-        conn.commit()
+        # Check if the username already exists
+        cursor.execute('SELECT * FROM accounts WHERE username = ?', (username,))
+        existing_user=cursor.fetchone()
+        if existing_user:
+            messagebox.showerror("Username Exists", "Username already exists. Please choose a different one.")
+        else:
+            # Insert the data into the database including full name and contact number
+            cursor.execute('INSERT INTO accounts (full_name, contact_no, username, password) VALUES (?, ?, ?, ?)',
+                           (full_name, contact_no, username, password))
+            conn.commit()
+
+            messagebox.showinfo("Registration Successful", "Your account has been registered successfully.")
+
+            # Clear the entry fields after successful registration
+            full_name_entry.delete(0, 'end')
+            contact_no_entry.delete(0, 'end')
+            username_entry.delete(0, 'end')
+            password_entry.delete(0, 'end')
+
+    except Exception as e:
+        print("Error:", e)
+        messagebox.showerror("Registration Error", "An error occurred during registration.")
+    finally:
         conn.close()
-
-        messagebox.showinfo("Registration Successful", "Your account has been registered successfully.")
-
-        # Clear the entry fields after successful registration
-        username_entry.delete(0, 'end')
-        password_entry.delete(0, 'end')
 
 
 def is_valid(username, password):
@@ -4500,8 +5484,18 @@ def send_sms(to_phone_number, message):
         print("failed to send message", e)
 
 
+def is_valid_password(password):
+    # Add your password policy checks here
+    # For example, you can require at least one uppercase letter, one lowercase letter, one digit, and one special character.
+    return (
+            any(c.isupper() for c in password) and
+            any(c.islower() for c in password) and
+            any(c.isdigit() for c in password) and
+            any(c in string.punctuation for c in password)
+    )
+
+
 def forgot_password():
-    # Generate a random 6-character OTP
     otp=''.join(random.choices(string.digits, k=6))
 
     while True:
@@ -4510,29 +5504,46 @@ def forgot_password():
         if user_phone_number is None:
             break
         elif user_phone_number.startswith('0') and len(user_phone_number) == 11 and user_phone_number[1:].isdigit():
-            send_sms(user_phone_number, f'Your OTP is: {otp}')
+            conn=sqlite3.connect('registered_users.db')
+            cursor=conn.cursor()
+            cursor.execute('SELECT * FROM accounts WHERE contact_no = ?', (user_phone_number,))
+            registered_user=cursor.fetchone()
+            conn.close()
 
-            entered_otp=simpledialog.askstring('Enter OTP', 'Enter the OTP sent to your phone:', show='*')
+            if registered_user:
+                send_sms(user_phone_number, f'Your OTP is: {otp}')
 
-            if entered_otp is None:
-                break
-            elif entered_otp == otp:
-                new_username=simpledialog.askstring('New Username', 'Enter your new username:')
-                new_password=simpledialog.askstring('New Password', 'Enter your new password:', show='*')
+                entered_otp=simpledialog.askstring('Enter OTP', 'Enter the OTP sent to your phone:', show='*')
 
-                if new_username and new_password:
-                    conn=sqlite3.connect('your_database.db')
-                    cursor=conn.cursor()
-                    cursor.execute('INSERT INTO accounts (username, password) VALUES (?, ?)',
-                                   (new_username, new_password))
-                    conn.commit()
-                    conn.close()
-                    messagebox.showinfo('Password Reset Successful', 'Your password has been reset successfully.')
+                if entered_otp is None:
+                    break
+                elif entered_otp == otp:
+                    new_username=simpledialog.askstring('New Username', 'Enter your new username:')
+                    new_password=simpledialog.askstring('New Password', 'Enter your new password:', show='*')
+
+                    if new_username and new_password:
+                        if is_valid_password(new_password):
+                            conn=sqlite3.connect('registered_users.db')
+                            cursor=conn.cursor()
+                            cursor.execute('UPDATE accounts SET username = ?, password = ? WHERE contact_no = ?',
+                                           (new_username, new_password, user_phone_number))
+                            # send sms to the user's contact number to notify them of the username and password reset
+                            send_sms(user_phone_number,
+                                     f'Your username and password have been reset. Username: {new_username}. Password:{new_password}.')
+                            conn.commit()
+                            conn.close()
+                            messagebox.showinfo('Password Reset Successful',
+                                                'Your password has been reset successfully.')
+                        else:
+                            messagebox.showerror('Invalid Password', 'Password must meet the specified policy.')
+                    else:
+                        messagebox.showerror('Error', 'New username and password are required.')
+                    break
                 else:
-                    messagebox.showerror('Error', 'New username and password are required.')
-                break
+                    messagebox.showerror('Invalid OTP', 'The entered OTP is incorrect.')
             else:
-                messagebox.showerror('Invalid OTP', 'The entered OTP is incorrect.')
+                messagebox.showerror('Unregistered Phone Number', 'The entered phone number is not registered.')
+                break
         else:
             messagebox.showerror('Invalid Phone Number',
                                  'Please enter a valid phone number starting with 0 and 11 digits long (e.g., 09123456789).')
@@ -4549,7 +5560,7 @@ def create_login_window():
             return
 
         # Connect to SQLite database
-        conn=sqlite3.connect('your_database.db')
+        conn=sqlite3.connect('registered_users.db')
         cursor=conn.cursor()
 
         # Check if the provided username and password match an account in the database
@@ -4575,6 +5586,7 @@ def create_login_window():
     login_window=ctk.CTk()
     login_window.geometry("400x550")
     login_window.title("D'Grit Gym Management System")
+    login_window.resizable(False, False)
 
     # Calculate the position to center the login window
     center_window(login_window, 400, 550)

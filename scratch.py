@@ -1,61 +1,202 @@
-# Combine all the data entries into a single string
-data_string=f"{first_name},{middle_name},{last_name},{contact_no}"
+def create_home_frame(home):
+    dashboard_frame=ctk.CTkFrame(home)
+    dashboard_frame.pack(pady=10, padx=10, fill="both", expand=True)
 
-# Create a folder if it doesn't exist
-folder_path="trainer_qrcodes"
-os.makedirs(folder_path, exist_ok=True)
+    # dashboard label align left
+    dashboard_label=ctk.CTkLabel(dashboard_frame, text="Dashboard", font=("Arial bold", 26))
+    dashboard_label.pack(pady=20, padx=10, anchor="w")
 
-# Create a QR code containing all the data entries
-qr=qrcode.QRCode(
-    version=1,
-    error_correction=qrcode.constants.ERROR_CORRECT_L,
-    box_size=10,
-    border=4,
-)
-qr.add_data(data_string)
-qr.make(fit=True)
-qr_img=qr.make_image(fill_color="black", back_color="white")
+    # frame
+    panel_frame=ctk.CTkScrollableFrame(dashboard_frame)
+    panel_frame.pack(pady=10, padx=10, fill="both", expand=True)
 
-# Specify the file path to save the QR code in the folder
-file_path=os.path.join(folder_path, f"dgrit_trainer_{last_name}.png")
-qr_img.save(file_path)
+    # member panel frame
+    member_panel_frame=ctk.CTkFrame(panel_frame, fg_color="#00C957")
+    member_panel_frame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
+
+    # create a small rectangular label to display the no. of members
+    members_label=ctk.CTkLabel(member_panel_frame, text="Members", font=("Arial bold", 14))
+    members_label.pack(pady=5, padx=60, anchor="w")
+
+    # create a counter label to display the no. of members
+    members_counter_label=ctk.CTkLabel(member_panel_frame, text="", font=("Arial bold", 50))
+    members_counter_label.pack(pady=10, padx=10, anchor="center")
+
+    # get the no. of members from the database
+    conn=sqlite3.connect('registration_form.db')
+    cursor=conn.cursor()
+    cursor.execute("SELECT COUNT(*) FROM registration")
+    members_count=cursor.fetchone()[0]
+    members_counter_label.configure(text=members_count)
+    conn.close()
+
+    # visitor panel frame
+    visitors_panel_frame=ctk.CTkFrame(panel_frame, fg_color="orange")
+    visitors_panel_frame.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")
+
+    # create a small rectangular label to display the no. of members
+    visitors_label=ctk.CTkLabel(visitors_panel_frame, text="Visitors", font=("Arial bold", 14))
+    visitors_label.pack(pady=5, padx=65, anchor="w")
+
+    # create a counter label to display the no. of members
+    visitor_counter_label=ctk.CTkLabel(visitors_panel_frame, text="", font=("Arial bold", 50))
+    visitor_counter_label.pack(pady=10, padx=10, anchor="center")
+
+    # get the no. of members from the database
+    conn=sqlite3.connect('visitors_log.db')
+    cursor=conn.cursor()
+    cursor.execute("SELECT COUNT(*) FROM visitors")
+    visitors_count=cursor.fetchone()[0]
+    visitor_counter_label.configure(text=visitors_count)
+    conn.close()
+
+    # employee panel frame
+    employee_panel_frame=ctk.CTkFrame(panel_frame, fg_color="blue")
+    employee_panel_frame.grid(row=0, column=2, padx=10, pady=10, sticky="nsew")
+
+    # create a small rectangular label to display the no. of employees
+    employee_label=ctk.CTkLabel(employee_panel_frame, text="Employees", font=("Arial bold", 14))
+    employee_label.pack(pady=5, padx=50, anchor="w")
+
+    # create a counter label to display the no. of employees
+    employee_counter_label=ctk.CTkLabel(employee_panel_frame, text="", font=("Arial bold", 50))
+    employee_counter_label.pack(pady=10, padx=10, anchor="center")
+
+    # get the no. of employees from the database
+    conn=sqlite3.connect('register_employee.db')
+    cursor=conn.cursor()
+    cursor.execute("SELECT COUNT(*) FROM employees")
+    employee_count=cursor.fetchone()[0]
+    employee_counter_label.configure(text=employee_count)
+    conn.close()
+
+    # trainer panel frame
+    trainer_panel_frame=ctk.CTkFrame(panel_frame, fg_color="purple")
+    trainer_panel_frame.grid(row=0, column=3, padx=10, pady=10, sticky="nsew")
+
+    # create a small rectangular label to display the no. of trainers
+    trainer_label=ctk.CTkLabel(trainer_panel_frame, text="Trainers", font=("Arial bold", 14))
+    trainer_label.pack(pady=5, padx=60, anchor="w")
+
+    # create a counter label to display the no. of trainers
+    trainer_counter_label=ctk.CTkLabel(trainer_panel_frame, text="", font=("Arial bold", 50))
+    trainer_counter_label.pack(pady=10, padx=10, anchor="center")
+
+    # get the no. of trainers from the database
+    conn=sqlite3.connect('register_trainer.db')
+    cursor=conn.cursor()
+    cursor.execute("SELECT COUNT(*) FROM trainer")
+    trainer_count=cursor.fetchone()[0]
+    trainer_counter_label.configure(text=trainer_count)
+    conn.close()
+
+    # gym equipment panel frame
+    gym_equipment_panel_frame=ctk.CTkFrame(panel_frame, fg_color="red")
+    gym_equipment_panel_frame.grid(row=0, column=4, padx=10, pady=10, sticky="nsew")
+
+    # create a small rectangular label to display the no. of gym equipment
+    gym_equipment_label=ctk.CTkLabel(gym_equipment_panel_frame, text="Gym Equipment", font=("Arial bold", 14))
+    gym_equipment_label.pack(pady=5, padx=30, anchor="w")
+
+    # create a counter label to display the no. of gym equipment
+    gym_equipment_counter_label=ctk.CTkLabel(gym_equipment_panel_frame, text="", font=("Arial bold", 50))
+    gym_equipment_counter_label.pack(pady=10, padx=10, anchor="center")
+
+    # get the no. of gym equipment from the database
+    conn=sqlite3.connect('register_equipment.db')
+    cursor=conn.cursor()
+    cursor.execute("SELECT COUNT(*) FROM equipment")
+    gym_equipment_count=cursor.fetchone()[0]
+    gym_equipment_counter_label.configure(text=gym_equipment_count)
+    conn.close()
+
+    # Make the rows and columns resizable
+    for i in range(5):
+        panel_frame.grid_columnconfigure(i, weight=1)
+
+    panel_frame.grid_rowconfigure(0, weight=1)
+
+    # Schedule periodic updates
+    home.after(10000, update_counters, members_counter_label, visitor_counter_label, employee_counter_label,
+               trainer_counter_label, gym_equipment_counter_label)
+
+
+def update_counters(members_counter_label, visitor_counter_label, employee_counter_label, trainer_counter_label,
+                    gym_equipment_counter_label):
+    # Update members counter
+    conn=sqlite3.connect('registration_form.db')
+    cursor=conn.cursor()
+    cursor.execute("SELECT COUNT(*) FROM registration")
+    members_count=cursor.fetchone()[0]
+    members_counter_label.configure(text=members_count)
+    conn.close()
+
+    # Update visitors counter
+    conn=sqlite3.connect('visitors_log.db')
+    cursor=conn.cursor()
+    cursor.execute("SELECT COUNT(*) FROM visitors")
+    visitors_count=cursor.fetchone()[0]
+    visitor_counter_label.configure(text=visitors_count)
+    conn.close()
+
+    # Update employees counter
+    conn=sqlite3.connect('register_employee.db')
+    cursor=conn.cursor()
+    cursor.execute("SELECT COUNT(*) FROM employees")
+    employee_count=cursor.fetchone()[0]
+    employee_counter_label.configure(text=employee_count)
+    conn.close()
+
+    # Update trainers counter
+    conn=sqlite3.connect('register_trainer.db')
+    cursor=conn.cursor()
+    cursor.execute("SELECT COUNT(*) FROM trainer")
+    trainer_count=cursor.fetchone()[0]
+    trainer_counter_label.configure(text=trainer_count)
+    conn.close()
+
+    # Update gym equipment counter
+    conn=sqlite3.connect('register_equipment.db')
+    cursor=conn.cursor()
+    cursor.execute("SELECT COUNT(*) FROM equipment")
+    gym_equipment_count=cursor.fetchone()[0]
+    gym_equipment_counter_label.configure(text=gym_equipment_count)
+    conn.close()
+
+    # Schedule the next update
+    members_counter_label.after(10000, update_counters, members_counter_label, visitor_counter_label,
+                                employee_counter_label, trainer_counter_label, gym_equipment_counter_label)
 
 
 
 
-
-# Display the qr code of the member inside the edit form
-qr_code_frame=ctk.CTkFrame(edit_frame)
-qr_code_frame.grid(row=16, column=1, rowspan=16, padx=10, pady=10)
-
-label=ctk.CTkLabel(edit_frame, text="QR Code:", font=("Arial bold", 16))
-label.grid(row=16, column=0, padx=10, pady=10, sticky="w")
-
-download_button_frame=ctk.CTkFrame(edit_frame)
-download_button_frame.grid(row=50, column=1, rowspan=50, padx=10, pady=10)
-
-# create a download button to download the qr code
-download_button=ctk.CTkButton(download_button_frame, text="Download", command=self.download_qr_code)
-download_button.grid(row=0, column=1, padx=10, pady=10, sticky="w")
-
-# Display the qr code from the member_qrcodes folder based on the last name of the member
-qr_code_path=os.path.join("trainer_qrcodes", f"dgrit_trainer_{self.trainer_data[3]}.png")
-qr_code_image=Image.open(qr_code_path)
-qr_code_image=qr_code_image.resize((200, 200), Image.LANCZOS)
-qr_code_image=ImageTk.PhotoImage(qr_code_image)
-qr_code_label=ctk.CTkLabel(qr_code_frame, text="", image=qr_code_image)
-qr_code_label.image=qr_code_image
-qr_code_label.pack(pady=10, padx=10)
+def force_refresh_counters(members_counter_label, visitor_counter_label, employee_counter_label,
+                           trainer_counter_label, gym_equipment_counter_label, ax, canvas, count_label1, count_label2):
+    update_counters(members_counter_label, visitor_counter_label, employee_counter_label, trainer_counter_label,
+                    gym_equipment_counter_label, ax, canvas, count_label1, count_label2)
 
 
-def download_qr_code(self):
-    # Download the displayed QR code and save it to the Downloads folder in file explorer
-    qr_code_path=os.path.join("trainer_qrcodes", f"dgrit_trainer_{self.trainer_data[3]}.png")
-    qr_code_image=Image.open(qr_code_path)
+# Example of deleting data and then forcing an immediate refresh
+def delete_data_and_refresh(members_counter_label, visitor_counter_label, employee_counter_label,
+                            trainer_counter_label, gym_equipment_counter_label, ax, canvas, count_label1, count_label2):
+    try:
+        # Delete data from the registration_form database (example)
+        conn_registration = sqlite3.connect('registration_form.db')
+        cursor_registration = conn_registration.cursor()
+        cursor_registration.execute("DELETE FROM registration WHERE some_condition")
+        conn_registration.commit()
+        conn_registration.close()
 
-    # Assuming self.member_data[3] is the unique identifier for the member
-    save_path=os.path.join(os.path.expanduser("~"), "Downloads", f"dgrit_trainer_{self.trainer_data[3]}.png")
-    qr_code_image.save(save_path)
+        # Delete data from the visitors_log database (example)
+        conn_visitors = sqlite3.connect('visitors_log.db')
+        cursor_visitors = conn_visitors.cursor()
+        cursor_visitors.execute("DELETE FROM visitors WHERE some_condition")
+        conn_visitors.commit()
+        conn_visitors.close()
 
-    # show a success message
-    messagebox.showinfo("Download Successful", "QR Code downloaded successfully.")
+        # Force an immediate refresh of the counters
+        update_counters(members_counter_label, visitor_counter_label, employee_counter_label,
+                        trainer_counter_label, gym_equipment_counter_label, ax, canvas, count_label1, count_label2)
+
+    except Exception as e:
+        print(f"Error deleting data and refreshing counters: {e}")
