@@ -412,7 +412,7 @@ def create_home_frame(home):
     visitors_panel_frame.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")
 
     # create a small rectangular label to display the no. of members
-    visitors_label=ctk.CTkLabel(visitors_panel_frame, text="Visitors", font=("Arial bold", 14))
+    visitors_label=ctk.CTkLabel(visitors_panel_frame, text="Gymers", font=("Arial bold", 14))
     visitors_label.pack(pady=5, padx=65, anchor="w")
 
     # create a counter label to display the no. of members
@@ -542,7 +542,7 @@ def create_home_frame(home):
     counter_frame.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")
 
     # total membership income label
-    total_membership_income_label=ctk.CTkLabel(counter_frame, text="Total Membership Income (PHP)",
+    total_membership_income_label=ctk.CTkLabel(counter_frame, text="Total Income of Membership (PHP)",
                                                font=("Arial bold", 12))
     total_membership_income_label.pack(pady=10, padx=10, anchor="w")
 
@@ -552,7 +552,7 @@ def create_home_frame(home):
 
     # create a counter label 1
     count_label1=ctk.CTkLabel(count_frame1, text="", font=("Arial bold", 30))
-    count_label1.pack(pady=10, padx=30, anchor="center")
+    count_label1.pack(pady=20, padx=30, anchor="center")
 
     def get_total_membership_income():
         # get the no. of members from the database
@@ -572,7 +572,7 @@ def create_home_frame(home):
     counter_frame2.grid(row=1, column=1, padx=10, pady=10, sticky="nsew")
 
     # total visitor income label
-    total_visitor_income_label=ctk.CTkLabel(counter_frame2, text="Total Visitor Income (PHP)", font=("Arial bold", 12))
+    total_visitor_income_label=ctk.CTkLabel(counter_frame2, text="Total Income of Gymers (PHP)", font=("Arial bold", 12))
     total_visitor_income_label.pack(pady=10, padx=10, anchor="w")
 
     # count label frame 2
@@ -581,7 +581,7 @@ def create_home_frame(home):
 
     # count label 2
     count_label2=ctk.CTkLabel(count_frame2, text="", font=("Arial bold", 30))
-    count_label2.pack(pady=10, padx=30, anchor="center")
+    count_label2.pack(pady=20, padx=30, anchor="center")
 
     def get_total_visitor_income():
         # get the no. of members from the database
@@ -607,7 +607,7 @@ def create_home_frame(home):
     counter_frame3.grid(row=0, column=2, padx=10, pady=10, sticky="nsew")
 
     # total membership income label
-    total_time_in_label=ctk.CTkLabel(counter_frame3, text="Total Attendance Time In:",
+    total_time_in_label=ctk.CTkLabel(counter_frame3, text="Members' Time In:",
                                      font=("Arial bold", 14))
     total_time_in_label.pack(pady=10, padx=10, anchor="w")
 
@@ -616,13 +616,13 @@ def create_home_frame(home):
     count_frame3.pack(pady=10, padx=10, fill="both", expand=True)
     # count label 3
     count_label3=ctk.CTkLabel(count_frame3, text="", font=("Arial bold", 30))
-    count_label3.pack(pady=10, padx=50, anchor="center")
+    count_label3.pack(pady=20, padx=80, anchor="center")
 
     # COUNT FRAME 4
     counter_frame4=ctk.CTkFrame(sub_frame2)
     counter_frame4.grid(row=1, column=2, padx=10, pady=10, sticky="nsew")
     # total visitor income label
-    total_time_out_label=ctk.CTkLabel(counter_frame4, text="Total Time Out:", font=("Arial bold", 14))
+    total_time_out_label=ctk.CTkLabel(counter_frame4, text="Members' Time Out:", font=("Arial bold", 14))
     total_time_out_label.pack(pady=10, padx=10, anchor="w")
 
     # count label frame 4
@@ -630,7 +630,7 @@ def create_home_frame(home):
     count_frame4.pack(pady=10, padx=10, fill="both", expand=True)
     # count label 4
     count_label4=ctk.CTkLabel(count_frame4, text="", font=("Arial bold", 30))
-    count_label4.pack(pady=10, padx=50, anchor="center")
+    count_label4.pack(pady=20, padx=80, anchor="center")
 
     def get_time_in_and_out():
         # Update count of time-in and time-out for membership
@@ -2034,29 +2034,51 @@ class ScanFrame(ctk.CTkFrame):
             first_name, middle_name, last_name, contact_no, subscription_id=member_data.split(',')
             current_datetime=datetime.now().strftime("%Y-%m-%d %I:%M:%S %p")
 
-            with sqlite3.connect('attendance_records.db') as conn:
-                cursor=conn.cursor()
+            # Connect to the registration_form.db database
+            with sqlite3.connect('registration_form.db') as conn_registration:
+                cursor_registration=conn_registration.cursor()
+
+                # Check subscription status before recording attendance
+                subscription_status=cursor_registration.execute('''
+                    SELECT status, end_date
+                    FROM registration
+                    WHERE subscription_id = ?
+                ''', (subscription_id,)).fetchone()
+
+                if not subscription_status:
+                    messagebox.showerror("Error", f"Subscription ID {subscription_id} not found.")
+                    return
+
+                status, end_date=subscription_status
+
+                if status == 'Expired':
+                    messagebox.showerror("Error", f"Subscription ID {subscription_id} has expired.")
+                    return
+
+            # Connect to the attendance_records.db database
+            with sqlite3.connect('attendance_records.db') as conn_attendance:
+                cursor_attendance=conn_attendance.cursor()
 
                 if attendance_type == "Time In":
-                    cursor.execute('''
-                           INSERT INTO attendance_records (first_name, middle_name, last_name, contact_no, subscription_id, time_in)
-                           VALUES (?, ?, ?, ?, ?, ?)
-                       ''', (first_name, middle_name, last_name, contact_no, subscription_id, current_datetime))
+                    cursor_attendance.execute('''
+                        INSERT INTO attendance_records (first_name, middle_name, last_name, contact_no, subscription_id, time_in)
+                        VALUES (?, ?, ?, ?, ?, ?)
+                    ''', (first_name, middle_name, last_name, contact_no, subscription_id, current_datetime))
 
                     send_sms(contact_no,
                              f"Hello {first_name}!, You have Successfully Time In. Subscription ID:{subscription_id}. Time In: {current_datetime}, - D'GRIT GYM")
 
                 elif attendance_type == "Time Out":
-                    cursor.execute('''
-                           UPDATE attendance_records
-                           SET time_out = ?
-                           WHERE subscription_id = ? AND time_out IS NULL
-                       ''', (current_datetime, subscription_id))
+                    cursor_attendance.execute('''
+                        UPDATE attendance_records
+                        SET time_out = ?
+                        WHERE subscription_id = ? AND time_out IS NULL
+                    ''', (current_datetime, subscription_id))
 
                     send_sms(contact_no,
                              f"Hello {first_name}!, Thank you for coming. See you again! Subscription ID:{subscription_id}. Time Out: {current_datetime}, - D'GRIT GYM")
 
-                conn.commit()
+                conn_attendance.commit()
                 messagebox.showinfo("Attendance Recorded",
                                     f"{attendance_type} recorded successfully for Subscription ID: {subscription_id}")
 
