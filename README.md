@@ -1,4 +1,6 @@
-#   GYM MANAGEMENT SYSTEM WITH SMS SUPPORT (CUSTOMTKINTER)
+#   GYM MANAGEMENT SYSTEM WITH SMS SUPPORT
+
+![Screenshot (380)](https://github.com/RJGATON007/gyms/assets/89822716/7b34d982-af64-4023-8219-d40281b3494b)
 
 The D'Grit Gym Management System with SMS support is a desktop application aim to enhance the fitness center's communication efficiency, 
 streamline operations, and improve gym member management. The system includes a QR code for  member and employee attendance. With the use of SMS, 
@@ -20,6 +22,8 @@ plans,and analytics. Reduced operating costs, better communication, more satisfa
 - Pycharm professional(Updated version) or VS Code (setup venv)
 # Language used
 - Python 3.11
+# Library
+- Tkinter/Customtkinter https://customtkinter.tomschimansky.com/
 # Database
 - SQLite 3
 # SMS API
@@ -37,13 +41,10 @@ plans,and analytics. Reduced operating costs, better communication, more satisfa
   - When the end_date is reached, the status of the member will automatically expire and the qr code will be denied in the qr attendance.
   - If the status of the trainer and emloyee is inactive, the qr attendance will deny the qr code.
  
- # Send G-cash for donations
+# Send G-cash for donations
  - 09776324808
-# Contact me on:
+# Contact:
 - FB: Robertjames Gaton
-
-# Dashboard
-![image](https://github.com/RJGATON007/gyms/assets/89822716/a0843844-fd0c-4c14-bf23-5f75cc2e5a38)
 
 
 
