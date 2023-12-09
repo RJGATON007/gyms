@@ -45,7 +45,7 @@ plans,and analytics. Reduced operating costs, better communication, more satisfa
 # Send G-cash for donations
  - 09776324808
 # Contact:
-- FB: Robertjames Gaton
+- FB: Robertjames Gaton (Software Engineer)
 
 
 
