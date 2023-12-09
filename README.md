@@ -35,6 +35,7 @@ plans,and analytics. Reduced operating costs, better communication, more satisfa
   Note:
   - Every Account Registered has only 1 role.
   - When reseting username and password, a philippine number is required(e.g: 091234567890 11-digit)
+  - Semaphore API key is required for sending sms.
   - Only the registered account's contact number will only recieve the OTP for resetting the username and password.
   - username and password must be mixed with uppercase and lowercase, numbers and symbols.
   - The renewal of membership is set to 1-month.
