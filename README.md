@@ -40,6 +40,7 @@ plans,and analytics. Reduced operating costs, better communication, more satisfa
   - The renewal of membership is set to 1-month.
   - When the end_date is reached, the status of the member will automatically expire and the qr code will be denied in the qr attendance.
   - If the status of the trainer and emloyee is inactive, the qr attendance will deny the qr code.
+  - press Q to close the scanner
  
 # Send G-cash for donations
  - 09776324808
