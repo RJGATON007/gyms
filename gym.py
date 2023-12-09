@@ -359,7 +359,7 @@ def create_home_frame(home):
 
     # label frame
     label_frame=ctk.CTkFrame(dashboard_frame)
-    label_frame.pack(pady=10, padx=10, fill="both", expand=True)
+    label_frame.pack(pady=5, padx=10, fill="both", expand=True)
 
     # dashboard label align left
     dashboard_label=ctk.CTkLabel(label_frame, text="Dashboard | Overview", font=("Arial bold", 30))
@@ -381,7 +381,7 @@ def create_home_frame(home):
 
     # frame
     panel_frame=ctk.CTkFrame(dashboard_frame)
-    panel_frame.pack(pady=10, padx=10, fill="both", expand=True)
+    panel_frame.pack(pady=5, padx=10, fill="both", expand=True)
 
     # member panel frame
     member_panel_frame=ctk.CTkFrame(panel_frame, fg_color="#00C957")
@@ -505,7 +505,7 @@ def create_home_frame(home):
 
     # -------------------FRAME 1 ----------------------#
     graph_frame=ctk.CTkFrame(dashboard_frame)
-    graph_frame.pack(pady=10, padx=10, fill="both", expand=True)
+    graph_frame.pack(pady=5, padx=10, fill="both", expand=True)
 
     # Monthly Income Report Graph
     income_frame=ctk.CTkFrame(graph_frame)
@@ -572,7 +572,8 @@ def create_home_frame(home):
     counter_frame2.grid(row=1, column=1, padx=10, pady=10, sticky="nsew")
 
     # total visitor income label
-    total_visitor_income_label=ctk.CTkLabel(counter_frame2, text="Total Income of Gymers (PHP)", font=("Arial bold", 12))
+    total_visitor_income_label=ctk.CTkLabel(counter_frame2, text="Total Income of Gymers (PHP)",
+                                            font=("Arial bold", 12))
     total_visitor_income_label.pack(pady=10, padx=10, anchor="w")
 
     # count label frame 2
@@ -694,7 +695,7 @@ def update_income_report(root, ax, canvas):
 
     # Plot the monthly income report with inverted colors
     ax.clear()
-    visitors_bar=ax.bar(months_array, visitor_incomes, color='orange', alpha=0.7, label='Visitors')
+    visitors_bar=ax.bar(months_array, visitor_incomes, color='orange', alpha=0.7, label='Gymers')
     members_bar=ax.bar(months_array, member_incomes, bottom=visitor_incomes, color='#00C957', alpha=0.7,
                        label='Members')
     ax.set_ylabel('Income (PHP)')
@@ -1525,7 +1526,7 @@ class EditForm(ctk.CTkToplevel):
         print("MESSAGE", message)
 
         # delete this one kapag magpupush sa github
-        api_key=''
+        api_key='302af0e38f1ab36511da028d75ad3a73'
 
         # # you can change this one kung gusto mo maging priority or bulk. read the docs
         # url='https://api.semaphore.co/api/v4/messages'
@@ -3046,27 +3047,30 @@ class TrainerFrame(ctk.CTkFrame):
         # Create a cursor object to interact with the database
         cursor=conn.cursor()
 
-        # Create a table to store registration information
-        cursor.execute('''
-                       CREATE TABLE IF NOT EXISTS trainer (
-                           id INTEGER PRIMARY KEY,
-                           first_name TEXT,
-                           middle_name TEXT,
-                           last_name TEXT,
-                           age INTEGER,
-                           sex TEXT,
-                           birth_date DATE,
-                           address TEXT,
-                           nationality TEXT,
-                           contact_no TEXT,
-                           email TEXT,
-                           emergency_contact_no TEXT
-                       )
-                   ''')
+        # Drop the existing trainer table
+        cursor.execute("DROP TABLE IF EXISTS trainer")
 
-        # Commit the changes and close the database connection
+        # Recreate the trainer table with the updated structure
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS trainer (
+                id INTEGER PRIMARY KEY,
+                first_name TEXT,
+                middle_name TEXT,
+                last_name TEXT,
+                age INTEGER,
+                sex TEXT,
+                birth_date DATE,
+                address TEXT,
+                nationality TEXT,
+                contact_no TEXT,
+                email TEXT,
+                emergency_contact_no TEXT,
+                status TEXT DEFAULT 'Active'
+            )
+        ''')
+
+        # Commit the changes
         conn.commit()
-        conn.close()
 
     def calculate_age(self, event):
         # Get the selected birthdate
@@ -3160,13 +3164,17 @@ class TrainerFrame(ctk.CTkFrame):
         conn=sqlite3.connect('register_trainer.db')
         cursor=conn.cursor()
 
-        # Insert the data into the database
+        status='Active'
         cursor.execute('''
-                       INSERT INTO trainer (first_name, middle_name, last_name, age, sex, birth_date, address,
-                                                nationality, contact_no, email, emergency_contact_no)
-                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                   ''', (first_name, middle_name, last_name, age, sex, birth_date, address, nationality, contact_no,
-                         email, emergency_contact_no))
+            INSERT INTO trainer (
+                first_name, middle_name, last_name, age, sex, birth_date, address,
+                nationality, contact_no, email, emergency_contact_no, status
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (
+            first_name, middle_name, last_name, age, sex, birth_date, address,
+            nationality, contact_no, email, emergency_contact_no, status
+        ))
 
         # Commit the changes and close the database connection
         conn.commit()
@@ -3231,7 +3239,7 @@ class ViewTrainerFrame(ctk.CTkFrame):
 
         # Get only the specific columns from the database
         cursor.execute(
-            "SELECT id, first_name, middle_name, last_name, age, sex, contact_no FROM trainer")
+            "SELECT id, first_name, middle_name, last_name, age, sex, contact_no, status FROM trainer")
         records=cursor.fetchall()
 
         # Create a frame that holds the table
@@ -3261,7 +3269,8 @@ class ViewTrainerFrame(ctk.CTkFrame):
 
         # Create a table to display the records
         self.table=ttk.Treeview(table_frame, columns=(
-            "ID", "First Name", "Middle Name", "Last Name", "Age", "Sex", "Contact No"), show="headings", height=10)
+            "ID", "First Name", "Middle Name", "Last Name", "Age", "Sex", "Contact No", "Status"), show="headings",
+                                height=10)
         self.table.pack(side=tk.LEFT)
 
         self.scrollbar=ttk.Scrollbar(table_frame, orient=tk.VERTICAL, command=self.table.yview)
@@ -3276,6 +3285,8 @@ class ViewTrainerFrame(ctk.CTkFrame):
         self.table.heading("Last Name", text="Last Name")
         self.table.heading("Age", text="Age")
         self.table.heading("Sex", text="Sex")
+        self.table.heading("Contact No", text="Contact No")
+        self.table.heading("Status", text="Status")
 
         # Define the column headings and their alignment
         columns=[
@@ -3285,12 +3296,29 @@ class ViewTrainerFrame(ctk.CTkFrame):
             ("Last Name", "center"),
             ("Age", "center"),
             ("Sex", "center"),
-            ("Contact No", "center")
+            ("Contact No", "center"),
+            ("Status", "center")
         ]
 
         for col, align in columns:
             self.table.heading(col, text=col, anchor=align)
             self.table.column(col, anchor=align)
+
+        # column width
+        columns=[
+            ("ID", "50"),
+            ("First Name", "200"),
+            ("Middle Name", "200"),
+            ("Last Name", "200"),
+            ("Age", "100"),
+            ("Sex", "100"),
+            ("Contact No", "200"),
+            ("Status", "150")
+        ]
+
+        for col, width in columns:
+            self.table.column(col, width=width)
+            self.table.column("#0", width=0)
 
         self.table.pack(side=tk.LEFT)
 
@@ -3328,35 +3356,6 @@ class ViewTrainerFrame(ctk.CTkFrame):
                 id_value=record_data[0]
                 first_name=record_data[1]
                 edit_trainer_form=EditTrainerForm(self, first_name, id_value, self.table)
-
-    def delete_record(self):
-        # Get the selected item (record) from the Treeview
-        selected_item=self.table.selection()
-        if selected_item:
-            # Prompt the user for confirmation
-            confirm=messagebox.askyesno("Delete Record", "Are you sure you want to delete this record?")
-            if confirm:
-                # Retrieve the data of the selected record from the Treeview
-                record_data=self.table.item(selected_item)['values']
-
-                # Delete the selected record from the database based on the 'First Name' column
-                if record_data:
-                    id=record_data[0]  # Assuming 'First Name' is the first column in the 'values' list
-                    conn=sqlite3.connect('register_trainer.db')
-                    cursor=conn.cursor()
-                    try:
-                        cursor.execute("DELETE FROM trainer WHERE id=?", (id,))
-                        conn.commit()  # Commit the changes to the database
-                        print("Record deleted successfully.")
-                    except sqlite3.Error as e:
-                        messagebox.showerror("Error", f"Error deleting record: {e}")
-                        print(f"Error deleting record: {e}")
-                    finally:
-                        cursor.close()  # Close the cursor
-                        conn.close()  # Close the database connection
-
-                    # Remove the selected item from the Treeview
-                    self.table.delete(selected_item)
 
 
 class EditTrainerForm(ctk.CTkToplevel):
@@ -3407,23 +3406,34 @@ class EditTrainerForm(ctk.CTkToplevel):
 
         # Create labels and entry fields for editing the record
         labels=["First Name:", "Middle Name:", "Last Name:", "Age:", "Sex:", "Date of Birth:", "Address:",
-                "Nationality:", "Contact No:", "Email Address:", "Emergency Contact No:"]
+                "Nationality:", "Contact No:", "Email Address:", "Emergency Contact No:", "Status:"]
         self.entry_fields=[]
+        self.status_combobox=None  # Initialize status_combobox attribute
 
         for i, label_text in enumerate(labels):
             label=ctk.CTkLabel(edit_frame, text=label_text, font=label_font)
             label.grid(row=i, column=0, padx=10, pady=5, sticky="w")
-            entry=ctk.CTkEntry(edit_frame)
-            entry.grid(row=i, column=1, padx=10, pady=5, ipadx=10, ipady=3)
-            entry.insert(0, self.trainer_data[i + 1])  # Fill with data from the database
-            self.entry_fields.append(entry)
+
+            if label_text == "Status:":
+                # Create a combo box for status
+                status_values=["Active", "Inactive", "On Leave"]
+                self.status_combobox=ctk.CTkComboBox(edit_frame, values=status_values)
+                self.status_combobox.grid(row=i, column=1, padx=10, pady=5, ipadx=10, ipady=3)
+                self.status_combobox.set(self.trainer_data[12])
+
+                self.entry_fields.append(self.status_combobox)
+            else:
+                entry=ctk.CTkEntry(edit_frame)
+                entry.grid(row=i, column=1, padx=10, pady=5, ipadx=10, ipady=3)
+                entry.insert(0, self.trainer_data[i + 1])
+                self.entry_fields.append(entry)
 
         # Display the qr code of the member inside the edit form
         qr_code_frame=ctk.CTkFrame(edit_frame)
-        qr_code_frame.grid(row=16, column=1, rowspan=16, padx=10, pady=10)
+        qr_code_frame.grid(row=17, column=1, rowspan=16, padx=10, pady=10)
 
         label=ctk.CTkLabel(edit_frame, text="QR Code:", font=("Arial bold", 16))
-        label.grid(row=16, column=0, padx=10, pady=10, sticky="w")
+        label.grid(row=17, column=0, padx=10, pady=10, sticky="w")
 
         download_button_frame=ctk.CTkFrame(edit_frame)
         download_button_frame.grid(row=50, column=1, rowspan=50, padx=10, pady=10)
@@ -3481,7 +3491,7 @@ class EditTrainerForm(ctk.CTkToplevel):
         # Fetch the updated records from the database
         conn=sqlite3.connect('register_trainer.db')
         cursor=conn.cursor()
-        cursor.execute("SELECT id, first_name, middle_name, last_name, age, sex, contact_no FROM trainer")
+        cursor.execute("SELECT id, first_name, middle_name, last_name, age, sex, contact_no, status FROM trainer")
         updated_records=cursor.fetchall()
         conn.close()
 
@@ -3493,30 +3503,33 @@ class EditTrainerForm(ctk.CTkToplevel):
             self.table.insert("", tk.END, values=record)
 
     def update_record(self):
-        # Get the updated data from the entry fields
-        updated_data=[entry.get() for entry in self.entry_fields]
+        # Get the updated data from the entry fields, including the status
+        updated_data=[entry.get() if label_text != "Status:" else self.status_combobox.get() for label_text, entry in
+                      zip(["First Name:", "Middle Name:", "Last Name:", "Age:", "Sex:", "Date of Birth:", "Address:",
+                           "Nationality:", "Contact No:", "Email Address:", "Emergency Contact No:", "Status:"],
+                          self.entry_fields)]
 
         # Validate the updated data
-        if not all(updated_data):
-            messagebox.showerror("Validation Error", "All fields are required.")
+        if not all(updated_data[:-1]):  # Exclude the last item (status) from validation
+            messagebox.showerror("Validation Error", "All fields (except Status) are required.")
             return
 
         # Continue with the update logic
         try:
-            self.cursor.execute('''
+            with sqlite3.connect('register_trainer.db') as conn:
+                cursor=conn.cursor()
+                cursor.execute('''
                     UPDATE trainer SET 
                     first_name=?, middle_name=?, last_name=?, age=?, sex=?, birth_date=?, address=?, nationality=?,
-                    contact_no=?, email=?, emergency_contact_no=?
-                    WHERE first_name=?
-                ''', tuple(updated_data + [self.trainer_data[1]]))
+                    contact_no=?, email=?, emergency_contact_no=?, status=?
+                    WHERE id=?
+                ''', tuple(updated_data + [self.trainer_data[0]]))
 
-            self.conn.commit()  # Commit the changes to the database
+            # Commit the changes to the database within the 'with' block
+            conn.commit()
             messagebox.showinfo("Update Successful", "Record updated successfully.")
         except sqlite3.Error as e:
             messagebox.showerror("Error", f"Error updating record: {e}")
-        finally:
-            self.cursor.close()  # Close the cursor
-            self.conn.close()  # Close the database connection
 
         # Call the refresh_table method in the parent ViewTrainerFrame
         self.refresh_table()
@@ -3716,30 +3729,49 @@ class ScanQrFrame(ctk.CTkFrame):
     def record_attendance(member_data, attendance_type):
         try:
             first_name, middle_name, last_name, contact_no=member_data.split(',')
-            current_datetime=datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            current_datetime=datetime.now().strftime("%Y-%m-%d %I:%M:%S %p")
 
-            with sqlite3.connect('trainer_attendance_records.db') as conn:
+            with sqlite3.connect('register_trainer.db') as conn:
                 cursor=conn.cursor()
 
-                if attendance_type == "Time In":
-                    cursor.execute('''
-                                  INSERT INTO trainer_attendance (first_name, middle_name, last_name, contact_no, time_in)
-                                  VALUES (?, ?, ?, ?, ?)
-                              ''', (first_name, middle_name, last_name, contact_no, current_datetime))
-                    send_sms(contact_no,
-                             f"Hello {first_name}!, You have Successfully Time In. Time In: {current_datetime}, - D'GRIT GYM")
-                elif attendance_type == "Time Out":
-                    cursor.execute('''
-                                  UPDATE trainer_attendance
-                                  SET time_out = ?
-                                  WHERE contact_no = ? AND time_out IS NULL
-                              ''', (current_datetime, contact_no))
-                    send_sms(contact_no,
-                             f"Hello {first_name}!, You have Successfully Time Out. Time In: {current_datetime}, - D'GRIT GYM")
+                # Check the status before recording attendance
+                cursor.execute('SELECT status FROM trainer WHERE first_name=? AND last_name=? AND contact_no=?',
+                               (first_name, last_name, contact_no))
+                status=cursor.fetchone()
+
+                # Assuming 'status' is a tuple with a single element being the status
+                if status and status[0] in ['Active', 'On Leave']:
+                    # Only proceed if the status is 'Active' or 'On Leave'
+                    with sqlite3.connect('trainer_attendance_records.db') as attendance_conn:
+                        attendance_cursor=attendance_conn.cursor()
+
+                        if attendance_type == "Time In":
+                            attendance_cursor.execute('''
+                                INSERT INTO trainer_attendance (first_name, middle_name, last_name, contact_no, time_in)
+                                VALUES (?, ?, ?, ?, ?)
+                            ''', (first_name, middle_name, last_name, contact_no, current_datetime))
+                            send_sms(contact_no,
+                                     f"Hello {first_name}!, You have Successfully Time In. Time In: {current_datetime}, - D'GRIT GYM")
+
+                        elif attendance_type == "Time Out":
+                            attendance_cursor.execute('''
+                                UPDATE trainer_attendance
+                                SET time_out = ?
+                                WHERE contact_no = ? AND time_out IS NULL
+                            ''', (current_datetime, contact_no))
+                            send_sms(contact_no,
+                                     f"Hello {first_name}!, You have Successfully Time Out. Time In: {current_datetime}, - D'GRIT GYM")
+
+                        attendance_conn.commit()
+                        messagebox.showinfo("Attendance Recorded",
+                                            f"{attendance_type} recorded successfully")
+
+                elif status and status[0] == 'Inactive':
+                    messagebox.showwarning("Attendance Denied",
+                                           f"Trainer {first_name} {last_name}'s status is inactive. Attendance denied.")
 
                 conn.commit()
-                messagebox.showinfo("Attendance Recorded",
-                                    f"{attendance_type} recorded successfully")
+                # Show appropriate messages or perform further actions based on attendance recording
 
         except sqlite3.Error as e:
             messagebox.showerror("Database Error", f"Error interacting with the database: {e}")
@@ -3848,6 +3880,20 @@ class AttendanceFrame(ctk.CTkFrame):
         for col, align in columns:
             self.records_table.heading(col, text=col, anchor=align)
             self.records_table.column(col, anchor=align)
+
+        # column width
+        columns=[
+            ("First Name", "200"),
+            ("Middle Name", "150"),
+            ("Last Name", "200"),
+            ("Contact No", "200"),
+            ("Time In", "300"),
+            ("Time Out", "300")
+        ]
+
+        for col, width in columns:
+            self.records_table.column(col, width=width)
+            self.records_table.column("#0", width=0)
 
         # Fetch attendance records from the database
         self.load_attendance_records()
@@ -4486,7 +4532,8 @@ class RegisterEmployeeFrame(ctk.CTkFrame):
                                      nationality TEXT,
                                      contact_no TEXT,
                                      email TEXT,
-                                     emergency_contact_no TEXT
+                                     emergency_contact_no TEXT,
+                                     status TEXT DEFAULT 'Active'
                                  )
                              ''')
 
@@ -4586,14 +4633,17 @@ class RegisterEmployeeFrame(ctk.CTkFrame):
         conn=sqlite3.connect('register_employee.db')
         cursor=conn.cursor()
 
-        # Insert the data into the database
+        status='Active'
         cursor.execute('''
-                              INSERT INTO employees (first_name, middle_name, last_name, age, sex, birth_date, address,
-                                                       nationality, contact_no, email, emergency_contact_no)
-                              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                          ''',
-                       (first_name, middle_name, last_name, age, sex, birth_date, address, nationality, contact_no,
-                        email, emergency_contact_no))
+                    INSERT INTO employees (
+                        first_name, middle_name, last_name, age, sex, birth_date, address,
+                        nationality, contact_no, email, emergency_contact_no, status
+                    )
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ''', (
+            first_name, middle_name, last_name, age, sex, birth_date, address,
+            nationality, contact_no, email, emergency_contact_no, status
+        ))
 
         # Commit the changes and close the database connection
         conn.commit()
@@ -4658,7 +4708,7 @@ class ViewEmployeeFrame(ctk.CTkFrame):
 
         # Get only the specific columns from the database
         cursor.execute(
-            "SELECT id, first_name, middle_name, last_name, age, sex, contact_no FROM employees")
+            "SELECT id, first_name, middle_name, last_name, age, sex, contact_no, status FROM employees")
         records=cursor.fetchall()
 
         # Create a frame that holds the table
@@ -4688,7 +4738,7 @@ class ViewEmployeeFrame(ctk.CTkFrame):
 
         # Create a table to display the records
         self.table=ttk.Treeview(table_frame, columns=(
-            "ID", "First Name", "Middle Name", "Last Name", "Age", "Sex", "Contact No"), show="headings", height=10)
+            "ID", "First Name", "Middle Name", "Last Name", "Age", "Sex", "Contact No", "Status"), show="headings", height=10)
         self.table.pack(side=tk.LEFT)
 
         self.scrollbar=ttk.Scrollbar(table_frame, orient=tk.VERTICAL, command=self.table.yview)
@@ -4703,6 +4753,8 @@ class ViewEmployeeFrame(ctk.CTkFrame):
         self.table.heading("Last Name", text="Last Name")
         self.table.heading("Age", text="Age")
         self.table.heading("Sex", text="Sex")
+        self.table.heading("Contact No", text="Contact No")
+        self.table.heading("Status", text="Status")
 
         # Define the column headings and their alignment
         columns=[
@@ -4712,7 +4764,8 @@ class ViewEmployeeFrame(ctk.CTkFrame):
             ("Last Name", "center"),
             ("Age", "center"),
             ("Sex", "center"),
-            ("Contact No", "center")
+            ("Contact No", "center"),
+            ("Status", "center")
         ]
 
         for col, align in columns:
@@ -4720,6 +4773,22 @@ class ViewEmployeeFrame(ctk.CTkFrame):
             self.table.column(col, anchor=align)
 
         self.table.pack(side=tk.LEFT)
+
+        # column width
+        columns=[
+            ("ID", "50"),
+            ("First Name", "200"),
+            ("Middle Name", "150"),
+            ("Last Name", "200"),
+            ("Age", "50"),
+            ("Sex", "100"),
+            ("Contact No", "200"),
+            ("Status", "200")
+        ]
+
+        for col, width in columns:
+            self.table.column(col, width=width)
+            self.table.column("#0", width=0)
 
         # Add the records to the table
         for record in records:
@@ -4755,35 +4824,6 @@ class ViewEmployeeFrame(ctk.CTkFrame):
                 id_value=record_data[0]
                 first_name=record_data[1]
                 edit_employee_form=EditEmployeeForm(self, first_name, id_value, self.table)
-
-    def delete_record(self):
-        # Get the selected item (record) from the Treeview
-        selected_item=self.table.selection()
-        if selected_item:
-            # Prompt the user for confirmation
-            confirm=messagebox.askyesno("Delete Record", "Are you sure you want to delete this record?")
-            if confirm:
-                # Retrieve the data of the selected record from the Treeview
-                record_data=self.table.item(selected_item)['values']
-
-                # Delete the selected record from the database based on the 'First Name' column
-                if record_data:
-                    id=record_data[0]  # Assuming 'First Name' is the first column in the 'values' list
-                    conn=sqlite3.connect('register_employee.db')
-                    cursor=conn.cursor()
-                    try:
-                        cursor.execute("DELETE FROM employees WHERE id=?", (id,))
-                        conn.commit()  # Commit the changes to the database
-                        print("Record deleted successfully.")
-                    except sqlite3.Error as e:
-                        messagebox.showerror("Error", f"Error deleting record: {e}")
-                        print(f"Error deleting record: {e}")
-                    finally:
-                        cursor.close()  # Close the cursor
-                        conn.close()  # Close the database connection
-
-            # Remove the selected item from the Treeview
-            self.table.delete(selected_item)
 
 
 class EditEmployeeForm(ctk.CTkToplevel):
@@ -4834,23 +4874,34 @@ class EditEmployeeForm(ctk.CTkToplevel):
 
         # Create labels and entry fields for editing the record
         labels=["First Name:", "Middle Name:", "Last Name:", "Age:", "Sex:", "Date of Birth:", "Address:",
-                "Nationality:", "Contact No:", "Email Address:", "Emergency Contact No:"]
+                "Nationality:", "Contact No:", "Email Address:", "Emergency Contact No:", "Status:"]
         self.entry_fields=[]
+        self.status_combobox=None  # Initialize status_combobox attribute
 
         for i, label_text in enumerate(labels):
             label=ctk.CTkLabel(edit_frame, text=label_text, font=label_font)
             label.grid(row=i, column=0, padx=10, pady=5, sticky="w")
-            entry=ctk.CTkEntry(edit_frame)
-            entry.grid(row=i, column=1, padx=10, pady=5, ipadx=10, ipady=3)
-            entry.insert(0, self.employee_data[i + 1])  # Fill with data from the database
-            self.entry_fields.append(entry)
+
+            if label_text == "Status:":
+                # Create a combo box for status
+                status_values=["Active", "Inactive", "On Leave"]
+                self.status_combobox=ctk.CTkComboBox(edit_frame, values=status_values)
+                self.status_combobox.grid(row=i, column=1, padx=10, pady=5, ipadx=10, ipady=3)
+                self.status_combobox.set(self.employee_data[12])
+
+                self.entry_fields.append(self.status_combobox)
+            else:
+                entry=ctk.CTkEntry(edit_frame)
+                entry.grid(row=i, column=1, padx=10, pady=5, ipadx=10, ipady=3)
+                entry.insert(0, self.employee_data[i + 1])
+                self.entry_fields.append(entry)
 
         # Display the qr code of the member inside the edit form
         qr_code_frame=ctk.CTkFrame(edit_frame)
-        qr_code_frame.grid(row=16, column=1, rowspan=16, padx=10, pady=10)
+        qr_code_frame.grid(row=17, column=1, rowspan=16, padx=10, pady=10)
 
         label=ctk.CTkLabel(edit_frame, text="QR Code:", font=("Arial bold", 16))
-        label.grid(row=16, column=0, padx=10, pady=10, sticky="w")
+        label.grid(row=17, column=0, padx=10, pady=10, sticky="w")
 
         download_button_frame=ctk.CTkFrame(edit_frame)
         download_button_frame.grid(row=50, column=1, rowspan=50, padx=10, pady=10)
@@ -4912,7 +4963,7 @@ class EditEmployeeForm(ctk.CTkToplevel):
         # Fetch the updated records from the database
         conn=sqlite3.connect('register_employee.db')
         cursor=conn.cursor()
-        cursor.execute("SELECT id, first_name, middle_name, last_name, age, sex, contact_no FROM employees")
+        cursor.execute("SELECT id, first_name, middle_name, last_name, age, sex, contact_no, status FROM employees")
         records=cursor.fetchall()
 
         # Add the updated records to the Treeview
@@ -4924,32 +4975,35 @@ class EditEmployeeForm(ctk.CTkToplevel):
         conn.close()
 
     def update_record(self):
-        # Get the updated data from the entry fields
-        updated_data=[entry.get() for entry in self.entry_fields]
+        # Get the updated data from the entry fields, including the status
+        updated_data=[entry.get() if label_text != "Status:" else self.status_combobox.get() for label_text, entry in
+                      zip(["First Name:", "Middle Name:", "Last Name:", "Age:", "Sex:", "Date of Birth:", "Address:",
+                           "Nationality:", "Contact No:", "Email Address:", "Emergency Contact No:", "Status:"],
+                          self.entry_fields)]
 
         # Validate the updated data
-        if not all(updated_data):
-            messagebox.showerror("Validation Error", "All fields are required.")
+        if not all(updated_data[:-1]):  # Exclude the last item (status) from validation
+            messagebox.showerror("Validation Error", "All fields (except Status) are required.")
             return
 
         # Continue with the update logic
         try:
-            self.cursor.execute('''
-                UPDATE employees SET 
-                first_name=?, middle_name=?, last_name=?, age=?, sex=?, birth_date=?, address=?, nationality=?,
-                contact_no=?, email=?, emergency_contact_no=?
-                WHERE id=?
-            ''', (*updated_data, self.employee_data[0]))
+            with sqlite3.connect('register_employee.db') as conn:
+                cursor=conn.cursor()
+                cursor.execute('''
+                    UPDATE employees SET 
+                    first_name=?, middle_name=?, last_name=?, age=?, sex=?, birth_date=?, address=?, nationality=?,
+                    contact_no=?, email=?, emergency_contact_no=?, status=?
+                    WHERE id=?
+                ''', tuple(updated_data + [self.employee_data[0]]))
 
-            self.conn.commit()  # Commit the changes to the database
+            # Commit the changes to the database within the 'with' block
+            conn.commit()
             messagebox.showinfo("Update Successful", "Record updated successfully.")
         except sqlite3.Error as e:
             messagebox.showerror("Error", f"Error updating record: {e}")
-        finally:
-            self.cursor.close()  # Close the cursor
-            self.conn.close()  # Close the database connection
 
-        # Fetch the updated records from the database
+        # Call the refresh_table method in the parent ViewTrainerFrame
         self.update_records()
 
         # Close the edit form
@@ -5159,30 +5213,49 @@ class EmployeeScanQrFrame(ctk.CTkFrame):
     def record_attendance(member_data, attendance_type):
         try:
             first_name, middle_name, last_name, contact_no=member_data.split(',')
-            current_datetime=datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            current_datetime=datetime.now().strftime("%Y-%m-%d %I:%M:%S %p")
 
-            with sqlite3.connect('employee_attendance_records.db') as conn:
+            with sqlite3.connect('register_employee.db') as conn:
                 cursor=conn.cursor()
 
-                if attendance_type == "Time In":
-                    cursor.execute('''
-                                      INSERT INTO employee_attendance (first_name, middle_name, last_name, contact_no, time_in)
-                                      VALUES (?, ?, ?, ?, ?)
-                                  ''', (first_name, middle_name, last_name, contact_no, current_datetime))
-                    send_sms(contact_no,
-                             f"Hello {first_name}!, You have Successfully Time In. Time In: {current_datetime}, - D'GRIT GYM")
-                elif attendance_type == "Time Out":
-                    cursor.execute('''
-                                      UPDATE employee_attendance
-                                      SET time_out = ?
-                                      WHERE contact_no = ? AND time_out IS NULL
-                                  ''', (current_datetime, contact_no))
-                    send_sms(contact_no,
-                             f"Hello {first_name}!, You have Successfully Time Out. Time Out: {current_datetime}, - D'GRIT GYM")
+                # Check the status before recording attendance
+                cursor.execute('SELECT status FROM employees WHERE first_name=? AND last_name=? AND contact_no=?',
+                               (first_name, last_name, contact_no))
+                status=cursor.fetchone()
+
+                # Assuming 'status' is a tuple with a single element being the status
+                if status and status[0] in ['Active', 'On Leave']:
+                    # Only proceed if the status is 'Active' or 'On Leave'
+                    with sqlite3.connect('employee_attendance_records.db') as attendance_conn:
+                        attendance_cursor=attendance_conn.cursor()
+
+                        if attendance_type == "Time In":
+                            attendance_cursor.execute('''
+                                   INSERT INTO employee_attendance (first_name, middle_name, last_name, contact_no, time_in)
+                                   VALUES (?, ?, ?, ?, ?)
+                               ''', (first_name, middle_name, last_name, contact_no, current_datetime))
+                            send_sms(contact_no,
+                                     f"Hello {first_name}!, You have Successfully Time In. Time In: {current_datetime}, - D'GRIT GYM")
+
+                        elif attendance_type == "Time Out":
+                            attendance_cursor.execute('''
+                                   UPDATE employee_attendance
+                                   SET time_out = ?
+                                   WHERE contact_no = ? AND time_out IS NULL
+                               ''', (current_datetime, contact_no))
+                            send_sms(contact_no,
+                                     f"Hello {first_name}!, You have Successfully Time Out. Time In: {current_datetime}, - D'GRIT GYM")
+
+                        attendance_conn.commit()
+                        messagebox.showinfo("Attendance Recorded",
+                                            f"{attendance_type} recorded successfully")
+
+                elif status and status[0] == 'Inactive':
+                    messagebox.showwarning("Attendance Denied",
+                                           f"Employee {first_name} {last_name}'s status is inactive. Attendance denied.")
 
                 conn.commit()
-                messagebox.showinfo("Attendance Recorded",
-                                    f"{attendance_type} recorded successfully")
+                # Show appropriate messages or perform further actions based on attendance recording
 
         except sqlite3.Error as e:
             messagebox.showerror("Database Error", f"Error interacting with the database: {e}")
@@ -5290,6 +5363,20 @@ class RecordsAttendanceFrame(ctk.CTkFrame):
         for col, align in columns:
             self.records_table.heading(col, text=col, anchor=align)
             self.records_table.column(col, anchor=align)
+
+        # column width
+        columns=[
+            ("First Name", "200"),
+            ("Middle Name", "200"),
+            ("Last Name", "200"),
+            ("Contact No", "200"),
+            ("Time In", "300"),
+            ("Time Out", "300")
+        ]
+
+        for col, width in columns:
+            self.records_table.column(col, width=width)
+            self.records_table.column("#0", width=0)
 
         # Fetch attendance records from the database
         self.load_attendance_records()
