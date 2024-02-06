@@ -3797,6 +3797,10 @@ class ScanQrFrame(ctk.CTkFrame):
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
 
+            # Check if the window is closed by clicking the red close button
+            if cv2.getWindowProperty('QR Code Scanner', cv2.WND_PROP_VISIBLE) < 1:
+                break
+
         cap.release()
         cv2.destroyAllWindows()
 
