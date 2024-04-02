@@ -48,6 +48,8 @@ plans,and analytics. Reduced operating costs, better communication, more satisfa
 # Contact:
 - FB: Robertjames Gaton (Software Engineer)
 
+# FEEL FREE TO CONTRIBUTE TO THIS PROJECT
+
 
 
 
