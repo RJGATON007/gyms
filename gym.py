@@ -86,6 +86,8 @@ def check_date():
             send_sms_notification(contact_no, sms_message)
 
 
+# MAIN APPLICATION
+
 class MainApp(ctk.CTk):
     def __init__(self):
         super().__init__()
@@ -5600,6 +5602,8 @@ def is_valid_password(password):
     )
 
 
+# PASSWORD VALIDATION
+
 def forgot_password():
     otp=''.join(random.choices(string.digits, k=6))
 
@@ -5731,6 +5735,6 @@ def create_login_window():
 
     login_window.mainloop()
 
-
+# LOGIN WINDOW INITIALLY APPEAR
 # Create the login window first
 create_login_window()

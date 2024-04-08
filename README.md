@@ -18,6 +18,7 @@ plans,and analytics. Reduced operating costs, better communication, more satisfa
 
 # Requirements For Installation
 - Pip install -r Requirements.txt
+- if it doesn't work, check the packages in setup.py and install them manually
 # IDE
 - Pycharm professional(Updated version) or VS Code (setup venv)
 # Language used
@@ -34,19 +35,22 @@ plans,and analytics. Reduced operating costs, better communication, more satisfa
 
   Note:
   - Every Account Registered has only 1 role.
-  - When reseting username and password, a philippine number is required(e.g: 091234567890 11-digit)
+  - When resetting username and password, a philippine number is required(e.g: 091234567890 11-digit)
   - Semaphore API key is required for sending sms.
   - Only the registered account's contact number will only recieve the OTP for resetting the username and password.
   - username and password must be mixed with uppercase and lowercase, numbers and symbols.
   - The renewal of membership is set to 1-month.
   - When the end_date is reached, the status of the member will automatically expire and the qr code will be denied in the qr attendance.
-  - If the status of the trainer and emloyee is inactive, the qr attendance will deny the qr code.
+  - If the status of the trainer and employee is inactive, the qr attendance will deny the qr code.
   - press Q to close the scanner
  
 # Send G-cash for donations
  - 09776324808
+
 # Contact:
 - FB: Robertjames Gaton (Software Engineer)
+
+# TO CONVERT THE FILE TO EXE, CONTACT ME FOR THE INSTRUCTIONS
 
 # FEEL FREE TO CONTRIBUTE TO THIS PROJECT
 
