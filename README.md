@@ -1,7 +1,9 @@
 #   GYM MANAGEMENT SYSTEM WITH SMS SUPPORT
 
-![dash_white.png](..%2F..%2F..%2FDownloads%2Fdash_white.png)
-![dash_black.png](..%2F..%2F..%2FDownloads%2Fdash_black.png)
+![dash_white](https://github.com/RJGATON007/gyms/assets/89822716/1fa47e70-2bcd-4f92-af21-73c706e6af49)
+![dash_black](https://github.com/RJGATON007/gyms/assets/89822716/4206759e-7872-4214-a638-7f7a6bbb6912)
+
+
 
 The D'Grit Gym Management System with SMS support is a desktop application aim to enhance the fitness center's communication efficiency, 
 streamline operations, and improve gym member management. The system includes a QR code for  member and employee attendance. With the use of SMS, 
