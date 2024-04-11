@@ -94,7 +94,7 @@ class MainApp(ctk.CTk):
 
         # Fixed size of the window, and cannot be resized
         self.resizable(False, False)
-        self.title("D'Grit Gym Management System")
+        self.title("D'Grit Gym")
         self.geometry("1240x600")
 
         # Calculate the screen width and height
@@ -508,11 +508,11 @@ def create_home_frame(home):
     income_frame.grid(row=0, column=0, padx=20, pady=10, sticky="nsew")
 
     # Create a small rectangular label for the income report
-    income_label=ctk.CTkLabel(income_frame, text="Monthly Income (PHP)", font=("Arial bold", 16))
+    income_label=ctk.CTkLabel(income_frame, text="Membership Monthly Income (PHP)", font=("Arial bold", 16))
     income_label.pack(pady=5, padx=10, anchor="w")
 
     # Create a figure and axis for the income report graph
-    fig, ax=plt.subplots(figsize=(6, 4), dpi=100)
+    fig, ax=plt.subplots(figsize=(7, 4), dpi=100)
     canvas=FigureCanvasTkAgg(fig, master=income_frame)
     canvas_widget=canvas.get_tk_widget()
     canvas_widget.pack(fill="both", expand=True)
@@ -530,184 +530,65 @@ def create_home_frame(home):
     # ------------FRAME 2----------------------#
     graph_frame2=ctk.CTkFrame(graph_frame)
     graph_frame2.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")
-    sub_frame=ctk.CTkFrame(graph_frame2)
-    sub_frame.pack(pady=10, padx=10, fill="both", expand=True)
 
-    # COUNT FRAME 1
-    counter_frame=ctk.CTkFrame(sub_frame)
-    counter_frame.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")
+    # Create a small rectangular label for the income report
+    income_label2=ctk.CTkLabel(graph_frame2, text="Gymers Monthly Income (PHP)", font=("Arial bold", 16))
+    income_label2.pack(pady=5, padx=10, anchor="w")
 
-    # total membership income label
-    total_membership_income_label=ctk.CTkLabel(counter_frame, text="Total Income of Membership (PHP)",
-                                               font=("Arial bold", 12))
-    total_membership_income_label.pack(pady=10, padx=10, anchor="w")
+    # Create a figure and axis for the income report graph
+    fig, ax=plt.subplots(figsize=(7, 4), dpi=100)
+    canvas=FigureCanvasTkAgg(fig, master=graph_frame2)
+    canvas_widget=canvas.get_tk_widget()
+    canvas_widget.pack(fill="both", expand=True)
 
-    # count label frame 1
-    count_frame1=ctk.CTkFrame(counter_frame, fg_color="#00C957")
-    count_frame1.pack(pady=10, padx=10, fill="both", expand=True)
-
-    # create a counter label 1
-    count_label1=ctk.CTkLabel(count_frame1, text="", font=("Arial bold", 30))
-    count_label1.pack(pady=20, padx=30, anchor="center")
-
-    def get_total_membership_income():
-        # get the no. of members from the database
-        conn=sqlite3.connect('registration_form.db')
-        cursor=conn.cursor()
-        cursor.execute("SELECT COUNT(*) FROM registration")
-        members_count=cursor.fetchone()[0]
-        total_membership_income=members_count * 700
-        count_label1.configure(text=f"{total_membership_income}")
-        conn.close()
-        home.after(1000, get_total_membership_income)
-
-    get_total_membership_income()
-
-    # COUNT FRAME 2
-    counter_frame2=ctk.CTkFrame(sub_frame)
-    counter_frame2.grid(row=1, column=1, padx=10, pady=10, sticky="nsew")
-
-    # total visitor income label
-    total_visitor_income_label=ctk.CTkLabel(counter_frame2, text="Total Income of Gymers (PHP)",
-                                            font=("Arial bold", 12))
-    total_visitor_income_label.pack(pady=10, padx=10, anchor="w")
-
-    # count label frame 2
-    count_frame2=ctk.CTkFrame(counter_frame2, fg_color="orange")
-    count_frame2.pack(pady=10, padx=10, fill="both", expand=True)
-
-    # count label 2
-    count_label2=ctk.CTkLabel(count_frame2, text="", font=("Arial bold", 30))
-    count_label2.pack(pady=20, padx=30, anchor="center")
-
-    def get_total_visitor_income():
-        # get the no. of members from the database
-        conn=sqlite3.connect('visitors_log.db')
-        cursor=conn.cursor()
-        cursor.execute("SELECT COUNT(*) FROM visitors")
-        visitors_count=cursor.fetchone()[0]
-        total_visitor_income=visitors_count * 50
-        count_label2.configure(text=f"{total_visitor_income}")
-        conn.close()
-        home.after(1000, get_total_visitor_income)
-
-    get_total_visitor_income()
-
-    # -------------------FRAME 3 ----------------------#
-    graph_frame3=ctk.CTkFrame(graph_frame)
-    graph_frame3.grid(row=0, column=2, padx=10, pady=10, sticky="nsew")
-    sub_frame2=ctk.CTkFrame(graph_frame3)
-    sub_frame2.pack(pady=10, padx=10, fill="both", expand=True)
-
-    # COUNT FRAME 3
-    counter_frame3=ctk.CTkFrame(sub_frame2)
-    counter_frame3.grid(row=0, column=2, padx=10, pady=10, sticky="nsew")
-
-    # total membership income label
-    total_time_in_label=ctk.CTkLabel(counter_frame3, text="Members' Time In:",
-                                     font=("Arial bold", 14))
-    total_time_in_label.pack(pady=10, padx=10, anchor="w")
-
-    # count label frame 3
-    count_frame3=ctk.CTkFrame(counter_frame3, fg_color="#007FFF")
-    count_frame3.pack(pady=10, padx=10, fill="both", expand=True)
-    # count label 3
-    count_label3=ctk.CTkLabel(count_frame3, text="", font=("Arial bold", 30))
-    count_label3.pack(pady=20, padx=80, anchor="center")
-
-    # COUNT FRAME 4
-    counter_frame4=ctk.CTkFrame(sub_frame2)
-    counter_frame4.grid(row=1, column=2, padx=10, pady=10, sticky="nsew")
-    # total visitor income label
-    total_time_out_label=ctk.CTkLabel(counter_frame4, text="Members' Time Out:", font=("Arial bold", 14))
-    total_time_out_label.pack(pady=10, padx=10, anchor="w")
-
-    # count label frame 4
-    count_frame4=ctk.CTkFrame(counter_frame4, fg_color="#FF0000")
-    count_frame4.pack(pady=10, padx=10, fill="both", expand=True)
-    # count label 4
-    count_label4=ctk.CTkLabel(count_frame4, text="", font=("Arial bold", 30))
-    count_label4.pack(pady=20, padx=80, anchor="center")
-
-    def get_time_in_and_out():
-        # Update count of time-in and time-out for membership
-        conn=sqlite3.connect('attendance_records.db')
-        cursor=conn.cursor()
-        cursor.execute("SELECT COUNT(time_in), COUNT(time_out) FROM attendance_records")
-        count_time_in, count_time_out=cursor.fetchone()
-        conn.close()
-
-        # Update count labels for time-in and time-out
-        count_label3.configure(text=f"{count_time_in}")
-        count_label4.configure(text=f"{count_time_out}")
-        home.after(1000, get_time_in_and_out)
-
-    get_time_in_and_out()
+    # Update the income report graph
+    update_visitors_income_report(home, ax, canvas)
+    canvas.draw()
 
 
 # Graph
 def update_income_report(root, ax, canvas):
     # Get the current month
-    current_month=datetime.now().strftime('%Y-%m')
-
-    # Connect to the visitors database
-    conn_visitors=sqlite3.connect('visitors_log.db')
-    cursor_visitors=conn_visitors.cursor()
-
-    # Retrieve monthly visitor count
-    cursor_visitors.execute("SELECT strftime('%Y-%m', time) as month, COUNT(*) FROM visitors GROUP BY month")
-    visitors_data=cursor_visitors.fetchall()
-
-    conn_visitors.close()
+    current_month = datetime.now().strftime('%Y-%m')
 
     # Connect to the members database
-    conn_members=sqlite3.connect('registration_form.db')
-    cursor_members=conn_members.cursor()
+    conn_members = sqlite3.connect('registration_form.db')
+    cursor_members = conn_members.cursor()
 
     # Retrieve monthly member count
     cursor_members.execute("SELECT strftime('%Y-%m', start_date) as month, COUNT(*) FROM registration GROUP BY month")
-    members_data=cursor_members.fetchall()
+    members_data = cursor_members.fetchall()
 
     conn_members.close()
 
-    # Merge the data for common months
-    merged_data={}
-    for month, visitors_count in visitors_data:
-        merged_data[month]={'visitors': visitors_count * 50, 'members': 0}
-
+    # Process member data
+    merged_data = {}
     for month, members_count in members_data:
-        if month in merged_data:
-            merged_data[month]['members']=members_count * 700
-        else:
-            merged_data[month]={'visitors': 0, 'members': members_count * 700}
+        merged_data[month] = {'members': members_count * 700}
 
-    # Extract month labels and total income values
-    months, visitor_incomes, member_incomes=zip(
-        *[(month if month != 'None' else 'Visitors', data['visitors'], data['members']) for month, data in
-          merged_data.items()])
+    # Extract month labels and total member incomes
+    months, member_incomes = zip(
+        *[(month, data['members']) for month, data in merged_data.items()])
 
     # Convert months to a NumPy array with a specific data type (e.g., float)
-    months_array=np.array(months, dtype=str)
+    months_array = np.array(months, dtype=str)
 
     # Plot the monthly income report with inverted colors
     ax.clear()
-    visitors_bar=ax.bar(months_array, visitor_incomes, color='orange', alpha=0.7, label='Gymers')
-    members_bar=ax.bar(months_array, member_incomes, bottom=visitor_incomes, color='#00C957', alpha=0.7,
-                       label='Members')
+    members_bar = ax.bar(months_array, member_incomes, color='#00C957', alpha=0.7, label='Members')
     ax.set_ylabel('Income (PHP)')
 
     # Update the title based on the current month
     ax.set_title(
         f'Monthly Income Report ({calendar.month_name[int(current_month.split("-")[1])]} {current_month.split("-")[0]})')
 
-    # Show legend to distinguish between visitors and members
+    # Show legend
     ax.legend()
 
     # Annotate each bar with the total income value
-    for bar, visitors_income, members_income in zip(visitors_bar, visitor_incomes, member_incomes):
-        total_income=visitors_income + members_income
-        ax.text(bar.get_x() + bar.get_width() / 2, total_income,
-                f'{total_income} PHP', ha='center', va='bottom', color='black', fontweight='bold')
+    for bar, members_income in zip(members_bar, member_incomes):
+        ax.text(bar.get_x() + bar.get_width() / 2, members_income,
+                f'{members_income} PHP', ha='center', va='bottom', color='black', fontweight='bold')
 
     ax.grid(True)
 
@@ -716,6 +597,67 @@ def update_income_report(root, ax, canvas):
 
     # Schedule the next update
     root.after(1000, update_income_report, root, ax, canvas)
+
+
+def update_visitors_income_report(root, ax, canvas):
+    # Get the current month
+    current_month = datetime.now().strftime('%Y-%m')
+
+    # Connect to the members database
+    conn_visitors = sqlite3.connect('visitors_log.db')
+    cursor_visitors = conn_visitors.cursor()
+
+    # Retrieve monthly visitor count and sort by month
+    cursor_visitors.execute("SELECT strftime('%Y-%m', time_start) as month, COUNT(*) FROM visitors GROUP BY month ORDER BY month")
+
+    visitors_data = cursor_visitors.fetchall()
+
+    conn_visitors.close()
+
+    # Process visitor data
+    merged_data = {}
+    for month, visitors_count in visitors_data:
+        merged_data[month] = {'visitors': visitors_count * 50}
+
+    # Extract month labels and total visitor incomes
+    months = sorted(merged_data.keys())
+    visitor_incomes = [merged_data[month]['visitors'] for month in months]
+
+    # Convert months to numerical indices
+    x = np.arange(len(months))
+
+    # Plot the monthly income report with inverted colors
+    ax.clear()
+    visitors_bar = ax.bar(x, visitor_incomes, color='orange', alpha=0.7, label='Gymers')
+    ax.set_ylabel('Income (PHP)')
+
+    # Update the title based on the current month
+    ax.set_title(
+        f'Monthly Income Report ({calendar.month_name[int(current_month.split("-")[1])]} {current_month.split("-")[0]})')
+
+    # Show legend
+    ax.legend()
+
+    # # Annotate each bar with the total income value and month
+    # for i, (bar, visitors_income, month) in enumerate(zip(visitors_bar, visitor_incomes, months)):
+    #     ax.text(bar.get_x() + bar.get_width() / 2, visitors_income,
+    #             f'{visitors_income} PHP', ha='center', va='bottom', color='black', fontweight='bold')
+    #     if month is not None:
+    #         ax.text(bar.get_x() + bar.get_width() / 2, -0.1 * max(visitor_incomes),
+    #                 f'{calendar.month_abbr[int(month.split("-")[1])]}', ha='center', va='bottom', color='black', fontweight='bold')
+
+    # Annotate each bar with the total income value
+    for bar, visitors_income in zip(visitors_bar, visitor_incomes):
+        ax.text(bar.get_x() + bar.get_width() / 2, visitors_income,
+                f'{visitors_income} PHP', ha='center', va='bottom', color='black', fontweight='bold')
+
+    ax.grid(True)
+
+    # Redraw the canvas
+    canvas.draw()
+
+    # Schedule the next update
+    root.after(1000, update_visitors_income_report, root, ax, canvas)
 
 
 # ------------FRAME_2----------------------#
@@ -4043,7 +3985,7 @@ class LogbookFrame(ctk.CTkFrame):
 
         # Get only the specific columns from the database
         cursor.execute(
-            "SELECT first_name, middle_name, last_name, contact_no, time FROM visitors")
+            "SELECT first_name, middle_name, last_name, contact_no, time_start FROM visitors")
         cursor.fetchall()
 
         style=ttk.Style()
@@ -4069,7 +4011,7 @@ class LogbookFrame(ctk.CTkFrame):
 
         # Create a table to display the records
         self.table=ttk.Treeview(table_frame, columns=(
-            "First Name", "M.I", "Last Name", "Contact No", "Time"), show="headings", height=10)
+            "First Name", "M.I", "Last Name", "Contact No", "Time Start"), show="headings", height=10)
         self.table.pack(side=tk.LEFT)
 
         scrollbar=ttk.Scrollbar(table_frame, orient=tk.VERTICAL, command=self.table.yview)
@@ -4082,7 +4024,7 @@ class LogbookFrame(ctk.CTkFrame):
         self.table.heading("M.I", text="Middle Name")
         self.table.heading("Last Name", text="Last Name")
         self.table.heading("Contact No", text="Contact No")
-        self.table.heading("Time", text="Time")
+        self.table.heading("Time Start", text="Time Start")
 
         # Define the column headings and their alignment
         columns=[
@@ -4090,7 +4032,7 @@ class LogbookFrame(ctk.CTkFrame):
             ("M.I", "center"),
             ("Last Name", "center"),
             ("Contact No", "center"),
-            ("Time", "center")
+            ("Time Start", "center")
         ]
 
         for col, align in columns:
@@ -4103,7 +4045,7 @@ class LogbookFrame(ctk.CTkFrame):
             ("M.I", 50),
             ("Last Name", 200),
             ("Contact No", 200),
-            ("Time", 250)
+            ("Time Start", 250)
         ]
 
         for col, width in columns:
@@ -4138,7 +4080,7 @@ class LogbookFrame(ctk.CTkFrame):
                         middle_name TEXT,
                         last_name TEXT,
                         contact_no TEXT,
-                        time TEXT
+                        time_start TEXT
                     )
                 ''')
 
@@ -4154,14 +4096,13 @@ class LogbookFrame(ctk.CTkFrame):
             conn=sqlite3.connect('visitors_log.db')
             cursor=conn.cursor()
 
-            # Fetch records from the database ordered by time in descending order
+            # Fetch records from the database
             cursor.execute(
-                "SELECT first_name, middle_name, last_name, contact_no, time FROM visitors ORDER BY time DESC")
+                "SELECT first_name, middle_name, last_name, contact_no, time_start FROM visitors ORDER BY time_start DESC")
             records=cursor.fetchall()
 
             # Clear existing data in the table
-            for row in self.table.get_children():
-                self.table.delete(row)
+            self.table.delete(*self.table.get_children())
 
             # Insert fetched records into the table
             for record in records:
@@ -4223,18 +4164,17 @@ class LogbookFrame(ctk.CTkFrame):
             messagebox.showerror("Validation Error", "All fields are required.")
             return
 
-        # Create a connection to the database
-        conn=sqlite3.connect('visitors_log.db')
-        cursor=conn.cursor()
-
         try:
-            # Insert the data into the database with the current date and time in 12-hour format
-            current_time=datetime.now().strftime("%Y-%m-%d %I:%M:%S %p")
+            # Create a connection to the database
+            conn=sqlite3.connect('visitors_log.db')
+            cursor=conn.cursor()
 
+            # Insert the data into the database with the current date and time
+            current_time=datetime.now().strftime("%Y-%m-%d %I:%M:%S %p")
             cursor.execute('''
-                        INSERT INTO visitors (first_name, middle_name, last_name, contact_no, time)
-                        VALUES (?, ?, ?, ?, ?)
-                    ''', (first_name, middle_name, last_name, contact_no, current_time))
+                INSERT INTO visitors (first_name, middle_name, last_name, contact_no, time_start)
+                VALUES (?, ?, ?, ?, ?)
+            ''', (first_name, middle_name, last_name, contact_no, current_time))
 
             # Message that visitor has attended
             self.send_sms(contact_no,
@@ -4242,7 +4182,6 @@ class LogbookFrame(ctk.CTkFrame):
 
             # Commit the changes and close the database connection
             conn.commit()
-            conn.close()
 
             # Show a success message
             messagebox.showinfo("Attendance Recorded", "Attendance recorded successfully!")
@@ -4251,14 +4190,12 @@ class LogbookFrame(ctk.CTkFrame):
             for entry in [self.first_name_entry, self.middle_name_entry, self.last_name_entry, self.contact_no_entry]:
                 entry.delete(0, tk.END)
 
-            # Load data into the table after recording attendance with the latest entry on top
+            # Load data into the table after recording attendance
             self.load_data_to_table()
 
         except sqlite3.Error as e:
             # Handle any potential SQLite errors
             messagebox.showerror("Database Error", f"Error inserting data: {e}")
-            conn.rollback()
-            conn.close()
 
     def delete_log(self):
         # Get the selected item in the table
@@ -4272,7 +4209,7 @@ class LogbookFrame(ctk.CTkFrame):
         try:
             # Get the values of the selected item
             values=self.table.item(selected_item, 'values')
-            first_name, middle_name, last_name, contact_no, time=values
+            first_name, middle_name, last_name, contact_no, time_start=values
 
             # Create a connection to the database
             conn=sqlite3.connect('visitors_log.db')
@@ -4280,8 +4217,8 @@ class LogbookFrame(ctk.CTkFrame):
 
             # Delete the selected record from the database
             cursor.execute(
-                "DELETE FROM visitors WHERE first_name=? AND middle_name=? AND last_name=? AND contact_no=? AND time=?",
-                (first_name, middle_name, last_name, contact_no, time))
+                "DELETE FROM visitors WHERE first_name=? AND middle_name=? AND last_name=? AND contact_no=? AND time_start=?",
+                (first_name, middle_name, last_name, contact_no, time_start))
 
             # Commit the changes and close the database connection
             conn.commit()
@@ -4735,7 +4672,8 @@ class ViewEmployeeFrame(ctk.CTkFrame):
 
         # Create a table to display the records
         self.table=ttk.Treeview(table_frame, columns=(
-            "ID", "First Name", "Middle Name", "Last Name", "Age", "Sex", "Contact No", "Status"), show="headings", height=10)
+            "ID", "First Name", "Middle Name", "Last Name", "Age", "Sex", "Contact No", "Status"), show="headings",
+                                height=10)
         self.table.pack(side=tk.LEFT)
 
         self.scrollbar=ttk.Scrollbar(table_frame, orient=tk.VERTICAL, command=self.table.yview)
@@ -5735,6 +5673,6 @@ def create_login_window():
 
     login_window.mainloop()
 
+
 # LOGIN WINDOW INITIALLY APPEAR
-# Create the login window first
 create_login_window()

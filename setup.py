@@ -32,7 +32,6 @@ build_exe_options = {
         ("test_images", "test_images"),
         ("trainer_qrcodes", "trainer_qrcodes"),
         # Add more include_files as needed
-        ("venv", "venv"),
         ("attendance_records.db", "attendance_records.db"),
         ("employee_attendance_records.db", "employee_attendance_records.db"),
         ("pat.png", "pat.png"),
