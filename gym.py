@@ -549,33 +549,33 @@ def create_home_frame(home):
 # Graph
 def update_income_report(root, ax, canvas):
     # Get the current month
-    current_month = datetime.now().strftime('%Y-%m')
+    current_month=datetime.now().strftime('%Y-%m')
 
     # Connect to the members database
-    conn_members = sqlite3.connect('registration_form.db')
-    cursor_members = conn_members.cursor()
+    conn_members=sqlite3.connect('registration_form.db')
+    cursor_members=conn_members.cursor()
 
     # Retrieve monthly member count
     cursor_members.execute("SELECT strftime('%Y-%m', start_date) as month, COUNT(*) FROM registration GROUP BY month")
-    members_data = cursor_members.fetchall()
+    members_data=cursor_members.fetchall()
 
     conn_members.close()
 
     # Process member data
-    merged_data = {}
+    merged_data={}
     for month, members_count in members_data:
-        merged_data[month] = {'members': members_count * 700}
+        merged_data[month]={'members': members_count * 700}
 
     # Extract month labels and total member incomes
-    months, member_incomes = zip(
+    months, member_incomes=zip(
         *[(month, data['members']) for month, data in merged_data.items()])
 
     # Convert months to a NumPy array with a specific data type (e.g., float)
-    months_array = np.array(months, dtype=str)
+    months_array=np.array(months, dtype=str)
 
     # Plot the monthly income report with inverted colors
     ax.clear()
-    members_bar = ax.bar(months_array, member_incomes, color='#00C957', alpha=0.7, label='Members')
+    members_bar=ax.bar(months_array, member_incomes, color='#00C957', alpha=0.7, label='Members')
     ax.set_ylabel('Income (PHP)')
 
     # Update the title based on the current month
@@ -601,34 +601,35 @@ def update_income_report(root, ax, canvas):
 
 def update_visitors_income_report(root, ax, canvas):
     # Get the current month
-    current_month = datetime.now().strftime('%Y-%m')
+    current_month=datetime.now().strftime('%Y-%m')
 
     # Connect to the members database
-    conn_visitors = sqlite3.connect('visitors_log.db')
-    cursor_visitors = conn_visitors.cursor()
+    conn_visitors=sqlite3.connect('visitors_log.db')
+    cursor_visitors=conn_visitors.cursor()
 
     # Retrieve monthly visitor count and sort by month
-    cursor_visitors.execute("SELECT strftime('%Y-%m', time_start) as month, COUNT(*) FROM visitors GROUP BY month ORDER BY month")
+    cursor_visitors.execute(
+        "SELECT strftime('%Y-%m', time_start) as month, COUNT(*) FROM visitors GROUP BY month ORDER BY month")
 
-    visitors_data = cursor_visitors.fetchall()
+    visitors_data=cursor_visitors.fetchall()
 
     conn_visitors.close()
 
     # Process visitor data
-    merged_data = {}
+    merged_data={}
     for month, visitors_count in visitors_data:
-        merged_data[month] = {'visitors': visitors_count * 50}
+        merged_data[month]={'visitors': visitors_count * 50}
 
     # Extract month labels and total visitor incomes
-    months = sorted(merged_data.keys())
-    visitor_incomes = [merged_data[month]['visitors'] for month in months]
+    months=sorted(merged_data.keys())
+    visitor_incomes=[merged_data[month]['visitors'] for month in months]
 
     # Convert months to numerical indices
-    x = np.arange(len(months))
+    x=np.arange(len(months))
 
     # Plot the monthly income report with inverted colors
     ax.clear()
-    visitors_bar = ax.bar(x, visitor_incomes, color='orange', alpha=0.7, label='Gymers')
+    visitors_bar=ax.bar(x, visitor_incomes, color='orange', alpha=0.7, label='Gymers')
     ax.set_ylabel('Income (PHP)')
 
     # Update the title based on the current month
@@ -4750,15 +4751,15 @@ class ViewEmployeeFrame(ctk.CTkFrame):
         self.destroy()
 
     def edit_employee_record(self):  # Renamed from edit_record
-        selected_item = self.table.selection()
+        selected_item=self.table.selection()
         if selected_item:
-            record_data = self.table.item(selected_item)["values"]
+            record_data=self.table.item(selected_item)["values"]
 
             if record_data:
                 # Assuming 'id' is the first element and 'first_name' is the second element in the 'values' list
-                id_value = record_data[0]
-                first_name = record_data[1]
-                edit_employee_form = EditEmployeeForm(self, first_name, id_value, self.table)
+                id_value=record_data[0]
+                first_name=record_data[1]
+                edit_employee_form=EditEmployeeForm(self, first_name, id_value, self.table)
 
 
 class EditEmployeeForm(ctk.CTkToplevel):
@@ -4771,21 +4772,21 @@ class EditEmployeeForm(ctk.CTkToplevel):
         self.geometry("500x550")
 
         # Center-align the window
-        window_width = self.winfo_reqwidth()
-        window_height = self.winfo_reqheight()
-        screen_width = self.winfo_screenwidth()
-        screen_height = self.winfo_screenheight()
-        x = (screen_width - window_width) // 2
-        y = (screen_height - window_height) // 5
+        window_width=self.winfo_reqwidth()
+        window_height=self.winfo_reqheight()
+        screen_width=self.winfo_screenwidth()
+        screen_height=self.winfo_screenheight()
+        x=(screen_width - window_width) // 2
+        y=(screen_height - window_height) // 5
         self.geometry(f"+{x}+{y}")
 
         # Create a connection to the database
-        self.conn = sqlite3.connect('register_employee.db')
-        self.cursor = self.conn.cursor()
+        self.conn=sqlite3.connect('register_employee.db')
+        self.cursor=self.conn.cursor()
 
         # Fetch data for the specified member using the provided 'id_value'
         self.cursor.execute("SELECT * FROM employees WHERE id=?", (id_value,))
-        self.employee_data = self.cursor.fetchone()
+        self.employee_data=self.cursor.fetchone()
 
         if self.employee_data is None:
             messagebox.showerror("Employee Not Found", "Employee not found in the database.")
@@ -4793,90 +4794,90 @@ class EditEmployeeForm(ctk.CTkToplevel):
             return
 
         # Create and configure widgets within the edit form
-        label = ctk.CTkLabel(self, text="Edit Employee Record", font=("Arial bold", 20))
+        label=ctk.CTkLabel(self, text="Edit Employee Record", font=("Arial bold", 20))
         label.pack(pady=10)
 
         # Create a frame to hold edit form frames
-        main_frame = ctk.CTkFrame(self)
+        main_frame=ctk.CTkFrame(self)
         main_frame.pack(fill="both", expand=True)
 
         # Create a frame to hold the form fields with custom width and height
-        edit_frame = ctk.CTkScrollableFrame(main_frame, width=450, height=300)
+        edit_frame=ctk.CTkScrollableFrame(main_frame, width=450, height=300)
         edit_frame.pack(pady=20, padx=20)
 
         # Define a custom font style for entry labels
-        label_font = ctk.CTkFont(family="Arial", size=16, weight="bold")
+        label_font=ctk.CTkFont(family="Arial", size=16, weight="bold")
 
         # Create labels and entry fields for editing the record
-        labels = ["First Name:", "Middle Name:", "Last Name:", "Age:", "Sex:", "Date of Birth:", "Address:",
-                  "Nationality:", "Contact No:", "Email Address:", "Emergency Contact No:", "Status:"]
-        self.entry_fields = []
-        self.status_combobox = None  # Initialize status_combobox attribute
+        labels=["First Name:", "Middle Name:", "Last Name:", "Age:", "Sex:", "Date of Birth:", "Address:",
+                "Nationality:", "Contact No:", "Email Address:", "Emergency Contact No:", "Status:"]
+        self.entry_fields=[]
+        self.status_combobox=None  # Initialize status_combobox attribute
 
         for i, label_text in enumerate(labels):
-            label = ctk.CTkLabel(edit_frame, text=label_text, font=label_font)
+            label=ctk.CTkLabel(edit_frame, text=label_text, font=label_font)
             label.grid(row=i, column=0, padx=10, pady=5, sticky="w")
 
             if label_text == "Status:":
                 # Create a combo box for status
-                status_values = ["Active", "Inactive", "On Leave"]
-                self.status_combobox = ctk.CTkComboBox(edit_frame, values=status_values)
+                status_values=["Active", "Inactive", "On Leave"]
+                self.status_combobox=ctk.CTkComboBox(edit_frame, values=status_values)
                 self.status_combobox.grid(row=i, column=1, padx=10, pady=5, ipadx=10, ipady=3)
                 self.status_combobox.set(self.employee_data[12])
 
                 self.entry_fields.append(self.status_combobox)
             else:
-                entry = ctk.CTkEntry(edit_frame)
+                entry=ctk.CTkEntry(edit_frame)
                 entry.grid(row=i, column=1, padx=10, pady=5, ipadx=10, ipady=3)
                 entry.insert(0, self.employee_data[i + 1])
                 self.entry_fields.append(entry)
 
         # Display the qr code of the member inside the edit form
-        qr_code_frame = ctk.CTkFrame(edit_frame)
+        qr_code_frame=ctk.CTkFrame(edit_frame)
         qr_code_frame.grid(row=17, column=1, rowspan=16, padx=10, pady=10)
 
-        label = ctk.CTkLabel(edit_frame, text="QR Code:", font=("Arial bold", 16))
+        label=ctk.CTkLabel(edit_frame, text="QR Code:", font=("Arial bold", 16))
         label.grid(row=17, column=0, padx=10, pady=10, sticky="w")
 
-        download_button_frame = ctk.CTkFrame(edit_frame)
+        download_button_frame=ctk.CTkFrame(edit_frame)
         download_button_frame.grid(row=50, column=1, rowspan=50, padx=10, pady=10)
 
         # create a download button to download the qr code
-        download_button = ctk.CTkButton(download_button_frame, text="Download", command=self.download_qr_code)
+        download_button=ctk.CTkButton(download_button_frame, text="Download", command=self.download_qr_code)
         download_button.grid(row=0, column=1, padx=10, pady=10, sticky="w")
 
         # Display the qr code from the member_qrcodes folder based on the last name of the member
-        qr_code_path = os.path.join("employee_qrcodes", f"dgrit_employee_{self.employee_data[3]}.png")
-        qr_code_image = Image.open(qr_code_path)
-        qr_code_image = qr_code_image.resize((200, 200), Image.LANCZOS)
-        qr_code_image = ImageTk.PhotoImage(qr_code_image)
-        qr_code_label = ctk.CTkLabel(qr_code_frame, text="", image=qr_code_image)
-        qr_code_label.image = qr_code_image
+        qr_code_path=os.path.join("employee_qrcodes", f"dgrit_employee_{self.employee_data[3]}.png")
+        qr_code_image=Image.open(qr_code_path)
+        qr_code_image=qr_code_image.resize((200, 200), Image.LANCZOS)
+        qr_code_image=ImageTk.PhotoImage(qr_code_image)
+        qr_code_label=ctk.CTkLabel(qr_code_frame, text="", image=qr_code_image)
+        qr_code_label.image=qr_code_image
         qr_code_label.pack(pady=10, padx=10)
 
-        frame_buttons = ctk.CTkFrame(main_frame)
+        frame_buttons=ctk.CTkFrame(main_frame)
         frame_buttons.pack(pady=20, padx=20)
 
         # create frame to hold the buttons
-        update_button_frame = ctk.CTkFrame(frame_buttons)
+        update_button_frame=ctk.CTkFrame(frame_buttons)
         update_button_frame.grid(row=0, column=0, padx=20, pady=20)
 
         # Create an "Update" button
-        update_button = ctk.CTkButton(update_button_frame, text="Update", command=self.update_record)
+        update_button=ctk.CTkButton(update_button_frame, text="Update", command=self.update_record)
         update_button.grid(row=0, column=0, padx=20, pady=20)
 
         # create a frame to hold the delete button
-        delete_button_frame = ctk.CTkFrame(frame_buttons)
+        delete_button_frame=ctk.CTkFrame(frame_buttons)
         delete_button_frame.grid(row=0, column=1, padx=20, pady=20)
 
         # Create Red Delete button
-        delete_button = ctk.CTkButton(delete_button_frame, text="Delete", fg_color="Red",
-                                       text_color=("gray10", "gray90"),
-                                       hover_color=("red3", "red4"), command=self.delete_record)
+        delete_button=ctk.CTkButton(delete_button_frame, text="Delete", fg_color="Red",
+                                    text_color=("gray10", "gray90"),
+                                    hover_color=("red3", "red4"), command=self.delete_record)
         delete_button.grid(row=0, column=0, padx=20, pady=20)
 
         # Store the reference to the 'table' in EditForm
-        self.table = table_reference
+        self.table=table_reference
 
     def download_qr_code(self):
         # Download the displayed QR code and save it to the Downloads folder in file explorer
