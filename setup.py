@@ -1,6 +1,8 @@
 import sys
 from cx_Freeze import setup, Executable
 
+# For .exe file conversion
+
 build_exe_options = {
     "packages": ["customtkinter",
                  "tkinter",

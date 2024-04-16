@@ -64,7 +64,7 @@ def check_date():
     current_date=datetime.now()
 
     # Get all instances in the registration table
-    conn=sqlite3.connect('registration_form.db')
+    conn=sqlite3.connect('SQLite db/registration_form.db')
     cursor=conn.cursor()
 
     cursor.execute("SELECT * FROM registration")
@@ -113,7 +113,7 @@ class MainApp(ctk.CTk):
         self.grid_columnconfigure(1, weight=1)
 
         # load images with light and dark mode image
-        image_path=os.path.join(os.path.dirname(os.path.realpath(__file__)), "test_images")
+        image_path=os.path.join(os.path.dirname(os.path.realpath(__file__)), "templates/test_images")
         self.logo_image=ctk.CTkImage(
             light_image=Image.open(os.path.join(image_path, "gym_dark.png")),
             dark_image=Image.open(os.path.join(image_path, "gym_dark.png")),
@@ -393,7 +393,7 @@ def create_home_frame(home):
 
     def get_members_count():
         # get the no. of members from the database
-        conn=sqlite3.connect('registration_form.db')
+        conn=sqlite3.connect('SQLite db/registration_form.db')
         cursor=conn.cursor()
         cursor.execute("SELECT COUNT(*) FROM registration")
         members_count=cursor.fetchone()[0]
@@ -417,7 +417,7 @@ def create_home_frame(home):
 
     def get_visitors_count():
         # get the no. of members from the database
-        conn=sqlite3.connect('visitors_log.db')
+        conn=sqlite3.connect('SQLite db/visitors_log.db')
         cursor=conn.cursor()
         cursor.execute("SELECT COUNT(*) FROM visitors")
         visitors_count=cursor.fetchone()[0]
@@ -441,7 +441,7 @@ def create_home_frame(home):
 
     def get_employee_count():
         # get the no. of members from the database
-        conn=sqlite3.connect('register_employee.db')
+        conn=sqlite3.connect('SQLite db/register_employee.db')
         cursor=conn.cursor()
         cursor.execute("SELECT COUNT(*) FROM employees")
         employee_count=cursor.fetchone()[0]
@@ -465,7 +465,7 @@ def create_home_frame(home):
 
     def get_trainer_count():
         # get the no. of members from the database
-        conn=sqlite3.connect('register_trainer.db')
+        conn=sqlite3.connect('SQLite db/register_trainer.db')
         cursor=conn.cursor()
         cursor.execute("SELECT COUNT(*) FROM trainer")
         trainer_count=cursor.fetchone()[0]
@@ -489,7 +489,7 @@ def create_home_frame(home):
 
     def get_gym_equipment_count():
         # get the no. of members from the database
-        conn=sqlite3.connect('register_equipment.db')
+        conn=sqlite3.connect('SQLite db/register_equipment.db')
         cursor=conn.cursor()
         cursor.execute("SELECT COUNT(*) FROM equipment")
         gym_equipment_count=cursor.fetchone()[0]
@@ -552,7 +552,7 @@ def update_income_report(root, ax, canvas):
     current_month=datetime.now().strftime('%Y-%m')
 
     # Connect to the members database
-    conn_members=sqlite3.connect('registration_form.db')
+    conn_members=sqlite3.connect('SQLite db/registration_form.db')
     cursor_members=conn_members.cursor()
 
     # Retrieve monthly member count
@@ -604,7 +604,7 @@ def update_visitors_income_report(root, ax, canvas):
     current_month=datetime.now().strftime('%Y-%m')
 
     # Connect to the members database
-    conn_visitors=sqlite3.connect('visitors_log.db')
+    conn_visitors=sqlite3.connect('SQLite db/visitors_log.db')
     cursor_visitors=conn_visitors.cursor()
 
     # Retrieve monthly visitor count and sort by month
@@ -669,7 +669,7 @@ def create_gym_membership_frame(frame_2):
     button_height=300
 
     # Define the path to the directory containing your image files
-    frame_2_icons=os.path.join(os.path.dirname(os.path.realpath(__file__)), "frame_2_icons")
+    frame_2_icons=os.path.join(os.path.dirname(os.path.realpath(__file__)), "templates/frame_2_icons")
 
     # Load and resize the images
     register_image=Image.open(os.path.join(frame_2_icons, 'register_black.png'))
@@ -721,7 +721,7 @@ class RegistrationFrame(ctk.CTkFrame):
         super().__init__(master, **kwargs)
 
         # Create a connection to the database
-        self.conn=sqlite3.connect('registration_form.db')
+        self.conn=sqlite3.connect('SQLite db/registration_form.db')
         self.cursor=self.conn.cursor()
 
         # STEP 1: PERSONAL INFORMATION
@@ -918,7 +918,7 @@ class RegistrationFrame(ctk.CTkFrame):
         self.end_timestamp_entry=self.end_timestamp_entry
         self.user_reference_entry=user_reference_entry
 
-        with sqlite3.connect('registration_form.db') as conn:
+        with sqlite3.connect('SQLite db/registration_form.db') as conn:
             cursor=conn.cursor()
 
         # Create a table to store registration information
@@ -1082,7 +1082,7 @@ class RegistrationFrame(ctk.CTkFrame):
                 (current_date.month, current_date.day) < (birth_date_obj.month, birth_date_obj.day))
 
         # Create a connection to the database
-        conn=sqlite3.connect('registration_form.db')
+        conn=sqlite3.connect('SQLite db/registration_form.db')
         cursor=conn.cursor()
 
         # Calculate the expiration date
@@ -1143,7 +1143,7 @@ class RegistrationFrame(ctk.CTkFrame):
         data_string=f"{first_name},{middle_name},{last_name},{contact_no},{subscription_id}"
 
         # Create a folder if it doesn't exist
-        folder_path="member_qrcodes"
+        folder_path="templates/member_qrcodes"
         os.makedirs(folder_path, exist_ok=True)
 
         # Create a QR code containing all the data entries
@@ -1195,7 +1195,7 @@ class ViewFrame(ctk.CTkFrame):
         label.pack(pady=20, padx=10)
 
         # Create a connection to the database
-        conn=sqlite3.connect('registration_form.db')
+        conn=sqlite3.connect('SQLite db/registration_form.db')
         cursor=conn.cursor()
 
         # Get only the specific columns from the database
@@ -1341,7 +1341,7 @@ class EditForm(ctk.CTkToplevel):
         self.geometry(f"+{x}+{y}")
 
         # Create a connection to the database
-        self.conn=sqlite3.connect('registration_form.db')
+        self.conn=sqlite3.connect('SQLite db/registration_form.db')
         self.cursor=self.conn.cursor()
 
         # Fetch data for the specified member using the provided 'id_value'
@@ -1397,7 +1397,7 @@ class EditForm(ctk.CTkToplevel):
         download_button.grid(row=0, column=1, padx=10, pady=10, sticky="w")
 
         # Display the qr code from the member_qrcodes folder based on the last name of the member
-        qr_code_path=os.path.join("member_qrcodes", f"dgrit_{self.member_data[3]}.png")
+        qr_code_path=os.path.join("templates/member_qrcodes", f"dgrit_{self.member_data[3]}.png")
         qr_code_image=Image.open(qr_code_path)
         qr_code_image=qr_code_image.resize((200, 200), Image.LANCZOS)
         qr_code_image=ImageTk.PhotoImage(qr_code_image)
@@ -1449,7 +1449,7 @@ class EditForm(ctk.CTkToplevel):
     # Download qr code
     def download_qr_code(self):
         # Download the displayed QR code and save it to the Downloads folder in file explorer
-        qr_code_path=os.path.join("member_qrcodes", f"dgrit_{self.member_data[3]}.png")
+        qr_code_path=os.path.join("templates/member_qrcodes", f"dgrit_{self.member_data[3]}.png")
         qr_code_image=Image.open(qr_code_path)
 
         # Assuming self.member_data[3] is the unique identifier for the member
@@ -1548,7 +1548,7 @@ class EditForm(ctk.CTkToplevel):
             # Note: Do not close the cursor here to avoid the "Cannot operate on a closed database" error
 
             # Fetch the updated data from the database
-            conn=sqlite3.connect('registration_form.db')
+            conn=sqlite3.connect('SQLite db/registration_form.db')
             cursor=conn.cursor()
 
             try:
@@ -1586,7 +1586,7 @@ class EditForm(ctk.CTkToplevel):
                 # Delete the selected record from the database based on the 'ID' column
                 if record_data:
                     id_value=record_data[0]  # Assuming 'ID' is the first column in the 'values' list
-                    conn=sqlite3.connect('registration_form.db')
+                    conn=sqlite3.connect('SQLite db/registration_form.db')
                     cursor=conn.cursor()
                     try:
                         cursor.execute("DELETE FROM registration WHERE id=?", (id_value,))
@@ -1603,7 +1603,7 @@ class EditForm(ctk.CTkToplevel):
                     self.table.delete(selected_item)
 
                     # Fetch the updated data from the database
-                    conn=sqlite3.connect('registration_form.db')
+                    conn=sqlite3.connect('SQLite db/registration_form.db')
                     cursor=conn.cursor()
                     cursor.execute(
                         "SELECT id, first_name, middle_name, last_name, contact_no, subscription_id, start_date, end_date, status FROM registration")
@@ -1662,7 +1662,7 @@ class RenewSubscriptionFrame(ctk.CTkToplevel):
         self.entry_fields=[]
 
         # Create a connection to the database
-        self.conn=sqlite3.connect('registration_form.db')
+        self.conn=sqlite3.connect('SQLite db/registration_form.db')
         self.cursor=self.conn.cursor()
 
         # Fetch data for the specified member using the provided 'id_value'
@@ -1706,7 +1706,7 @@ class RenewSubscriptionFrame(ctk.CTkToplevel):
             return
 
         # Update the data in the database
-        conn=sqlite3.connect('registration_form.db')
+        conn=sqlite3.connect('SQLite db/registration_form.db')
         cursor=conn.cursor()
 
         try:
@@ -1819,7 +1819,7 @@ def create_take_attendance_frame(frame_3):
     button_height=300
 
     # Define the path to the directory containing your image files
-    frame_3_icons=os.path.join(os.path.dirname(os.path.realpath(__file__)), "frame_3_icons")
+    frame_3_icons=os.path.join(os.path.dirname(os.path.realpath(__file__)), "templates/frame_3_icons")
 
     # Load and resize the images
     register_image=Image.open(os.path.join(frame_3_icons, 'scan_black.png'))
@@ -1881,7 +1881,7 @@ class ScanFrame(ctk.CTkFrame):
         button_height=200
 
         # Define the path to the directory containing your image files
-        frame_3_icons=os.path.join(os.path.dirname(os.path.realpath(__file__)), "frame_3_icons")
+        frame_3_icons=os.path.join(os.path.dirname(os.path.realpath(__file__)), "templates/frame_3_icons")
 
         # Load and resize the images
         time_in_image=Image.open(os.path.join(frame_3_icons, 'time_in.png'))
@@ -1975,7 +1975,7 @@ class ScanFrame(ctk.CTkFrame):
             current_datetime=datetime.now().strftime("%Y-%m-%d %I:%M:%S %p")
 
             # Connect to the registration_form.db database
-            with sqlite3.connect('registration_form.db') as conn_registration:
+            with sqlite3.connect('SQLite db/registration_form.db') as conn_registration:
                 cursor_registration=conn_registration.cursor()
 
                 # Check subscription status before recording attendance
@@ -1996,7 +1996,7 @@ class ScanFrame(ctk.CTkFrame):
                     return
 
             # Connect to the attendance_records.db database
-            with sqlite3.connect('attendance_records.db') as conn_attendance:
+            with sqlite3.connect('SQLite db/attendance_records.db') as conn_attendance:
                 cursor_attendance=conn_attendance.cursor()
 
                 if attendance_type == "Time In":
@@ -2144,7 +2144,7 @@ class RecordsFrame(ctk.CTkFrame):
         self.load_attendance_records()
 
         # Create attendance record sqlite database if it doesn't exist
-        conn=sqlite3.connect('attendance_records.db')
+        conn=sqlite3.connect('SQLite db/attendance_records.db')
         cursor=conn.cursor()
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS attendance_records (
@@ -2163,7 +2163,7 @@ class RecordsFrame(ctk.CTkFrame):
 
     def load_attendance_records(self):
         # Fetch attendance records from the database and populate the Treeview
-        conn=sqlite3.connect('attendance_records.db')
+        conn=sqlite3.connect('SQLite db/attendance_records.db')
         cursor=conn.cursor()
 
         try:
@@ -2204,7 +2204,7 @@ def create_gym_equipment_frame(frame_4):
     button_height=300
 
     # Define the path to the directory containing your image files
-    frame_4_icons=os.path.join(os.path.dirname(os.path.realpath(__file__)), "frame_4_icons")
+    frame_4_icons=os.path.join(os.path.dirname(os.path.realpath(__file__)), "templates/frame_4_icons")
 
     # Load and resize the images
     register_image=Image.open(os.path.join(frame_4_icons, 'dumbell_dark.png'))
@@ -2373,7 +2373,7 @@ class RegistrationEquipment(ctk.CTkFrame):
         self.equipment_training_required_entry=equipment_training_required_entry
 
         # Create a connection to the database (or create it if it doesn't exist)
-        conn=sqlite3.connect('register_equipment.db')
+        conn=sqlite3.connect('SQLite db/register_equipment.db')
 
         # Create a cursor object to interact with the database
         cursor=conn.cursor()
@@ -2413,7 +2413,7 @@ class RegistrationEquipment(ctk.CTkFrame):
         equipment_training_required=self.equipment_training_required_entry.get()
 
         # Create a connection to the database
-        conn=sqlite3.connect('register_equipment.db')
+        conn=sqlite3.connect('SQLite db/register_equipment.db')
         cursor=conn.cursor()
 
         # Insert the data into the database
@@ -2460,7 +2460,7 @@ class EquipmentRecords(ctk.CTkFrame):
         label.pack(pady=20, padx=10)
 
         # Create a connection to the database
-        conn=sqlite3.connect('register_equipment.db')
+        conn=sqlite3.connect('SQLite db/register_equipment.db')
         cursor=conn.cursor()
 
         # Get only the specific columns from the database
@@ -2590,7 +2590,7 @@ class EquipmentRecords(ctk.CTkFrame):
                 # Delete the selected record from the database based on the 'First Name' column
                 if record_data:
                     id=record_data[0]  # Assuming 'First Name' is the first column in the 'values' list
-                    conn=sqlite3.connect('register_equipment.db')
+                    conn=sqlite3.connect('SQLite db/register_equipment.db')
                     cursor=conn.cursor()
                     try:
                         cursor.execute("DELETE FROM equipment WHERE id=?", (id,))
@@ -2626,7 +2626,7 @@ class EditRecord(ctk.CTkToplevel):
         self.geometry(f"+{x}+{y}")
 
         # Create a connection to the database
-        self.conn=sqlite3.connect('register_equipment.db')
+        self.conn=sqlite3.connect('SQLite db/register_equipment.db')
         self.cursor=self.conn.cursor()
 
         # Fetch data for the specified member using the provided 'id_value'
@@ -2699,7 +2699,7 @@ class EditRecord(ctk.CTkToplevel):
             self.table.delete(item)
 
         # Fetch and add the updated records to the table
-        conn=sqlite3.connect('register_equipment.db')
+        conn=sqlite3.connect('SQLite db/register_equipment.db')
         cursor=conn.cursor()
         cursor.execute(
             "SELECT id, equipment_name, equipment_quantity, equipment_type, equipment_status, equipment_training_required FROM equipment")
@@ -2756,7 +2756,7 @@ class EditRecord(ctk.CTkToplevel):
                 # Delete the selected record from the database based on the 'First Name' column
                 if record_data:
                     id_value=record_data[0]  # Assuming 'ID' is the first column in the 'values' list
-                    conn=sqlite3.connect('register_equipment.db')
+                    conn=sqlite3.connect('SQLite db/register_equipment.db')
                     cursor=conn.cursor()
                     try:
                         cursor.execute("DELETE FROM equipment WHERE id=?", (id_value,))
@@ -2784,7 +2784,7 @@ def create_trainers_frame(frame_5):
     button_height=250
 
     # Define the path to the directory containing your image files
-    frame_5_icons=os.path.join(os.path.dirname(os.path.realpath(__file__)), "frame_5_icons")
+    frame_5_icons=os.path.join(os.path.dirname(os.path.realpath(__file__)), "templates/frame_5_icons")
 
     # Load and resize the images
     register_image=Image.open(os.path.join(frame_5_icons, 'trainer_black.png'))
@@ -2985,7 +2985,7 @@ class TrainerFrame(ctk.CTkFrame):
         self.emergency_contact_entry=emergency_contact_entry
 
         # Create a connection to the database (or create it if it doesn't exist)
-        conn=sqlite3.connect('register_trainer.db')
+        conn=sqlite3.connect('SQLite db/register_trainer.db')
 
         # Create a cursor object to interact with the database
         cursor=conn.cursor()
@@ -3101,7 +3101,7 @@ class TrainerFrame(ctk.CTkFrame):
             return
 
         # Create a connection to the database
-        conn=sqlite3.connect('register_trainer.db')
+        conn=sqlite3.connect('SQLite db/register_trainer.db')
         cursor=conn.cursor()
 
         status='Active'
@@ -3124,7 +3124,7 @@ class TrainerFrame(ctk.CTkFrame):
         data_string=f"{first_name},{middle_name},{last_name},{contact_no}"
 
         # Create a folder if it doesn't exist
-        folder_path="trainer_qrcodes"
+        folder_path="templates/trainer_qrcodes"
         os.makedirs(folder_path, exist_ok=True)
 
         # Create a QR code containing all the data entries
@@ -3174,7 +3174,7 @@ class ViewTrainerFrame(ctk.CTkFrame):
         label.pack(pady=20, padx=10)
 
         # Create a connection to the database
-        conn=sqlite3.connect('register_trainer.db')
+        conn=sqlite3.connect('SQLite db/register_trainer.db')
         cursor=conn.cursor()
 
         # Get only the specific columns from the database
@@ -3317,7 +3317,7 @@ class EditTrainerForm(ctk.CTkToplevel):
         self.geometry(f"+{x}+{y}")
 
         # Create a connection to the database
-        self.conn=sqlite3.connect('register_trainer.db')
+        self.conn=sqlite3.connect('SQLite db/register_trainer.db')
         self.cursor=self.conn.cursor()
 
         # Fetch data for the specified member using the provided 'id_value'
@@ -3383,7 +3383,7 @@ class EditTrainerForm(ctk.CTkToplevel):
         download_button.grid(row=0, column=1, padx=10, pady=10, sticky="w")
 
         # Display the qr code from the member_qrcodes folder based on the last name of the member
-        qr_code_path=os.path.join("trainer_qrcodes", f"dgrit_trainer_{self.trainer_data[3]}.png")
+        qr_code_path=os.path.join("templates/trainer_qrcodes", f"dgrit_trainer_{self.trainer_data[3]}.png")
         qr_code_image=Image.open(qr_code_path)
         qr_code_image=qr_code_image.resize((200, 200), Image.LANCZOS)
         qr_code_image=ImageTk.PhotoImage(qr_code_image)
@@ -3417,7 +3417,7 @@ class EditTrainerForm(ctk.CTkToplevel):
 
     def download_qr_code(self):
         # Download the displayed QR code and save it to the Downloads folder in file explorer
-        qr_code_path=os.path.join("trainer_qrcodes", f"dgrit_trainer_{self.trainer_data[3]}.png")
+        qr_code_path=os.path.join("templates/trainer_qrcodes", f"dgrit_trainer_{self.trainer_data[3]}.png")
         qr_code_image=Image.open(qr_code_path)
 
         # Assuming self.member_data[3] is the unique identifier for the member
@@ -3429,7 +3429,7 @@ class EditTrainerForm(ctk.CTkToplevel):
 
     def refresh_table(self):
         # Fetch the updated records from the database
-        conn=sqlite3.connect('register_trainer.db')
+        conn=sqlite3.connect('SQLite db/register_trainer.db')
         cursor=conn.cursor()
         cursor.execute("SELECT id, first_name, middle_name, last_name, age, sex, contact_no, status FROM trainer")
         updated_records=cursor.fetchall()
@@ -3456,7 +3456,7 @@ class EditTrainerForm(ctk.CTkToplevel):
 
         # Continue with the update logic
         try:
-            with sqlite3.connect('register_trainer.db') as conn:
+            with sqlite3.connect('SQLite db/register_trainer.db') as conn:
                 cursor=conn.cursor()
                 cursor.execute('''
                     UPDATE trainer SET 
@@ -3488,7 +3488,7 @@ class EditTrainerForm(ctk.CTkToplevel):
                 # Delete the selected record from the database based on the 'First Name' column
                 if record_data:
                     id_value=record_data[0]  # Assuming 'ID' is the first column in the 'values' list
-                    conn=sqlite3.connect('register_trainer.db')
+                    conn=sqlite3.connect('SQLite db/register_trainer.db')
                     cursor=conn.cursor()
                     try:
                         cursor.execute("DELETE FROM trainer WHERE id=?", (id_value,))
@@ -3515,7 +3515,7 @@ class TrainerAttendanceFrame(ctk.CTkFrame):
         button_height=200
 
         # Define the path to the directory containing your image files
-        frame_5_icons=os.path.join(os.path.dirname(os.path.realpath(__file__)), "frame_5_icons")
+        frame_5_icons=os.path.join(os.path.dirname(os.path.realpath(__file__)), "templates/frame_5_icons")
 
         # Load and resize the images
         scan_image=Image.open(os.path.join(frame_5_icons, 'scan_black.png'))
@@ -3578,7 +3578,7 @@ class ScanQrFrame(ctk.CTkFrame):
         button_height=200
 
         # Define the path to the directory containing your image files
-        frame_5_icons=os.path.join(os.path.dirname(os.path.realpath(__file__)), "frame_5_icons")
+        frame_5_icons=os.path.join(os.path.dirname(os.path.realpath(__file__)), "templates/frame_5_icons")
 
         # Load and resize the images
         time_in_image=Image.open(os.path.join(frame_5_icons, 'time_in.png'))
@@ -3671,7 +3671,7 @@ class ScanQrFrame(ctk.CTkFrame):
             first_name, middle_name, last_name, contact_no=member_data.split(',')
             current_datetime=datetime.now().strftime("%Y-%m-%d %I:%M:%S %p")
 
-            with sqlite3.connect('register_trainer.db') as conn:
+            with sqlite3.connect('SQLite db/register_trainer.db') as conn:
                 cursor=conn.cursor()
 
                 # Check the status before recording attendance
@@ -3682,7 +3682,7 @@ class ScanQrFrame(ctk.CTkFrame):
                 # Assuming 'status' is a tuple with a single element being the status
                 if status and status[0] in ['Active', 'On Leave']:
                     # Only proceed if the status is 'Active' or 'On Leave'
-                    with sqlite3.connect('trainer_attendance_records.db') as attendance_conn:
+                    with sqlite3.connect('SQLite db/trainer_attendance_records.db') as attendance_conn:
                         attendance_cursor=attendance_conn.cursor()
 
                         if attendance_type == "Time In":
@@ -3839,7 +3839,7 @@ class AttendanceFrame(ctk.CTkFrame):
         self.load_attendance_records()
 
         # Create attendance record sqlite database if it doesn't exist
-        conn=sqlite3.connect('trainer_attendance_records.db')
+        conn=sqlite3.connect('SQLite db/trainer_attendance_records.db')
         cursor=conn.cursor()
         cursor.execute('''
                CREATE TABLE IF NOT EXISTS trainer_attendance (
@@ -3857,7 +3857,7 @@ class AttendanceFrame(ctk.CTkFrame):
 
     def load_attendance_records(self):
         # Fetch attendance records from the database and populate the Treeview
-        conn=sqlite3.connect('trainer_attendance_records.db')
+        conn=sqlite3.connect('SQLite db/trainer_attendance_records.db')
         cursor=conn.cursor()
 
         try:
@@ -3880,14 +3880,14 @@ class AttendanceFrame(ctk.CTkFrame):
         self.destroy()
 
 
-# -------------------- FRAME 6 --------------------#
+# -------------------- FRAME 6 GYMERS/visitors--------------------#
 def create_visitors_frame(frame_6):
     # Define the desired button width and height
     button_width=350
     button_height=350
 
     # Define the path to the directory containing your image files
-    frame_6_icons=os.path.join(os.path.dirname(os.path.realpath(__file__)), "frame_6_icons")
+    frame_6_icons=os.path.join(os.path.dirname(os.path.realpath(__file__)), "templates/frame_6_icons")
 
     # Load and resize the images
     logbook_image=Image.open(os.path.join(frame_6_icons, 'logbook_black.png'))
@@ -3981,7 +3981,7 @@ class LogbookFrame(ctk.CTkFrame):
         table_frame.grid(row=0, column=1, padx=10, pady=10)
 
         # Create a connection to the database
-        conn=sqlite3.connect('visitors_log.db')
+        conn=sqlite3.connect('SQLite db/visitors_log.db')
         cursor=conn.cursor()
 
         # Get only the specific columns from the database
@@ -4069,7 +4069,7 @@ class LogbookFrame(ctk.CTkFrame):
 
         # Create a connection to the database (or create it if it doesn't exist)
         try:
-            with sqlite3.connect('visitors_log.db') as conn:
+            with sqlite3.connect('SQLite db/visitors_log.db') as conn:
                 # Create a cursor object to interact with the database
                 cursor=conn.cursor()
 
@@ -4094,7 +4094,7 @@ class LogbookFrame(ctk.CTkFrame):
     def load_data_to_table(self):
         try:
             # Create a connection to the database
-            conn=sqlite3.connect('visitors_log.db')
+            conn=sqlite3.connect('SQLite db/visitors_log.db')
             cursor=conn.cursor()
 
             # Fetch records from the database
@@ -4167,7 +4167,7 @@ class LogbookFrame(ctk.CTkFrame):
 
         try:
             # Create a connection to the database
-            conn=sqlite3.connect('visitors_log.db')
+            conn=sqlite3.connect('SQLite db/visitors_log.db')
             cursor=conn.cursor()
 
             # Insert the data into the database with the current date and time
@@ -4213,7 +4213,7 @@ class LogbookFrame(ctk.CTkFrame):
             first_name, middle_name, last_name, contact_no, time_start=values
 
             # Create a connection to the database
-            conn=sqlite3.connect('visitors_log.db')
+            conn=sqlite3.connect('SQLite db/visitors_log.db')
             cursor=conn.cursor()
 
             # Delete the selected record from the database
@@ -4246,7 +4246,7 @@ def create_employee_frame(frame_7):
     button_height=250
 
     # Define the path to the directory containing your image files
-    frame_7_icons=os.path.join(os.path.dirname(os.path.realpath(__file__)), "frame_7_icons")
+    frame_7_icons=os.path.join(os.path.dirname(os.path.realpath(__file__)), "templates/frame_7_icons")
 
     # Load and resize the images
     register_image=Image.open(os.path.join(frame_7_icons, 'register_black.png'))
@@ -4448,7 +4448,7 @@ class RegisterEmployeeFrame(ctk.CTkFrame):
         self.emergency_contact_entry=emergency_contact_entry
 
         # Create a connection to the database (or create it if it doesn't exist)
-        conn=sqlite3.connect('register_employee.db')
+        conn=sqlite3.connect('SQLite db/register_employee.db')
 
         # Create a cursor object to interact with the database
         cursor=conn.cursor()
@@ -4565,7 +4565,7 @@ class RegisterEmployeeFrame(ctk.CTkFrame):
             return
 
         # Create a connection to the database
-        conn=sqlite3.connect('register_employee.db')
+        conn=sqlite3.connect('SQLite db/register_employee.db')
         cursor=conn.cursor()
 
         status='Active'
@@ -4588,7 +4588,7 @@ class RegisterEmployeeFrame(ctk.CTkFrame):
         data_string=f"{first_name},{middle_name},{last_name},{contact_no}"
 
         # Create a folder if it doesn't exist
-        folder_path="employee_qrcodes"
+        folder_path="templates/employee_qrcodes"
         os.makedirs(folder_path, exist_ok=True)
 
         # Create a QR code containing all the data entries
@@ -4638,7 +4638,7 @@ class ViewEmployeeFrame(ctk.CTkFrame):
         label.pack(pady=20, padx=10)
 
         # Create a connection to the database
-        conn=sqlite3.connect('register_employee.db')
+        conn=sqlite3.connect('SQLite db/register_employee.db')
         cursor=conn.cursor()
 
         # Get only the specific columns from the database
@@ -4781,7 +4781,7 @@ class EditEmployeeForm(ctk.CTkToplevel):
         self.geometry(f"+{x}+{y}")
 
         # Create a connection to the database
-        self.conn=sqlite3.connect('register_employee.db')
+        self.conn=sqlite3.connect('SQLite db/register_employee.db')
         self.cursor=self.conn.cursor()
 
         # Fetch data for the specified member using the provided 'id_value'
@@ -4847,7 +4847,7 @@ class EditEmployeeForm(ctk.CTkToplevel):
         download_button.grid(row=0, column=1, padx=10, pady=10, sticky="w")
 
         # Display the qr code from the member_qrcodes folder based on the last name of the member
-        qr_code_path=os.path.join("employee_qrcodes", f"dgrit_employee_{self.employee_data[3]}.png")
+        qr_code_path=os.path.join("templates/employee_qrcodes", f"dgrit_employee_{self.employee_data[3]}.png")
         qr_code_image=Image.open(qr_code_path)
         qr_code_image=qr_code_image.resize((200, 200), Image.LANCZOS)
         qr_code_image=ImageTk.PhotoImage(qr_code_image)
@@ -4881,7 +4881,7 @@ class EditEmployeeForm(ctk.CTkToplevel):
 
     def download_qr_code(self):
         # Download the displayed QR code and save it to the Downloads folder in file explorer
-        qr_code_path=os.path.join("employee_qrcodes", f"dgrit_employee_{self.employee_data[3]}.png")
+        qr_code_path=os.path.join("templates/employee_qrcodes", f"dgrit_employee_{self.employee_data[3]}.png")
         qr_code_image=Image.open(qr_code_path)
 
         # Assuming self.member_data[3] is the unique identifier for the member
@@ -4897,7 +4897,7 @@ class EditEmployeeForm(ctk.CTkToplevel):
             self.table.delete(item)
 
         # Fetch the updated records from the database
-        conn=sqlite3.connect('register_employee.db')
+        conn=sqlite3.connect('SQLite db/register_employee.db')
         cursor=conn.cursor()
         cursor.execute("SELECT id, first_name, middle_name, last_name, age, sex, contact_no, status FROM employees")
         records=cursor.fetchall()
@@ -4924,7 +4924,7 @@ class EditEmployeeForm(ctk.CTkToplevel):
 
         # Continue with the update logic
         try:
-            with sqlite3.connect('register_employee.db') as conn:
+            with sqlite3.connect('SQLite db/register_employee.db') as conn:
                 cursor=conn.cursor()
                 cursor.execute('''
                     UPDATE employees SET 
@@ -4956,7 +4956,7 @@ class EditEmployeeForm(ctk.CTkToplevel):
                 # Delete the selected record from the database based on the 'First Name' column
                 if record_data:
                     id_value=record_data[0]  # Assuming 'ID' is the first column in the 'values' list
-                    conn=sqlite3.connect('register_employee.db')
+                    conn=sqlite3.connect('SQLite db/register_employee.db')
                     cursor=conn.cursor()
                     try:
                         cursor.execute("DELETE FROM employees WHERE id=?", (id_value,))
@@ -4991,7 +4991,7 @@ class EmployeeAttendanceFrame(ctk.CTkFrame):
         button_height=200
 
         # Define the path to the directory containing your image files
-        frame_7_icons=os.path.join(os.path.dirname(os.path.realpath(__file__)), "frame_7_icons")
+        frame_7_icons=os.path.join(os.path.dirname(os.path.realpath(__file__)), "templates/frame_7_icons")
 
         # Load and resize the images
         scan_image=Image.open(os.path.join(frame_7_icons, 'scan_black.png'))
@@ -5058,7 +5058,7 @@ class EmployeeScanQrFrame(ctk.CTkFrame):
         self.pack(fill='both', expand=True)
 
         # Define the path to the directory containing your image files
-        frame_7_icons=os.path.join(os.path.dirname(os.path.realpath(__file__)), "frame_7_icons")
+        frame_7_icons=os.path.join(os.path.dirname(os.path.realpath(__file__)), "templates/frame_7_icons")
 
         # Load and resize the images
         time_in_image=Image.open(os.path.join(frame_7_icons, 'time_in.png'))
@@ -5151,7 +5151,7 @@ class EmployeeScanQrFrame(ctk.CTkFrame):
             first_name, middle_name, last_name, contact_no=member_data.split(',')
             current_datetime=datetime.now().strftime("%Y-%m-%d %I:%M:%S %p")
 
-            with sqlite3.connect('register_employee.db') as conn:
+            with sqlite3.connect('SQLite db/register_employee.db') as conn:
                 cursor=conn.cursor()
 
                 # Check the status before recording attendance
@@ -5162,7 +5162,7 @@ class EmployeeScanQrFrame(ctk.CTkFrame):
                 # Assuming 'status' is a tuple with a single element being the status
                 if status and status[0] in ['Active', 'On Leave']:
                     # Only proceed if the status is 'Active' or 'On Leave'
-                    with sqlite3.connect('employee_attendance_records.db') as attendance_conn:
+                    with sqlite3.connect('SQLite db/employee_attendance_records.db') as attendance_conn:
                         attendance_cursor=attendance_conn.cursor()
 
                         if attendance_type == "Time In":
@@ -5318,7 +5318,7 @@ class RecordsAttendanceFrame(ctk.CTkFrame):
         self.load_attendance_records()
 
         # Create attendance record sqlite database if it doesn't exist
-        conn=sqlite3.connect('employee_attendance_records.db')
+        conn=sqlite3.connect('SQLite db/employee_attendance_records.db')
         cursor=conn.cursor()
         cursor.execute('''
                    CREATE TABLE IF NOT EXISTS employee_attendance (
@@ -5336,7 +5336,7 @@ class RecordsAttendanceFrame(ctk.CTkFrame):
 
     def load_attendance_records(self):
         # Fetch attendance records from the database and populate the Treeview
-        conn=sqlite3.connect('employee_attendance_records.db')
+        conn=sqlite3.connect('SQLite db/employee_attendance_records.db')
         cursor=conn.cursor()
 
         try:
@@ -5439,7 +5439,7 @@ def register(full_name, contact_no, username, password, contact_no_entry, full_n
         return
 
     # Connect to SQLite database
-    conn=sqlite3.connect('registered_users.db')
+    conn=sqlite3.connect('SQLite db/registered_users.db')
     cursor=conn.cursor()
 
     try:
@@ -5542,7 +5542,6 @@ def is_valid_password(password):
 
 
 # PASSWORD VALIDATION
-
 def forgot_password():
     otp=''.join(random.choices(string.digits, k=6))
 
@@ -5552,7 +5551,7 @@ def forgot_password():
         if user_phone_number is None:
             break
         elif user_phone_number.startswith('0') and len(user_phone_number) == 11 and user_phone_number[1:].isdigit():
-            conn=sqlite3.connect('registered_users.db')
+            conn=sqlite3.connect('SQLite db/registered_users.db')
             cursor=conn.cursor()
             cursor.execute('SELECT * FROM accounts WHERE contact_no = ?', (user_phone_number,))
             registered_user=cursor.fetchone()
@@ -5571,7 +5570,7 @@ def forgot_password():
 
                     if new_username and new_password:
                         if is_valid_password(new_password):
-                            conn=sqlite3.connect('registered_users.db')
+                            conn=sqlite3.connect('SQLite db/registered_users.db')
                             cursor=conn.cursor()
                             cursor.execute('UPDATE accounts SET username = ?, password = ? WHERE contact_no = ?',
                                            (new_username, new_password, user_phone_number))
@@ -5608,7 +5607,7 @@ def create_login_window():
             return
 
         # Connect to SQLite database
-        conn=sqlite3.connect('registered_users.db')
+        conn=sqlite3.connect('SQLite db/registered_users.db')
         cursor=conn.cursor()
 
         # Check if the provided username and password match an account in the database
@@ -5634,7 +5633,7 @@ def create_login_window():
 
     login_window=ctk.CTk()
     login_window.geometry("400x550")
-    login_window.title("D'Grit Gym Management System")
+    login_window.title("Login")
     login_window.resizable(False, False)
 
     # Calculate the position to center the login window
@@ -5645,7 +5644,7 @@ def create_login_window():
     background_label=tk.Label(login_window, image=background_image)
     background_label.place(x=0, y=0, relwidth=1, relheight=1)
 
-    logo_image=ImageTk.PhotoImage(file="test_images/gym_dark.png")
+    logo_image=ImageTk.PhotoImage(file="templates/test_images/gym_dark.png")
     label=ctk.CTkLabel(login_window, text="", font=("arial", 20), image=logo_image, compound=tk.LEFT)
     label.pack(pady=20)
 
