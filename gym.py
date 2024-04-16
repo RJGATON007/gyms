@@ -5640,7 +5640,7 @@ def create_login_window():
     center_window(login_window, 400, 550)
 
     # Load and set the background image
-    background_image=ImageTk.PhotoImage(file="pat.png")
+    background_image=ImageTk.PhotoImage(file="templates/pat.png")
     background_label=tk.Label(login_window, image=background_image)
     background_label.place(x=0, y=0, relwidth=1, relheight=1)
 
