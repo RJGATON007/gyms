@@ -53,6 +53,7 @@ plans,and analytics. Reduced operating costs, better communication, more satisfa
 - FB: Robertjames Gaton (Software Engineer)
 
 # TO CONVERT THE FILE TO EXE, CONTACT ME FOR THE INSTRUCTIONS
+- or read setup.txt
 
 # FEEL FREE TO CONTRIBUTE TO THIS PROJECT
 
