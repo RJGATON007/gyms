@@ -1,6 +1,5 @@
 #   GYM MANAGEMENT SYSTEM WITH SMS SUPPORT
 
-![dash_white](https://github.com/RJGATON007/gyms/assets/89822716/1fa47e70-2bcd-4f92-af21-73c706e6af49)
 ![dash_black](https://github.com/RJGATON007/gyms/assets/89822716/4206759e-7872-4214-a638-7f7a6bbb6912)
 
 
