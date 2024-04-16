@@ -23,7 +23,7 @@ or
 ],
 
 IDE: PyCharm (Recommended)
-if VSCode is used, set up the python interpreter to the virtual environment created by the IDE
+if VSCode is used, setup .venv
 
 To run the program:
 - cd gyms
