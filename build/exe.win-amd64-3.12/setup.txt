@@ -1,0 +1,42 @@
+D'Grit Gym Management System with sms support
+
+Setup/Installation:
+- pip install -r requirements.txt
+or
+- pip install (install packages one by one)
+
+"packages": ["customtkinter",
+                 "tkinter",
+                 "pillow",
+                 "tkcalendar",
+                 "sqlite3",
+                 "random2",
+                 "datetime",
+                 "qrcode",
+                 "opencv-python",
+                 "numpy",
+                 "matplotlib",
+                 "pandas",
+                 "requests",
+                 "calendar",
+],
+
+IDE: PyCharm (Recommended)
+if VSCode is used, setup .venv
+
+To run the program:
+- cd gyms
+- python gym.py
+
+How to login?
+Username: Admin#11
+Password: Admin#11
+
+To convert the program into an executable file:
+- pip install cx-Freeze==7.0.0rc0 / or any Pre-released version if error occurs
+- python setup.py build
+
+if sms support is needed:
+please provide api key in all of send_sms function script (def send_sms) inside the gym.py file
+
+Note: The executable file will be created in the build folder within the project directory.
