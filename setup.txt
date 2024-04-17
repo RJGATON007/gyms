@@ -9,16 +9,14 @@ or
                  "tkinter",
                  "pillow",
                  "tkcalendar",
-                 "sqlite3",
                  "random2",
                  "datetime",
                  "qrcode",
                  "opencv-python",
-                 "numpy",
                  "matplotlib",
                  "pandas",
                  "requests",
-                 "calendar",
+                 "cx-Freeze==7.0.0rc0", # any pre-released version if error occurs
 ],
 
 IDE: PyCharm (Recommended)

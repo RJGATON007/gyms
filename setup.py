@@ -5,7 +5,6 @@ from cx_Freeze import setup, Executable
 
 build_exe_options = {
     "packages": [
-        "calendar",
         "customtkinter",
         "cv2",
         "datetime",
