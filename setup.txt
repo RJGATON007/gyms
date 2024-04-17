@@ -13,7 +13,6 @@ or
                  "random2",
                  "datetime",
                  "qrcode",
-                 "pyzbar",
                  "opencv-python",
                  "numpy",
                  "matplotlib",

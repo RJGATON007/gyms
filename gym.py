@@ -5644,7 +5644,7 @@ def create_login_window():
     background_label=tk.Label(login_window, image=background_image)
     background_label.place(x=0, y=0, relwidth=1, relheight=1)
 
-    logo_image=ImageTk.PhotoImage(file="templates/test_images/gym_dark.png")
+    logo_image=ImageTk.PhotoImage(file="templates/gym_dark.png")
     label=ctk.CTkLabel(login_window, text="", font=("arial", 20), image=logo_image, compound=tk.LEFT)
     label.pack(pady=20)
 
