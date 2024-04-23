@@ -4,6 +4,8 @@ from tkinter import messagebox, simpledialog, ttk
 from PIL import Image, ImageTk
 from tkcalendar import DateEntry
 import os
+import io
+import shutil
 import sqlite3
 import random
 import string
@@ -18,6 +20,7 @@ from dateutil.relativedelta import relativedelta
 from datetime import timedelta
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from tkinter import filedialog, PhotoImage
 
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("green")
@@ -548,7 +551,7 @@ def create_home_frame(home):
 
 # Graph
 def update_income_report(root, ax, canvas):
-    # Get the current month
+    # pass
     current_month=datetime.now().strftime('%Y-%m')
 
     # Connect to the members database
@@ -600,36 +603,33 @@ def update_income_report(root, ax, canvas):
 
 
 def update_visitors_income_report(root, ax, canvas):
-    # Get the current month
     current_month=datetime.now().strftime('%Y-%m')
 
     # Connect to the members database
     conn_visitors=sqlite3.connect('SQLite db/visitors_log.db')
     cursor_visitors=conn_visitors.cursor()
 
-    # Retrieve monthly visitor count and sort by month
-    cursor_visitors.execute(
-        "SELECT strftime('%Y-%m', time_start) as month, COUNT(*) FROM visitors GROUP BY month ORDER BY month")
-
+    # Retrieve monthly member count
+    cursor_visitors.execute("SELECT strftime('%Y-%m', time_start) as month, COUNT(*) FROM visitors GROUP BY month")
     visitors_data=cursor_visitors.fetchall()
 
     conn_visitors.close()
 
-    # Process visitor data
+    # Process member data
     merged_data={}
     for month, visitors_count in visitors_data:
-        merged_data[month]={'visitors': visitors_count * 50}
+        merged_data[month]={'Gymers': visitors_count * 50}
 
-    # Extract month labels and total visitor incomes
-    months=sorted(merged_data.keys())
-    visitor_incomes=[merged_data[month]['visitors'] for month in months]
+    # Extract month labels and total member incomes
+    months, visitor_incomes=zip(
+        *[(month, data['Gymers']) for month, data in merged_data.items()])
 
-    # Convert months to numerical indices
-    x=np.arange(len(months))
+    # Convert months to a NumPy array with a specific data type (e.g., float)
+    months_array=np.array(months, dtype=str)
 
     # Plot the monthly income report with inverted colors
     ax.clear()
-    visitors_bar=ax.bar(x, visitor_incomes, color='orange', alpha=0.7, label='Gymers')
+    visitor_bar=ax.bar(months_array, visitor_incomes, color='orange', alpha=0.7, label='Gymers')
     ax.set_ylabel('Income (PHP)')
 
     # Update the title based on the current month
@@ -639,16 +639,8 @@ def update_visitors_income_report(root, ax, canvas):
     # Show legend
     ax.legend()
 
-    # # Annotate each bar with the total income value and month
-    # for i, (bar, visitors_income, month) in enumerate(zip(visitors_bar, visitor_incomes, months)):
-    #     ax.text(bar.get_x() + bar.get_width() / 2, visitors_income,
-    #             f'{visitors_income} PHP', ha='center', va='bottom', color='black', fontweight='bold')
-    #     if month is not None:
-    #         ax.text(bar.get_x() + bar.get_width() / 2, -0.1 * max(visitor_incomes),
-    #                 f'{calendar.month_abbr[int(month.split("-")[1])]}', ha='center', va='bottom', color='black', fontweight='bold')
-
     # Annotate each bar with the total income value
-    for bar, visitors_income in zip(visitors_bar, visitor_incomes):
+    for bar, visitors_income in zip(visitor_bar, visitor_incomes):
         ax.text(bar.get_x() + bar.get_width() / 2, visitors_income,
                 f'{visitors_income} PHP', ha='center', va='bottom', color='black', fontweight='bold')
 
@@ -866,23 +858,31 @@ class RegistrationFrame(ctk.CTkFrame):
         # Bind the function to the <<ComboboxSelected>> event
         self.subscription_plan_entry.bind("<<ComboboxSelected>>", self.update_dates_on_subscription_change)
 
-        start_timestamp_label=ctk.CTkLabel(subscription_frame, text="Start:", font=label_font)
-        start_timestamp_label.grid(row=3, column=0, padx=20, pady=10, sticky="w")
+        # start_timestamp_label=ctk.CTkLabel(subscription_frame, text="Start:", font=label_font)
+        # start_timestamp_label.grid(row=3, column=0, padx=20, pady=10, sticky="w")
+        #
+        # # Use the existing start_timestamp_entry you created
+        # self.start_timestamp_entry=DateEntry(subscription_frame, width=20, date_pattern="yyyy-mm-dd")
+        # self.start_timestamp_entry.grid(row=3, column=1, padx=20, pady=15, sticky="w")
+        #
+        # end_timestamp_label=ctk.CTkLabel(subscription_frame, text="End:", font=label_font)
+        # end_timestamp_label.grid(row=4, column=0, padx=20, pady=10, sticky="w")
+        #
+        # # Use the existing end_timestamp_entry you created
+        # self.end_timestamp_entry=DateEntry(subscription_frame, width=20, date_pattern="yyyy-mm-dd")
+        # self.end_timestamp_entry.grid(row=4, column=1, padx=20, pady=15, sticky="w")
 
-        # Use the existing start_timestamp_entry you created
-        self.start_timestamp_entry=DateEntry(subscription_frame, width=20, date_pattern="yyyy-mm-dd")
-        self.start_timestamp_entry.grid(row=3, column=1, padx=20, pady=15, sticky="w")
+        # # disable the start and end date
+        # self.start_timestamp_entry.configure(state="disabled")
+        # self.end_timestamp_entry.configure(state="disabled")
 
-        end_timestamp_label=ctk.CTkLabel(subscription_frame, text="End:", font=label_font)
-        end_timestamp_label.grid(row=4, column=0, padx=20, pady=10, sticky="w")
+        # Button to trigger photo upload
+        upload_button = ctk.CTkButton(subscription_frame, text="Upload Photo", command=self.upload_photo)
+        upload_button.grid(row=3, column=0, padx=20, pady=10, sticky="w")
 
-        # Use the existing end_timestamp_entry you created
-        self.end_timestamp_entry=DateEntry(subscription_frame, width=20, date_pattern="yyyy-mm-dd")
-        self.end_timestamp_entry.grid(row=4, column=1, padx=20, pady=15, sticky="w")
-
-        # disable the start and end date
-        self.start_timestamp_entry.configure(state="disabled")
-        self.end_timestamp_entry.configure(state="disabled")
+        # Uploaded photo entry
+        self.uploaded_photo_entry=ctk.CTkEntry(subscription_frame, placeholder_text="")
+        self.uploaded_photo_entry.grid(row=3, column=1, padx=20, pady=10)
 
         # Reference to the user who owns the subscription
         user_reference_label=ctk.CTkLabel(subscription_frame, text="User Reference:", font=label_font)
@@ -914,8 +914,8 @@ class RegistrationFrame(ctk.CTkFrame):
         self.email_entry=email_entry
         self.emergency_contact_entry=emergency_contact_entry
         self.subscription_id_entry=self.subscription_id_entry
-        self.start_timestamp_entry=self.start_timestamp_entry
-        self.end_timestamp_entry=self.end_timestamp_entry
+        # self.start_timestamp_entry=self.start_timestamp_entry
+        # self.end_timestamp_entry=self.end_timestamp_entry
         self.user_reference_entry=user_reference_entry
 
         with sqlite3.connect('SQLite db/registration_form.db') as conn:
@@ -941,13 +941,47 @@ class RegistrationFrame(ctk.CTkFrame):
                        start_date DATE,
                        end_date DATE,
                        user_reference TEXT,
-                       status TEXT DEFAULT 'Ongoing'
+                       status TEXT DEFAULT 'Ongoing',
+                       photo_data BLOB
                    )
                ''')
+
+        # # to Add a new column to the table/ alter the name of the column, uncomment this.
+        # cursor.execute("ALTER TABLE registration ADD COLUMN photo_data TEXT")
 
         # Commit the changes and close the database connection
         conn.commit()
         conn.close()
+
+    def check_column_exists(self, registration, photo_data):
+        conn=sqlite3.connect(registration_form)
+        cursor=conn.cursor()
+
+        cursor.execute(f"PRAGMA table_info({registration})")
+        columns=cursor.fetchall()
+
+        for column in columns:
+            if column[1] == photo_data:
+                return True
+
+        return False
+
+    # Function to handle photo upload
+    def upload_photo(self):
+        filename=filedialog.askopenfilename(initialdir="/", title="Select Photo")
+        if filename:
+            try:
+                # Move the uploaded photo to the member_profile directory
+                member_profile_dir="templates/member_profile"
+                os.makedirs(member_profile_dir, exist_ok=True)
+                photo_path=os.path.join(member_profile_dir, os.path.basename(filename))
+                shutil.copy(filename, photo_path)
+
+                # Update the entry widget to display the filename
+                self.uploaded_photo_entry.delete(0, tk.END)
+                self.uploaded_photo_entry.insert(0, os.path.basename(photo_path))
+            except Exception as e:
+                messagebox.showerror("Error", f"Failed to upload photo: {str(e)}")
 
     def calculate_age(self, event):
         # Get the selected birthdate
@@ -981,7 +1015,7 @@ class RegistrationFrame(ctk.CTkFrame):
 
         if subscription_plan == "Weekly":
             start_date=current_date
-            end_date=start_date + timedelta(weeks=1)
+            end_date=start_date + timedelta(days=7)
         elif subscription_plan == "Monthly":
             start_date=current_date
             end_date=start_date + timedelta(weeks=4)
@@ -994,6 +1028,16 @@ class RegistrationFrame(ctk.CTkFrame):
         # Update the DateEntry widgets
         self.start_timestamp_entry.set_date(start_date.strftime('%Y-%m-%d'))
         self.end_timestamp_entry.set_date(end_date.strftime('%Y-%m-%d'))
+
+        # Save the start_date and end_date data in the database
+        with sqlite3.connect('SQLite db/registration_form.db') as conn:
+            cursor=conn.cursor()
+
+            # Insert the subscription information into the database
+            cursor.execute('''
+                INSERT INTO registration (start_date, end_date)
+                VALUES (?, ?)
+            ''', (start_date.strftime('%Y-%m-%d'), end_date.strftime('%Y-%m-%d')))
 
     @staticmethod
     def set_subscription_id():
@@ -1053,14 +1097,12 @@ class RegistrationFrame(ctk.CTkFrame):
         emergency_contact_no=self.emergency_contact_entry.get()
         subscription_id=self.set_subscription_id()
         subscription_plan=self.subscription_plan_entry.get()
-        start_date=self.start_timestamp_entry.get()
-        end_date=self.end_timestamp_entry.get()
         user_reference=self.user_reference_entry.get()
 
         # Validate the data
         if not (first_name and last_name and age and sex and birth_date and address and
                 nationality and contact_no and email and emergency_contact_no and
-                subscription_plan and start_date and end_date and user_reference):
+                subscription_plan and user_reference):
             messagebox.showerror("Validation Error", "All fields are required.")
             return
 
@@ -1069,14 +1111,14 @@ class RegistrationFrame(ctk.CTkFrame):
         except ValueError:
             messagebox.showerror("Validation Error", "Age must be a valid integer.")
             return
-        # create validation for the contact no. it must be started with no 0 for example: 09123456789
-        try:
-            contact_no=int(contact_no)
-        except ValueError:
-            messagebox.showerror("Validation Error", "Contact No must be 11-digit number.")
+
+        # Validate contact_no length
+        if len(contact_no) != 11:
+            messagebox.showerror("Validation Error", "Contact No must be an 11-digit number.")
+            return
 
         # Calculate the age based on the provided birthdate
-        birth_date_obj=datetime.strptime(birth_date, '%Y-%m-%d')
+        birth_date_obj = datetime.strptime(birth_date, '%Y-%m-%d')
         current_date=datetime.now()
         age=current_date.year - birth_date_obj.year - (
                 (current_date.month, current_date.day) < (birth_date_obj.month, birth_date_obj.day))
@@ -1084,28 +1126,6 @@ class RegistrationFrame(ctk.CTkFrame):
         # Create a connection to the database
         conn=sqlite3.connect('SQLite db/registration_form.db')
         cursor=conn.cursor()
-
-        # Calculate the expiration date
-        expiration_date=datetime.strptime(end_date, '%Y-%m-%d') if end_date else None
-
-        # Check if the end date is before the current date
-        current_date=datetime.now()
-        if expiration_date and expiration_date <= current_date:
-            status="Expired"
-        else:
-            status="Ongoing"
-
-        try:
-            age=int(age)
-        except ValueError:
-            messagebox.showerror("Validation Error", "Age must be a valid integer.")
-            return
-
-        try:
-            contact_no=int(contact_no)
-        except ValueError:
-            messagebox.showerror("Validation Error", "Contact No must be an 11-digit number.")
-            return
 
         # Calculate the expiration date based on the subscription plan
         if subscription_plan == "Weekly":
@@ -1118,22 +1138,28 @@ class RegistrationFrame(ctk.CTkFrame):
             messagebox.showerror("Validation Error", "Invalid subscription plan.")
             return
 
-        start_date=datetime.strptime(start_date, '%Y-%m-%d')
+        start_date=datetime.now()
         end_date=start_date + duration
 
         # Format the date to include only the date part
         start_date_str=start_date.strftime('%Y-%m-%d')
         end_date_str=end_date.strftime('%Y-%m-%d')
 
+        # Read the binary data of the photo from the member_profile directory
+        photo_file_name=self.uploaded_photo_entry.get()
+        photo_file_path=os.path.join("templates/member_profile", photo_file_name)
+        with open(photo_file_path, 'rb') as file:
+            photo_data=file.read()
+
         # Insert the data into the database
         cursor.execute('''
-            INSERT INTO registration (first_name, middle_name, last_name, age, sex, birth_date, address,
-                                    nationality, contact_no, email, emergency_contact_no, subscription_id,
-                                    subscription_plan, start_date, end_date, user_reference)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+           INSERT INTO registration (first_name, middle_name, last_name, age, sex, birth_date, address,
+                                   nationality, contact_no, email, emergency_contact_no, subscription_id,
+                                   subscription_plan, start_date, end_date, user_reference, photo_data)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (first_name, middle_name, last_name, age, sex, birth_date, address, nationality, contact_no,
               email, emergency_contact_no, subscription_id, subscription_plan, start_date_str, end_date_str,
-              user_reference))
+              user_reference, sqlite3.Binary(photo_data)))
 
         # Commit the changes and close the database connection
         conn.commit()
@@ -1189,6 +1215,9 @@ class ViewFrame(ctk.CTkFrame):
 
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
+
+        # Define self.edit_form
+        self.edit_form=None
 
         # Define and configure widgets within the frame
         label=ctk.CTkLabel(self, text="Gym Members' Information", font=("Arial bold", 28))
@@ -1311,15 +1340,19 @@ class ViewFrame(ctk.CTkFrame):
         self.destroy()
 
     def edit_record(self):
-        selected_item=self.table.selection()
-        if selected_item:
-            record_data=self.table.item(selected_item)["values"]
-
-            if record_data:
-                # Assuming 'id' is the first element and 'first_name' is the second element in the 'values' list
-                id_value=record_data[0]
-                first_name=record_data[1]
-                edit_form=EditForm(self, first_name, id_value, self.table)
+        # Check if an instance of EditForm already exists
+        if self.edit_form is None or not self.edit_form.winfo_exists():
+            selected_item=self.table.selection()
+            if selected_item:
+                record_data=self.table.item(selected_item)["values"]
+                if record_data:
+                    # Assuming 'id' is the first element and 'first_name' is the second element in the 'values' list
+                    id_value=record_data[0]
+                    first_name=record_data[1]
+                    self.edit_form=EditForm(self, first_name, id_value, self.table)
+        else:
+            # If the instance exists, bring it to the front
+            self.edit_form.lift()
 
 
 class EditForm(ctk.CTkToplevel):
@@ -1337,7 +1370,7 @@ class EditForm(ctk.CTkToplevel):
         screen_width=self.winfo_screenwidth()
         screen_height=self.winfo_screenheight()
         x=(screen_width - window_width) // 2
-        y=(screen_height - window_height) // 5
+        y=(screen_height - window_height) // 6
         self.geometry(f"+{x}+{y}")
 
         # Create a connection to the database
@@ -1355,15 +1388,29 @@ class EditForm(ctk.CTkToplevel):
 
         # Create and configure widgets within the edit form
         label=ctk.CTkLabel(self, text="Edit Member Information", font=("Arial bold", 20))
-        label.pack(pady=10)
+        label.pack(pady=5)
 
         # Create a frame to hold edit form frames
         main_frame=ctk.CTkFrame(self)
         main_frame.pack(fill="both", expand=True)
 
+        # Display the photo stored as BLOB data
+        photo_blob=self.member_data[-1]  # Assuming the photo is stored in the last column
+        photo=Image.open(io.BytesIO(photo_blob))
+        photo=photo.resize((150, 150), Image.LANCZOS)
+        photo=ImageTk.PhotoImage(photo)
+        photo_label=ctk.CTkLabel(main_frame, text="", image=photo)
+        photo_label.image=photo
+        photo_label.pack(pady=10, padx=10)
+
+        change_button_frame=ctk.CTkFrame(main_frame)
+        change_button_frame.pack(pady=5, padx=10)
+        change_photo_button=ctk.CTkButton(change_button_frame, text="Change Image", command=self.change_photo)
+        change_photo_button.pack(pady=5, padx=10)
+
         # Create a frame to hold the form fields with custom width and height
-        edit_frame=ctk.CTkScrollableFrame(main_frame, width=450, height=300)
-        edit_frame.pack(pady=10, padx=20)
+        edit_frame=ctk.CTkScrollableFrame(main_frame, width=450, height=200)
+        edit_frame.pack(pady=5, padx=20)
 
         # Define a custom font style for entry labels
         label_font=ctk.CTkFont(family="Arial", size=16, weight="bold")
@@ -1384,10 +1431,12 @@ class EditForm(ctk.CTkToplevel):
 
         # Display the qr code of the member inside the edit form
         qr_code_frame=ctk.CTkFrame(edit_frame)
-        qr_code_frame.grid(row=17, column=1, rowspan=16, padx=10, pady=10)
+        qr_code_frame.grid(row=19, column=1, rowspan=16, padx=10, pady=10)  # Adjust the row as needed
 
         label=ctk.CTkLabel(edit_frame, text="QR Code:", font=("Arial bold", 16))
-        label.grid(row=17, column=0, padx=10, pady=10, sticky="w")
+        label.grid(row=17, column=1, padx=10, pady=10, sticky="w")
+
+        # download button
 
         download_button_frame=ctk.CTkFrame(edit_frame)
         download_button_frame.grid(row=50, column=1, rowspan=50, padx=10, pady=10)
@@ -1406,35 +1455,35 @@ class EditForm(ctk.CTkToplevel):
         qr_code_label.pack(pady=10, padx=10)
 
         frame_buttons=ctk.CTkFrame(main_frame)
-        frame_buttons.pack(pady=10, padx=10)
+        frame_buttons.pack(pady=5, padx=10)
 
         # create frame to hold the buttons
         update_button_frame=ctk.CTkFrame(frame_buttons)
-        update_button_frame.grid(row=0, column=0, padx=10, pady=10)
+        update_button_frame.grid(row=0, column=0, padx=10, pady=5)
 
         # Create an "Update" button
         update_button=ctk.CTkButton(update_button_frame, text="Update", command=self.update_record)
-        update_button.grid(row=0, column=0, padx=10, pady=10)
+        update_button.grid(row=0, column=0, padx=10, pady=5)
 
         # create a frame to hold the delete button
         delete_button_frame=ctk.CTkFrame(frame_buttons)
-        delete_button_frame.grid(row=0, column=1, padx=10, pady=10)
+        delete_button_frame.grid(row=0, column=1, padx=10, pady=5)
 
         # Create Red Delete button
         delete_button=ctk.CTkButton(delete_button_frame, text="Delete", fg_color="Red",
                                     text_color=("gray10", "gray90"),
                                     hover_color=("red3", "red4"), command=self.delete_record)
-        delete_button.grid(row=0, column=0, padx=10, pady=10)
+        delete_button.grid(row=0, column=0, padx=10, pady=5)
 
         # renew button
         renew_button_frame=ctk.CTkFrame(main_frame)
-        renew_button_frame.pack(pady=10, padx=10)
+        renew_button_frame.pack(pady=5, padx=10)
 
         # Create a "Renew" button blue
         renew_button=ctk.CTkButton(renew_button_frame, text="Renew", fg_color="Blue",
                                    text_color=("gray10", "gray90"),
                                    hover_color=("blue3", "blue4"), command=self.renew_membership)
-        renew_button.pack(pady=10, padx=10)
+        renew_button.pack(pady=5, padx=10)
 
         # Store the reference to the 'table' in EditForm
         self.table=table_reference
@@ -1445,6 +1494,29 @@ class EditForm(ctk.CTkToplevel):
 
         # Create an instance of RenewSubscriptionFrame
         renew_subscription_frame=RenewSubscriptionFrame(self, self.member_data[0], self.table)
+
+    # create a change photo function
+    def change_photo(self):
+        # Open file dialog to select new photo
+        self.grab_set()
+        self.focus_force()
+        file_path=filedialog.askopenfilename(filetypes=[("Image files", "*.jpg;*.jpeg;*.png")])
+        self.grab_release()
+        if file_path:
+            # Load the selected image and display it
+            new_photo=Image.open(file_path)
+            new_photo=new_photo.resize((150, 150), Image.LANCZOS)
+            self.photo=ImageTk.PhotoImage(new_photo)
+            if hasattr(self, 'photo_label'):  # Check if photo_label exists
+                self.photo_label.configure(image=self.photo)
+                self.photo_label.image=self.photo
+
+            # Update the BLOB image data in the database
+            with open(file_path, 'rb') as file:
+                photo_data=file.read()
+            self.cursor.execute("UPDATE registration SET photo_data = ? WHERE id = ?",
+                                (sqlite3.Binary(photo_data), self.member_data[0]))  # Assuming id is the first column
+            self.conn.commit()
 
     # Download qr code
     def download_qr_code(self):
@@ -2375,29 +2447,37 @@ class RegistrationEquipment(ctk.CTkFrame):
         # Create a connection to the database (or create it if it doesn't exist)
         conn=sqlite3.connect('SQLite db/register_equipment.db')
 
-        # Create a cursor object to interact with the database
-        cursor=conn.cursor()
+        try:
+            # Create a cursor object to interact with the database
+            cursor=conn.cursor()
 
-        # Create a table to store registration information
-        cursor.execute('''
-                       CREATE TABLE IF NOT EXISTS equipment (
-                           id INTEGER PRIMARY KEY AUTOINCREMENT,
-                            equipment_name TEXT NOT NULL,
-                            equipment_brand TEXT NOT NULL,
-                            equipment_model TEXT NOT NULL,
-                            equipment_serial_number TEXT NOT NULL,
-                            equipment_quantity TEXT NOT NULL,
-                            equipment_condition TEXT NOT NULL,
-                            equipment_type TEXT NOT NULL,
-                            equipment_status TEXT NOT NULL,
-                            equipment_location TEXT NOT NULL,
-                            equipment_training_required TEXT NOT NULL
-                       )
-                   ''')
+            # Create a table to store registration information
+            cursor.execute('''
+                           CREATE TABLE IF NOT EXISTS equipment (
+                               id INTEGER PRIMARY KEY AUTOINCREMENT,
+                                equipment_name TEXT NOT NULL,
+                                equipment_brand TEXT NOT NULL,
+                                equipment_model TEXT NOT NULL,
+                                equipment_serial_number TEXT NOT NULL,
+                                equipment_quantity TEXT NOT NULL,
+                                equipment_condition TEXT NOT NULL,
+                                equipment_type TEXT NOT NULL,
+                                equipment_status TEXT NOT NULL,
+                                equipment_location TEXT NOT NULL,
+                                equipment_training_required TEXT NOT NULL
+                           )
+                       ''')
 
-        # Commit the changes and close the database connection
-        conn.commit()
-        conn.close()
+            # Commit the changes
+            conn.commit()
+            print("Table 'equipment' created successfully.")
+
+        except sqlite3.Error as e:
+            print(f"Error creating table: {e}")
+
+        finally:
+            # Close the database connection
+            conn.close()
 
     def register_equipment_info(self):
         # Gather data from the form fields
@@ -2432,13 +2512,6 @@ class RegistrationEquipment(ctk.CTkFrame):
         # Show a success message
         messagebox.showinfo("Registration Successful", "equipment registered successfully!")
 
-        # Clear all form fields
-        for entry in [self.equipment_name_entry, self.equipment_brand_entry, self.equipment_model_entry,
-                      self.equipment_serial_number_entry, self.equipment_quantity_entry, self.equipment_condition_entry,
-                      self.equipment_type_entry, self.equipment_status_entry, self.equipment_location_entry,
-                      self.equipment_training_required_entry]:
-            entry.delete(0, tk.END)
-
         # Set ComboBox and DateEntry widgets to default or empty values
         self.equipment_condition_entry.set("")
         self.equipment_type_entry.set("")
@@ -2465,7 +2538,7 @@ class EquipmentRecords(ctk.CTkFrame):
 
         # Get only the specific columns from the database
         cursor.execute(
-            "SELECT id, equipment_name, equipment_quantity, equipment_type, equipment_status, equipment_training_required FROM equipment")
+            "SELECT equipment_name, equipment_quantity, equipment_type, equipment_status, equipment_training_required FROM equipment")
         records=cursor.fetchall()
 
         # Create a frame that holds the table
@@ -2495,7 +2568,7 @@ class EquipmentRecords(ctk.CTkFrame):
 
         # Create a table to display the records
         self.table=ttk.Treeview(table_frame, columns=(
-            "ID", "Equipment Name", "Quantity", "Type", "Status",
+            "Equipment Name", "Quantity", "Type", "Status",
             "Training Required"), show="headings", height=10)
         self.table.pack(side=tk.LEFT)
 
@@ -2505,7 +2578,6 @@ class EquipmentRecords(ctk.CTkFrame):
         self.table.configure(yscrollcommand=self.scrollbar.set)
 
         # Configure the columns
-        self.table.heading("ID", text="ID")
         self.table.heading("Equipment Name", text="Equipment Name")
         self.table.heading("Quantity", text="Quantity")
         self.table.heading("Type", text="Type")
@@ -2514,7 +2586,6 @@ class EquipmentRecords(ctk.CTkFrame):
 
         # Define the column headings and their alignment
         columns=[
-            ("ID", "center"),
             ("Equipment Name", "center"),
             ("Quantity", "center"),
             ("Type", "center"),
@@ -2528,12 +2599,11 @@ class EquipmentRecords(ctk.CTkFrame):
 
         # Column width
         columns=[
-            ("ID", 100),
-            ("Equipment Name", 200),
+            ("Equipment Name", 300),
             ("Quantity", 200),
             ("Type", 200),
             ("Status", 200),
-            ("Training Required", 300)
+            ("Training Required", 200)
         ]
 
         for col, width in columns:
@@ -2569,42 +2639,13 @@ class EquipmentRecords(ctk.CTkFrame):
     def edit_record(self):
         selected_item=self.table.selection()
         if selected_item:
-            record_data=self.table.item(selected_item)["values"]
+            equipment_data=self.table.item(selected_item)["values"]
 
-            if record_data:
-                # Assuming 'id' is the first element and 'first_name' is the second element in the 'values' list
-                id_value=record_data[0]
-                equipment_name=record_data[1]
+            if equipment_data:
+                # Assuming 'id' is the first element and 'equipment_name' is the second element in the 'values' list
+                id_value=equipment_data[0]
+                equipment_name=equipment_data[1]
                 edit_record=EditRecord(self, equipment_name, id_value, self.table)
-
-    def delete_record(self):
-        # Get the selected item (record) from the Treeview
-        selected_item=self.table.selection()
-        if selected_item:
-            # Prompt the user for confirmation
-            confirm=messagebox.askyesno("Delete Record", "Are you sure you want to delete this record?")
-            if confirm:
-                # Retrieve the data of the selected record from the Treeview
-                record_data=self.table.item(selected_item)['values']
-
-                # Delete the selected record from the database based on the 'First Name' column
-                if record_data:
-                    id=record_data[0]  # Assuming 'First Name' is the first column in the 'values' list
-                    conn=sqlite3.connect('SQLite db/register_equipment.db')
-                    cursor=conn.cursor()
-                    try:
-                        cursor.execute("DELETE FROM equipment WHERE id=?", (id,))
-                        conn.commit()  # Commit the changes to the database
-                        print("Record deleted successfully.")
-                    except sqlite3.Error as e:
-                        messagebox.showerror("Error", f"Error deleting record: {e}")
-                        print(f"Error deleting record: {e}")
-                    finally:
-                        cursor.close()  # Close the cursor
-                        conn.close()  # Close the database connection
-
-                    # Remove the selected item from the Treeview
-                    self.table.delete(selected_item)
 
 
 class EditRecord(ctk.CTkToplevel):
@@ -2629,12 +2670,14 @@ class EditRecord(ctk.CTkToplevel):
         self.conn=sqlite3.connect('SQLite db/register_equipment.db')
         self.cursor=self.conn.cursor()
 
-        # Fetch data for the specified member using the provided 'id_value'
-        self.cursor.execute("SELECT * FROM equipment WHERE id=?", (id_value,))
-        self.member_data=self.cursor.fetchone()
+        # Fetch data for the specified equipment using the provided 'id_value'
+        print("ID Value:", id_value)  # Debugging
+        self.cursor.execute("SELECT * FROM equipment WHERE equipment_name=?", (id_value,))
+        self.equipment_data=self.cursor.fetchone()
+        print("Equipment Data:", self.equipment_data)  # Debugging
 
-        if self.member_data is None:
-            messagebox.showerror("Member Not Found", "Member not found in the database.")
+        if self.equipment_data is None:
+            messagebox.showerror("Equipment Not Found", "Equipment not found in the database.")
             self.destroy()
             return
 
@@ -2665,7 +2708,7 @@ class EditRecord(ctk.CTkToplevel):
             label.grid(row=i, column=0, padx=10, pady=5, sticky="w")
             entry=ctk.CTkEntry(edit_frame)
             entry.grid(row=i, column=1, padx=10, pady=5, ipadx=10, ipady=3)
-            entry.insert(0, self.member_data[i + 1])  # Fill with data from the database
+            entry.insert(0, self.equipment_data[i + 1])  # Fill with data from the database
             self.entry_fields.append(entry)
 
         # Create a frame to hold the buttons
@@ -2702,7 +2745,7 @@ class EditRecord(ctk.CTkToplevel):
         conn=sqlite3.connect('SQLite db/register_equipment.db')
         cursor=conn.cursor()
         cursor.execute(
-            "SELECT id, equipment_name, equipment_quantity, equipment_type, equipment_status, equipment_training_required FROM equipment")
+            "SELECT equipment_name, equipment_quantity, equipment_type, equipment_status, equipment_training_required FROM equipment")
         records=cursor.fetchall()
         for record in records:
             self.table.insert("", tk.END, values=record)
@@ -2722,7 +2765,7 @@ class EditRecord(ctk.CTkToplevel):
         # Continue with the update logic
         try:
             # Append the id_value for the specific record to be updated
-            updated_data.append(self.member_data[0])
+            updated_data.append(self.equipment_data[0])
 
             self.cursor.execute('''
                     UPDATE equipment SET 
@@ -2751,17 +2794,22 @@ class EditRecord(ctk.CTkToplevel):
             confirm=messagebox.askyesno("Delete Record", "Are you sure you want to delete this record?")
             if confirm:
                 # Retrieve the data of the selected record from the Treeview
-                record_data=self.table.item(selected_item)['values']
+                equipment_data=self.table.item(selected_item)['values']
 
-                # Delete the selected record from the database based on the 'First Name' column
-                if record_data:
-                    id_value=record_data[0]  # Assuming 'ID' is the first column in the 'values' list
+                # Delete the selected record from the database based on the 'ID' column
+                if equipment_data:
+                    id_value=equipment_data[0]  # Assuming 'ID' is the first column in the 'values' list
                     conn=sqlite3.connect('SQLite db/register_equipment.db')
                     cursor=conn.cursor()
                     try:
-                        cursor.execute("DELETE FROM equipment WHERE id=?", (id_value,))
-                        conn.commit()  # Commit the changes to the database
-                        print("Record deleted successfully.")
+                        cursor.execute("SELECT * FROM equipment WHERE equipment_name=?", (id_value,))
+                        record=cursor.fetchone()
+                        if record:
+                            cursor.execute("DELETE FROM equipment WHERE equipment_name=?", (id_value,))
+                            conn.commit()  # Commit the changes to the database
+                            print("Record deleted successfully.")
+                        else:
+                            messagebox.showerror("Error", "Record not found in the database.")
                     except sqlite3.Error as e:
                         messagebox.showerror("Error", f"Error deleting record: {e}")
                         print(f"Error deleting record: {e}")
@@ -3325,7 +3373,7 @@ class EditTrainerForm(ctk.CTkToplevel):
         self.trainer_data=self.cursor.fetchone()
 
         if self.trainer_data is None:
-            messagebox.showerror("Member Not Found", "Member not found in the database.")
+            messagebox.showerror("Trainer Not Found", "Trainer not found in the database.")
             self.destroy()
             return
 
