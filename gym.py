@@ -877,11 +877,11 @@ class RegistrationFrame(ctk.CTkFrame):
         # self.end_timestamp_entry.configure(state="disabled")
 
         # Button to trigger photo upload
-        upload_button = ctk.CTkButton(subscription_frame, text="Upload Photo", command=self.upload_photo)
+        upload_button=ctk.CTkButton(subscription_frame, text="Upload Photo", command=self.upload_photo)
         upload_button.grid(row=3, column=0, padx=20, pady=10, sticky="w")
 
         # Uploaded photo entry
-        self.uploaded_photo_entry=ctk.CTkEntry(subscription_frame, placeholder_text="")
+        self.uploaded_photo_entry=ctk.CTkEntry(subscription_frame, placeholder_text=".png/.jpg/etc")
         self.uploaded_photo_entry.grid(row=3, column=1, padx=20, pady=10)
 
         # Reference to the user who owns the subscription
@@ -1118,7 +1118,7 @@ class RegistrationFrame(ctk.CTkFrame):
             return
 
         # Calculate the age based on the provided birthdate
-        birth_date_obj = datetime.strptime(birth_date, '%Y-%m-%d')
+        birth_date_obj=datetime.strptime(birth_date, '%Y-%m-%d')
         current_date=datetime.now()
         age=current_date.year - birth_date_obj.year - (
                 (current_date.month, current_date.day) < (birth_date_obj.month, birth_date_obj.day))
@@ -2914,11 +2914,11 @@ class TrainerFrame(ctk.CTkFrame):
 
         # create frame to hold all the widget frames
         widget_frames=ctk.CTkFrame(outer_frame)
-        widget_frames.pack(pady=10, padx=10)
+        widget_frames.pack(pady=5, padx=10)
 
         # Create a frame to hold the form fields
         first_frame=ctk.CTkFrame(widget_frames)
-        first_frame.grid(row=0, column=0, padx=10, pady=10)
+        first_frame.grid(row=0, column=0, padx=10, pady=5)
         personal_info_frame=ctk.CTkFrame(first_frame)
         personal_info_frame.pack(pady=10, padx=10)
 
@@ -2971,7 +2971,7 @@ class TrainerFrame(ctk.CTkFrame):
         address_entry.grid(row=8, column=1, padx=20, pady=5)
 
         second_frame=ctk.CTkFrame(widget_frames)
-        second_frame.grid(row=0, column=1, padx=10, pady=10)
+        second_frame.grid(row=0, column=1, padx=10, pady=5)
         contact_frame=ctk.CTkFrame(second_frame)
         contact_frame.pack(pady=10, padx=10)
 
@@ -2996,29 +2996,31 @@ class TrainerFrame(ctk.CTkFrame):
         contact_no_entry=ctk.CTkEntry(contact_frame, placeholder_text="+63 9123456789")
         contact_no_entry.pack(pady=0, padx=10, fill="x")
 
-        # Email Address
-        email_label=ctk.CTkLabel(contact_frame, text="Email Address:", font=label_font)
-        email_label.pack(pady=0, padx=10, anchor="w")
-        email_entry=ctk.CTkEntry(contact_frame, placeholder_text="example@gmail.com")
-        email_entry.pack(pady=0, padx=10, fill="x")
-
         # Emergency Contact No
         emergency_contact_label=ctk.CTkLabel(contact_frame, text="Emergency Contact No:", font=label_font)
         emergency_contact_label.pack(pady=0, padx=10, anchor="w")
         emergency_contact_entry=ctk.CTkEntry(contact_frame, placeholder_text="+63 9123456789")
         emergency_contact_entry.pack(pady=10, padx=10, fill="x")
 
+        # Button to trigger photo upload
+        upload_button=ctk.CTkButton(contact_frame, text="Upload Photo", command=self.upload_trainer_photo)
+        upload_button.pack(pady=5, padx=10, fill="x")
+
+        # Uploaded photo entry
+        self.uploaded_photo_entry=ctk.CTkEntry(contact_frame, placeholder_text=".png/.jpg/etc")
+        self.uploaded_photo_entry.pack(pady=5, padx=10, fill="x")
+
         # Create a "Register" button
         register_button=ctk.CTkButton(outer_frame, text="Register", fg_color="Green",
                                       text_color=("gray10", "gray90"),
                                       hover_color=("green3", "green4"),
                                       command=self.register_subscription)
-        register_button.pack(pady=20, side=tk.TOP)
+        register_button.pack(pady=5, side=tk.TOP)
 
         # Create a "Back" button to return to the previous frame
         back_button=ctk.CTkButton(self, text="Back", fg_color="Red", text_color=("gray10", "gray90"),
                                   hover_color=("red3", "red4"), command=self.back_button_event)
-        back_button.pack(pady=20, side=tk.TOP)
+        back_button.pack(pady=5, side=tk.TOP)
 
         # Store the Entry fields and other widgets as instance attributes
         self.first_name_entry=first_name_entry
@@ -3029,7 +3031,6 @@ class TrainerFrame(ctk.CTkFrame):
         self.address_entry=address_entry
         self.nationality_combo=nationality_combo
         self.contact_no_entry=contact_no_entry
-        self.email_entry=email_entry
         self.emergency_contact_entry=emergency_contact_entry
 
         # Create a connection to the database (or create it if it doesn't exist)
@@ -3051,14 +3052,34 @@ class TrainerFrame(ctk.CTkFrame):
                        address TEXT,
                        nationality TEXT,
                        contact_no TEXT,
-                       email TEXT,
                        emergency_contact_no TEXT,
-                       status TEXT DEFAULT 'Active'
+                       status TEXT DEFAULT 'Active',
+                       photo_data BLOB
                    )
                ''')
 
+        # # # to Add a new column to the table/ alter the name of the column, uncomment this.
+        # cursor.execute("ALTER TABLE trainer ADD COLUMN photo_data BLOB")
+
         # Commit the changes
         conn.commit()
+
+    def upload_trainer_photo(self):
+        filename=filedialog.askopenfilename(initialdir="/", title="Select Photo")
+        if filename:
+            try:
+                # Move the uploaded photo to the member_profile directory
+                trainer_profile_dir="templates/trainer_profile"
+                os.makedirs(trainer_profile_dir, exist_ok=True)
+                photo_path=os.path.join(trainer_profile_dir, os.path.basename(filename))
+                shutil.copy(filename, photo_path)
+
+                # Update the entry widget to display the filename
+                self.uploaded_photo_entry.delete(0, tk.END)
+                self.uploaded_photo_entry.insert(0, os.path.basename(photo_path))
+                print("Photo uploaded successfully.")
+            except Exception as e:
+                messagebox.showerror("Error", f"Failed to upload photo: {str(e)}")
 
     def calculate_age(self, event):
         # Get the selected birthdate
@@ -3131,14 +3152,13 @@ class TrainerFrame(ctk.CTkFrame):
         address=self.address_entry.get()
         nationality=self.nationality_combo.get()
         contact_no=self.contact_no_entry.get()
-        email=self.email_entry.get()
         emergency_contact_no=self.emergency_contact_entry.get()
 
         # Validate the data (you can add your validation logic here)
 
         # Validate the data
         if not (first_name and last_name and age and sex and birth_date and address and
-                nationality and contact_no and email and emergency_contact_no):
+                nationality and contact_no and emergency_contact_no):
             messagebox.showerror("Validation Error", "All fields are required.")
             return
 
@@ -3153,16 +3173,22 @@ class TrainerFrame(ctk.CTkFrame):
         cursor=conn.cursor()
 
         status='Active'
+
+        # Read the binary data of the photo from the member_profile directory
+        photo_file_name=self.uploaded_photo_entry.get()
+        photo_file_path=os.path.join("templates/trainer_profile", photo_file_name)
+        with open(photo_file_path, 'rb') as file:
+            photo_data=file.read()
+
         cursor.execute('''
             INSERT INTO trainer (
                 first_name, middle_name, last_name, age, sex, birth_date, address,
-                nationality, contact_no, email, emergency_contact_no, status
+                nationality, contact_no, emergency_contact_no, status, photo_data
             )
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (
             first_name, middle_name, last_name, age, sex, birth_date, address,
-            nationality, contact_no, email, emergency_contact_no, status
-        ))
+            nationality, contact_no, emergency_contact_no, status, sqlite3.Binary(photo_data)))
 
         # Commit the changes and close the database connection
         conn.commit()
@@ -3200,14 +3226,8 @@ class TrainerFrame(ctk.CTkFrame):
 
         # Clear all form fields
         for entry in [self.first_name_entry, self.middle_name_entry, self.last_name_entry, self.age_entry,
-                      self.address_entry, self.contact_no_entry, self.email_entry,
-                      self.emergency_contact_entry]:
+                      self.address_entry, self.contact_no_entry, self.emergency_contact_entry]:
             entry.delete(0, tk.END)
-
-        # Set ComboBox and DateEntry widgets to default or empty values
-        self.sex_entry.set("Male")
-        self.birth_date_entry.set_date("")
-        self.nationality_combo.set("Select Nationality")
 
     def back_button_event(self):
         self.destroy()
@@ -3385,16 +3405,30 @@ class EditTrainerForm(ctk.CTkToplevel):
         main_frame=ctk.CTkFrame(self)
         main_frame.pack(fill="both", expand=True)
 
+        # Display the photo stored as BLOB data
+        photo_blob=self.trainer_data[-1]  # Assuming the photo is stored in the last column
+        photo=Image.open(io.BytesIO(photo_blob))
+        photo=photo.resize((150, 150), Image.LANCZOS)
+        photo=ImageTk.PhotoImage(photo)
+        photo_label=ctk.CTkLabel(main_frame, text="", image=photo)
+        photo_label.image=photo
+        photo_label.pack(pady=5, padx=10)
+
+        change_button_frame=ctk.CTkFrame(main_frame)
+        change_button_frame.pack(pady=10, padx=10)
+        change_photo_button=ctk.CTkButton(change_button_frame, text="Change Image", command=self.change_photo)
+        change_photo_button.pack(pady=5, padx=10)
+
         # Create a frame to hold the form fields with custom width and height
-        edit_frame=ctk.CTkScrollableFrame(main_frame, width=450, height=300)
-        edit_frame.pack(pady=20, padx=20)
+        edit_frame=ctk.CTkScrollableFrame(main_frame, width=450, height=200)
+        edit_frame.pack(pady=5, padx=20)
 
         # Define a custom font style for entry labels
         label_font=ctk.CTkFont(family="Arial", size=16, weight="bold")
 
         # Create labels and entry fields for editing the record
         labels=["First Name:", "Middle Name:", "Last Name:", "Age:", "Sex:", "Date of Birth:", "Address:",
-                "Nationality:", "Contact No:", "Email Address:", "Emergency Contact No:", "Status:"]
+                "Nationality:", "Contact No:", "Emergency Contact No:", "Status:"]
         self.entry_fields=[]
         self.status_combobox=None  # Initialize status_combobox attribute
 
@@ -3407,7 +3441,7 @@ class EditTrainerForm(ctk.CTkToplevel):
                 status_values=["Active", "Inactive", "On Leave"]
                 self.status_combobox=ctk.CTkComboBox(edit_frame, values=status_values)
                 self.status_combobox.grid(row=i, column=1, padx=10, pady=5, ipadx=10, ipady=3)
-                self.status_combobox.set(self.trainer_data[12])
+                self.status_combobox.set(self.trainer_data[11])
 
                 self.entry_fields.append(self.status_combobox)
             else:
@@ -3440,28 +3474,50 @@ class EditTrainerForm(ctk.CTkToplevel):
         qr_code_label.pack(pady=10, padx=10)
 
         frame_buttons=ctk.CTkFrame(main_frame)
-        frame_buttons.pack(pady=20, padx=20)
+        frame_buttons.pack(pady=10, padx=20)
 
         # create frame to hold the buttons
         update_button_frame=ctk.CTkFrame(frame_buttons)
-        update_button_frame.grid(row=0, column=0, padx=20, pady=20)
+        update_button_frame.grid(row=0, column=0, padx=20, pady=10)
 
         # Create an "Update" button
         update_button=ctk.CTkButton(update_button_frame, text="Update", command=self.update_record)
-        update_button.grid(row=0, column=0, padx=20, pady=20)
+        update_button.grid(row=0, column=0, padx=20, pady=5)
 
         # create a frame to hold the delete button
         delete_button_frame=ctk.CTkFrame(frame_buttons)
-        delete_button_frame.grid(row=0, column=1, padx=20, pady=20)
+        delete_button_frame.grid(row=0, column=1, padx=20, pady=10)
 
         # Create Red Delete button
         delete_button=ctk.CTkButton(delete_button_frame, text="Delete", fg_color="Red",
                                     text_color=("gray10", "gray90"),
                                     hover_color=("red3", "red4"), command=self.delete_record)
-        delete_button.grid(row=0, column=0, padx=20, pady=20)
+        delete_button.grid(row=0, column=0, padx=20, pady=5)
 
         # Store the reference to the 'table' in EditForm
         self.table=table_reference
+
+    def change_photo(self):
+        # Open file dialog to select new photo
+        self.grab_set()
+        self.focus_force()
+        file_path=filedialog.askopenfilename(filetypes=[("Image files", "*.jpg;*.jpeg;*.png")])
+        self.grab_release()
+        if file_path:
+            # Load the selected image and display it
+            new_photo=Image.open(file_path)
+            new_photo=new_photo.resize((150, 150), Image.LANCZOS)
+            self.photo=ImageTk.PhotoImage(new_photo)
+            if hasattr(self, 'photo_label'):  # Check if photo_label exists
+                self.photo_label.configure(image=self.photo)
+                self.photo_label.image=self.photo
+
+            # Update the BLOB image data in the database
+            with open(file_path, 'rb') as file:
+                photo_data=file.read()
+            self.cursor.execute("UPDATE trainer SET photo_data = ? WHERE id = ?",
+                                (sqlite3.Binary(photo_data), self.trainer_data[0]))  # Assuming id is the first column
+            self.conn.commit()
 
     def download_qr_code(self):
         # Download the displayed QR code and save it to the Downloads folder in file explorer
@@ -3494,7 +3550,7 @@ class EditTrainerForm(ctk.CTkToplevel):
         # Get the updated data from the entry fields, including the status
         updated_data=[entry.get() if label_text != "Status:" else self.status_combobox.get() for label_text, entry in
                       zip(["First Name:", "Middle Name:", "Last Name:", "Age:", "Sex:", "Date of Birth:", "Address:",
-                           "Nationality:", "Contact No:", "Email Address:", "Emergency Contact No:", "Status:"],
+                           "Nationality:", "Contact No:", "Emergency Contact No:", "Status:"],
                           self.entry_fields)]
 
         # Validate the updated data
@@ -3509,7 +3565,7 @@ class EditTrainerForm(ctk.CTkToplevel):
                 cursor.execute('''
                     UPDATE trainer SET 
                     first_name=?, middle_name=?, last_name=?, age=?, sex=?, birth_date=?, address=?, nationality=?,
-                    contact_no=?, email=?, emergency_contact_no=?, status=?
+                    contact_no=?, emergency_contact_no=?, status=?
                     WHERE id=?
                 ''', tuple(updated_data + [self.trainer_data[0]]))
 
@@ -4459,17 +4515,19 @@ class RegisterEmployeeFrame(ctk.CTkFrame):
         contact_no_entry=ctk.CTkEntry(contact_frame, placeholder_text="+63 9123456789")
         contact_no_entry.pack(pady=0, padx=10, fill="x")
 
-        # Email Address
-        email_label=ctk.CTkLabel(contact_frame, text="Email Address:", font=label_font)
-        email_label.pack(pady=0, padx=10, anchor="w")
-        email_entry=ctk.CTkEntry(contact_frame, placeholder_text="example@gmail.com")
-        email_entry.pack(pady=0, padx=10, fill="x")
-
         # Emergency Contact No
         emergency_contact_label=ctk.CTkLabel(contact_frame, text="Emergency Contact No:", font=label_font)
         emergency_contact_label.pack(pady=0, padx=10, anchor="w")
         emergency_contact_entry=ctk.CTkEntry(contact_frame, placeholder_text="+63 9123456789")
-        emergency_contact_entry.pack(pady=10, padx=10, fill="x")
+        emergency_contact_entry.pack(pady=5, padx=10, fill="x")
+
+        # Button to trigger photo upload
+        upload_button=ctk.CTkButton(contact_frame, text="Upload Photo", command=self.upload_employee_photo)
+        upload_button.pack(pady=5, padx=10, fill="x")
+
+        # Uploaded photo entry
+        self.uploaded_photo_entry=ctk.CTkEntry(contact_frame, placeholder_text=".png/.jpg/etc")
+        self.uploaded_photo_entry.pack(pady=5, padx=10, fill="x")
 
         # Create a "Register" button
         register_button=ctk.CTkButton(outer_frame, text="Register", fg_color="Green",
@@ -4492,7 +4550,6 @@ class RegisterEmployeeFrame(ctk.CTkFrame):
         self.address_entry=address_entry
         self.nationality_combo=nationality_combo
         self.contact_no_entry=contact_no_entry
-        self.email_entry=email_entry
         self.emergency_contact_entry=emergency_contact_entry
 
         # Create a connection to the database (or create it if it doesn't exist)
@@ -4514,15 +4571,34 @@ class RegisterEmployeeFrame(ctk.CTkFrame):
                                      address TEXT,
                                      nationality TEXT,
                                      contact_no TEXT,
-                                     email TEXT,
                                      emergency_contact_no TEXT,
-                                     status TEXT DEFAULT 'Active'
+                                     status TEXT DEFAULT 'Active',
+                                     photo_data BLOB
                                  )
                              ''')
+        # # to Add a new column to the table/ alter the name of the column, uncomment this.
+        # cursor.execute("ALTER TABLE employees ADD COLUMN photo_data BLOB")
 
         # Commit the changes and close the database connection
         conn.commit()
         conn.close()
+
+    def upload_employee_photo(self):
+        filename=filedialog.askopenfilename(initialdir="/", title="Select Photo")
+        if filename:
+            try:
+                # Move the uploaded photo to the member_profile directory
+                employee_profile_dir="templates/employee_profile"
+                os.makedirs(employee_profile_dir, exist_ok=True)
+                photo_path=os.path.join(employee_profile_dir, os.path.basename(filename))
+                shutil.copy(filename, photo_path)
+
+                # Update the entry widget to display the filename
+                self.uploaded_photo_entry.delete(0, tk.END)
+                self.uploaded_photo_entry.insert(0, os.path.basename(photo_path))
+                print("Photo uploaded successfully.")
+            except Exception as e:
+                messagebox.showerror("Error", f"Failed to upload photo: {str(e)}")
 
     def calculate_age(self, event):
         # Get the selected birthdate
@@ -4595,14 +4671,13 @@ class RegisterEmployeeFrame(ctk.CTkFrame):
         address=self.address_entry.get()
         nationality=self.nationality_combo.get()
         contact_no=self.contact_no_entry.get()
-        email=self.email_entry.get()
         emergency_contact_no=self.emergency_contact_entry.get()
 
         # Validate the data (you can add your validation logic here)
 
         # Validate the data
         if not (first_name and last_name and age and sex and birth_date and address and
-                nationality and contact_no and email and emergency_contact_no):
+                nationality and contact_no and emergency_contact_no):
             messagebox.showerror("Validation Error", "All fields are required.")
             return
 
@@ -4617,16 +4692,22 @@ class RegisterEmployeeFrame(ctk.CTkFrame):
         cursor=conn.cursor()
 
         status='Active'
+
+        # Read the binary data of the photo from the member_profile directory
+        photo_file_name=self.uploaded_photo_entry.get()
+        photo_file_path=os.path.join("templates/employee_profile", photo_file_name)
+        with open(photo_file_path, 'rb') as file:
+            photo_data=file.read()
+
         cursor.execute('''
                     INSERT INTO employees (
                         first_name, middle_name, last_name, age, sex, birth_date, address,
-                        nationality, contact_no, email, emergency_contact_no, status
+                        nationality, contact_no, emergency_contact_no, status, photo_data
                     )
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ''', (
             first_name, middle_name, last_name, age, sex, birth_date, address,
-            nationality, contact_no, email, emergency_contact_no, status
-        ))
+            nationality, contact_no, emergency_contact_no, status, sqlite3.Binary(photo_data)))
 
         # Commit the changes and close the database connection
         conn.commit()
@@ -4664,14 +4745,8 @@ class RegisterEmployeeFrame(ctk.CTkFrame):
 
         # Clear all form fields
         for entry in [self.first_name_entry, self.middle_name_entry, self.last_name_entry, self.age_entry,
-                      self.address_entry, self.contact_no_entry, self.email_entry,
-                      self.emergency_contact_entry]:
+                      self.address_entry, self.contact_no_entry, self.emergency_contact_entry]:
             entry.delete(0, tk.END)
-
-        # Set ComboBox and DateEntry widgets to default or empty values
-        self.sex_entry.set("Male")
-        self.birth_date_entry.set_date("")
-        self.nationality_combo.set("Select Nationality")
 
     def back_button_event(self):
         self.destroy()
@@ -4849,16 +4924,30 @@ class EditEmployeeForm(ctk.CTkToplevel):
         main_frame=ctk.CTkFrame(self)
         main_frame.pack(fill="both", expand=True)
 
+        # Display the photo stored as BLOB data
+        photo_blob=self.employee_data[-1]  # Assuming the photo is stored in the last column
+        photo=Image.open(io.BytesIO(photo_blob))
+        photo=photo.resize((150, 150), Image.LANCZOS)
+        photo=ImageTk.PhotoImage(photo)
+        photo_label=ctk.CTkLabel(main_frame, text="", image=photo)
+        photo_label.image=photo
+        photo_label.pack(pady=5, padx=10)
+
+        change_button_frame=ctk.CTkFrame(main_frame)
+        change_button_frame.pack(pady=10, padx=10)
+        change_photo_button=ctk.CTkButton(change_button_frame, text="Change Image", command=self.change_photo)
+        change_photo_button.pack(pady=5, padx=10)
+
         # Create a frame to hold the form fields with custom width and height
-        edit_frame=ctk.CTkScrollableFrame(main_frame, width=450, height=300)
-        edit_frame.pack(pady=20, padx=20)
+        edit_frame=ctk.CTkScrollableFrame(main_frame, width=450, height=200)
+        edit_frame.pack(pady=10, padx=20)
 
         # Define a custom font style for entry labels
         label_font=ctk.CTkFont(family="Arial", size=16, weight="bold")
 
         # Create labels and entry fields for editing the record
         labels=["First Name:", "Middle Name:", "Last Name:", "Age:", "Sex:", "Date of Birth:", "Address:",
-                "Nationality:", "Contact No:", "Email Address:", "Emergency Contact No:", "Status:"]
+                "Nationality:", "Contact No:", "Emergency Contact No:", "Status:"]
         self.entry_fields=[]
         self.status_combobox=None  # Initialize status_combobox attribute
 
@@ -4871,7 +4960,7 @@ class EditEmployeeForm(ctk.CTkToplevel):
                 status_values=["Active", "Inactive", "On Leave"]
                 self.status_combobox=ctk.CTkComboBox(edit_frame, values=status_values)
                 self.status_combobox.grid(row=i, column=1, padx=10, pady=5, ipadx=10, ipady=3)
-                self.status_combobox.set(self.employee_data[12])
+                self.status_combobox.set(self.employee_data[11])
 
                 self.entry_fields.append(self.status_combobox)
             else:
@@ -4904,28 +4993,50 @@ class EditEmployeeForm(ctk.CTkToplevel):
         qr_code_label.pack(pady=10, padx=10)
 
         frame_buttons=ctk.CTkFrame(main_frame)
-        frame_buttons.pack(pady=20, padx=20)
+        frame_buttons.pack(pady=10, padx=20)
 
         # create frame to hold the buttons
         update_button_frame=ctk.CTkFrame(frame_buttons)
-        update_button_frame.grid(row=0, column=0, padx=20, pady=20)
+        update_button_frame.grid(row=0, column=0, padx=20, pady=10)
 
         # Create an "Update" button
         update_button=ctk.CTkButton(update_button_frame, text="Update", command=self.update_record)
-        update_button.grid(row=0, column=0, padx=20, pady=20)
+        update_button.grid(row=0, column=0, padx=20, pady=5)
 
         # create a frame to hold the delete button
         delete_button_frame=ctk.CTkFrame(frame_buttons)
-        delete_button_frame.grid(row=0, column=1, padx=20, pady=20)
+        delete_button_frame.grid(row=0, column=1, padx=20, pady=10)
 
         # Create Red Delete button
         delete_button=ctk.CTkButton(delete_button_frame, text="Delete", fg_color="Red",
                                     text_color=("gray10", "gray90"),
                                     hover_color=("red3", "red4"), command=self.delete_record)
-        delete_button.grid(row=0, column=0, padx=20, pady=20)
+        delete_button.grid(row=0, column=0, padx=20, pady=5)
 
         # Store the reference to the 'table' in EditForm
         self.table=table_reference
+
+    def change_photo(self):
+        # Open file dialog to select new photo
+        self.grab_set()
+        self.focus_force()
+        file_path=filedialog.askopenfilename(filetypes=[("Image files", "*.jpg;*.jpeg;*.png")])
+        self.grab_release()
+        if file_path:
+            # Load the selected image and display it
+            new_photo=Image.open(file_path)
+            new_photo=new_photo.resize((150, 150), Image.LANCZOS)
+            self.photo=ImageTk.PhotoImage(new_photo)
+            if hasattr(self, 'photo_label'):  # Check if photo_label exists
+                self.photo_label.configure(image=self.photo)
+                self.photo_label.image=self.photo
+
+            # Update the BLOB image data in the database
+            with open(file_path, 'rb') as file:
+                photo_data=file.read()
+            self.cursor.execute("UPDATE employees SET photo_data = ? WHERE id = ?",
+                                (sqlite3.Binary(photo_data), self.employee_data[0]))  # Assuming id is the first column
+            self.conn.commit()
 
     def download_qr_code(self):
         # Download the displayed QR code and save it to the Downloads folder in file explorer
@@ -4962,7 +5073,7 @@ class EditEmployeeForm(ctk.CTkToplevel):
         # Get the updated data from the entry fields, including the status
         updated_data=[entry.get() if label_text != "Status:" else self.status_combobox.get() for label_text, entry in
                       zip(["First Name:", "Middle Name:", "Last Name:", "Age:", "Sex:", "Date of Birth:", "Address:",
-                           "Nationality:", "Contact No:", "Email Address:", "Emergency Contact No:", "Status:"],
+                           "Nationality:", "Contact No:", "Emergency Contact No:", "Status:"],
                           self.entry_fields)]
 
         # Validate the updated data
@@ -4977,7 +5088,7 @@ class EditEmployeeForm(ctk.CTkToplevel):
                 cursor.execute('''
                     UPDATE employees SET 
                     first_name=?, middle_name=?, last_name=?, age=?, sex=?, birth_date=?, address=?, nationality=?,
-                    contact_no=?, email=?, emergency_contact_no=?, status=?
+                    contact_no=?, emergency_contact_no=?, status=?
                     WHERE id=?
                 ''', tuple(updated_data + [self.employee_data[0]]))
 
