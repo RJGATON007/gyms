@@ -31,9 +31,6 @@ plans,and analytics. Reduced operating costs, better communication, more satisfa
 - SQLite 3
 # SMS API
 - Semaphore (Subscribe to semaphore to get the API key)
-# Login
-- Username: Admin#11
-- Password: Admin#11
 
   Note:
   - Every Account Registered has only 1 role.
@@ -48,13 +45,10 @@ plans,and analytics. Reduced operating costs, better communication, more satisfa
  
 # Send G-cash for donations
  - 09776324808
-
 # Contact:
 - FB: Robertjames Gaton (Software Engineer)
 
-# TO CONVERT THE FILE TO EXE, CONTACT ME FOR THE INSTRUCTIONS
-- or read setup.txt
-
+# TO CONVERT THE FILE TO EXE, CONTACT ME FOR THE INSTRUCTIONS and NEGOTIATIONS
 # FEEL FREE TO CONTRIBUTE TO THIS PROJECT
 
 
