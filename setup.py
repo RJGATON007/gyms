@@ -10,7 +10,6 @@ build_exe_options = {
         "datetime",
         "matplotlib",
         "numpy",
-        "os",
         "PIL",
         "qrcode",
         "random",
@@ -18,7 +17,7 @@ build_exe_options = {
         "sqlite3",
         "string",
         "tkcalendar",
-        "tkinter",
+        "tkinter"
     ],
     # Add any additional packages your script depends on
     "include_files": [

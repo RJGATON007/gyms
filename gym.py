@@ -227,7 +227,7 @@ class MainApp(ctk.CTk):
         self.frame_8_button.grid(row=8, column=0, sticky="ew")
 
         self.appearance_mode_menu=ctk.CTkOptionMenu(
-            self.navigation_frame, values=["Dark", "Light", "System"],
+            self.navigation_frame, values=["Dark", "Light"],
             command=change_appearance_mode_event)
         self.appearance_mode_menu.grid(row=10, column=0, padx=20, pady=10, sticky="s")
 
@@ -383,7 +383,7 @@ def create_home_frame(home):
     panel_frame.pack(pady=5, padx=10, fill="both", expand=True)
 
     # member panel frame
-    member_panel_frame=ctk.CTkFrame(panel_frame, fg_color="#00C957")
+    member_panel_frame=ctk.CTkFrame(panel_frame, fg_color="#434343")
     member_panel_frame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
 
     # create a small rectangular label to display the no. of members
@@ -407,7 +407,7 @@ def create_home_frame(home):
     get_members_count()
 
     # visitor panel frame
-    visitors_panel_frame=ctk.CTkFrame(panel_frame, fg_color="orange")
+    visitors_panel_frame=ctk.CTkFrame(panel_frame, fg_color="#434343")
     visitors_panel_frame.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")
 
     # create a small rectangular label to display the no. of members
@@ -431,7 +431,7 @@ def create_home_frame(home):
     get_visitors_count()
 
     # employee panel frame
-    employee_panel_frame=ctk.CTkFrame(panel_frame, fg_color="blue")
+    employee_panel_frame=ctk.CTkFrame(panel_frame, fg_color="#434343")
     employee_panel_frame.grid(row=0, column=2, padx=10, pady=10, sticky="nsew")
 
     # create a small rectangular label to display the no. of employees
@@ -455,7 +455,7 @@ def create_home_frame(home):
     get_employee_count()
 
     # trainer panel frame
-    trainer_panel_frame=ctk.CTkFrame(panel_frame, fg_color="purple")
+    trainer_panel_frame=ctk.CTkFrame(panel_frame, fg_color="#434343")
     trainer_panel_frame.grid(row=0, column=3, padx=10, pady=10, sticky="nsew")
 
     # create a small rectangular label to display the no. of trainers
@@ -479,7 +479,7 @@ def create_home_frame(home):
     get_trainer_count()
 
     # gym equipment panel frame
-    gym_equipment_panel_frame=ctk.CTkFrame(panel_frame, fg_color="red")
+    gym_equipment_panel_frame=ctk.CTkFrame(panel_frame, fg_color="#434343")
     gym_equipment_panel_frame.grid(row=0, column=4, padx=10, pady=10, sticky="nsew")
 
     # create a small rectangular label to display the no. of gym equipment
@@ -578,7 +578,7 @@ def update_income_report(root, ax, canvas):
 
     # Plot the monthly income report with inverted colors
     ax.clear()
-    members_bar=ax.bar(months_array, member_incomes, color='#00C957', alpha=0.7, label='Members')
+    members_bar=ax.bar(months_array, member_incomes, color='#434343', alpha=0.7, label='Members')
     ax.set_ylabel('Income (PHP)')
 
     # Update the title based on the current month
@@ -603,6 +603,7 @@ def update_income_report(root, ax, canvas):
 
 
 def update_visitors_income_report(root, ax, canvas):
+    # pass
     current_month=datetime.now().strftime('%Y-%m')
 
     # Connect to the members database
@@ -629,7 +630,7 @@ def update_visitors_income_report(root, ax, canvas):
 
     # Plot the monthly income report with inverted colors
     ax.clear()
-    visitor_bar=ax.bar(months_array, visitor_incomes, color='orange', alpha=0.7, label='Gymers')
+    visitor_bar=ax.bar(months_array, visitor_incomes, color='#434343', alpha=0.7, label='Gymers')
     ax.set_ylabel('Income (PHP)')
 
     # Update the title based on the current month
@@ -709,7 +710,7 @@ def create_gym_membership_frame(frame_2):
 
 
 class RegistrationFrame(ctk.CTkFrame):
-    def __init__(self, master, **kwargs):
+    def __init__(self, master, data=None, **kwargs):
         super().__init__(master, **kwargs)
 
         # Create a connection to the database
@@ -741,18 +742,24 @@ class RegistrationFrame(ctk.CTkFrame):
         # Name
         first_name_label=ctk.CTkLabel(personal_info_frame, text="First Name:", font=label_font)
         first_name_label.grid(row=2, column=0, padx=20, pady=5, sticky="w")
-        first_name_entry=ctk.CTkEntry(personal_info_frame, placeholder_text="Enter your first name")
-        first_name_entry.grid(row=2, column=1, padx=20, pady=5)
+        self.first_name_entry=ctk.CTkEntry(personal_info_frame, placeholder_text="Enter your first name")
+        self.first_name_entry.grid(row=2, column=1, padx=20, pady=5)
 
         middle_name_label=ctk.CTkLabel(personal_info_frame, text="Middle Name:", font=label_font)
         middle_name_label.grid(row=3, column=0, padx=20, pady=5, sticky="w")
-        middle_name_entry=ctk.CTkEntry(personal_info_frame, placeholder_text="Enter your middle name")
-        middle_name_entry.grid(row=3, column=1, padx=20, pady=5)
+        self.middle_name_entry=ctk.CTkEntry(personal_info_frame, placeholder_text="Enter your middle name")
+        self.middle_name_entry.grid(row=3, column=1, padx=20, pady=5)
 
         last_name_label=ctk.CTkLabel(personal_info_frame, text="Last Name:", font=label_font)
         last_name_label.grid(row=4, column=0, padx=20, pady=5, sticky="w")
-        last_name_entry=ctk.CTkEntry(personal_info_frame, placeholder_text="Enter your last name")
-        last_name_entry.grid(row=4, column=1, padx=20, pady=5)
+        self.last_name_entry=ctk.CTkEntry(personal_info_frame, placeholder_text="Enter your last name")
+        self.last_name_entry.grid(row=4, column=1, padx=20, pady=5)
+
+        # If data is provided, populate the entry fields
+        if data:
+            self.first_name_entry.insert(0, data[0])  # First Name
+            self.middle_name_entry.insert(0, data[1])  # Middle Name
+            self.last_name_entry.insert(0, data[2])  # Last Name
 
         # Age
         age_label=ctk.CTkLabel(personal_info_frame, text="Age:", font=label_font)
@@ -858,24 +865,6 @@ class RegistrationFrame(ctk.CTkFrame):
         # Bind the function to the <<ComboboxSelected>> event
         self.subscription_plan_entry.bind("<<ComboboxSelected>>", self.update_dates_on_subscription_change)
 
-        # start_timestamp_label=ctk.CTkLabel(subscription_frame, text="Start:", font=label_font)
-        # start_timestamp_label.grid(row=3, column=0, padx=20, pady=10, sticky="w")
-        #
-        # # Use the existing start_timestamp_entry you created
-        # self.start_timestamp_entry=DateEntry(subscription_frame, width=20, date_pattern="yyyy-mm-dd")
-        # self.start_timestamp_entry.grid(row=3, column=1, padx=20, pady=15, sticky="w")
-        #
-        # end_timestamp_label=ctk.CTkLabel(subscription_frame, text="End:", font=label_font)
-        # end_timestamp_label.grid(row=4, column=0, padx=20, pady=10, sticky="w")
-        #
-        # # Use the existing end_timestamp_entry you created
-        # self.end_timestamp_entry=DateEntry(subscription_frame, width=20, date_pattern="yyyy-mm-dd")
-        # self.end_timestamp_entry.grid(row=4, column=1, padx=20, pady=15, sticky="w")
-
-        # # disable the start and end date
-        # self.start_timestamp_entry.configure(state="disabled")
-        # self.end_timestamp_entry.configure(state="disabled")
-
         # Button to trigger photo upload
         upload_button=ctk.CTkButton(subscription_frame, text="Upload Photo", command=self.upload_photo)
         upload_button.grid(row=3, column=0, padx=20, pady=10, sticky="w")
@@ -903,9 +892,9 @@ class RegistrationFrame(ctk.CTkFrame):
         back_button.place(x=450, y=550)
 
         # Store the Entry fields and other widgets as instance attributes
-        self.first_name_entry=first_name_entry
-        self.middle_name_entry=middle_name_entry
-        self.last_name_entry=last_name_entry
+        self.first_name_entry=self.first_name_entry
+        self.middle_name_entry=self.middle_name_entry
+        self.last_name_entry=self.last_name_entry
         self.age_entry=age_entry
         self.sex_entry=sex_entry
         self.address_entry=address_entry
@@ -1218,10 +1207,28 @@ class ViewFrame(ctk.CTkFrame):
 
         # Define self.edit_form
         self.edit_form=None
+        self.selected_option=tk.StringVar()
 
         # Define and configure widgets within the frame
         label=ctk.CTkLabel(self, text="Gym Members' Information", font=("Arial bold", 28))
         label.pack(pady=20, padx=10)
+
+        # Create frame to hold the search bar
+        search_frame=ctk.CTkFrame(self)
+        search_frame.pack(pady=10, padx=10, fill="x")
+
+        # Create a search bar
+        search_entry=ctk.CTkEntry(search_frame, placeholder_text="Enter a name to search")
+        search_entry.pack(padx=10, pady=10, side="left", fill="both", expand=True)
+
+        clear_button=ctk.CTkButton(search_frame, text="Clear", command=lambda: self.search_entry_clear(search_entry),
+                                   fg_color="red",
+                                   hover_color="red4", text_color=("gray10", "gray90"))
+        clear_button.pack(side="right", padx=(5, 10))  # Add padding to separate the buttons
+
+        # Create a search button
+        search_button=ctk.CTkButton(search_frame, text="Search", command=lambda: self.search_record(search_entry.get()))
+        search_button.pack(side="right")
 
         # Create a connection to the database
         conn=sqlite3.connect('SQLite db/registration_form.db')
@@ -1260,7 +1267,7 @@ class ViewFrame(ctk.CTkFrame):
         # Create a table to display the records
         self.table=ttk.Treeview(table_frame, columns=(
             "ID", "First Name", "Middle Name", "Last Name", "Contact No", "Subscription ID",
-            "Start Date", "End Date", "Status"), show="headings", height=10)
+            "Start Date", "End Date", "Status"), show="headings", height=8)
         self.table.pack(side=tk.LEFT)
 
         self.scrollbar=ttk.Scrollbar(table_frame, orient=tk.VERTICAL, command=self.table.yview)
@@ -1301,9 +1308,9 @@ class ViewFrame(ctk.CTkFrame):
         # column width
         columns=[
             ("ID", 50),
-            ("First Name", 150),
+            ("First Name", 200),
             ("Middle Name", 150),
-            ("Last Name", 150),
+            ("Last Name", 200),
             ("Contact No", 150),
             ("Subscription ID", 150),
             ("Start Date", 150),
@@ -1338,6 +1345,57 @@ class ViewFrame(ctk.CTkFrame):
     def back_button_event(self):
         # Switch back to the previous frame (e.g., the gym membership frame)
         self.destroy()
+
+    def search_record(self, search_term):
+        # Clear previous search results
+        for row in self.table.get_children():
+            self.table.delete(row)
+
+        # Open database connection
+        conn=sqlite3.connect('SQLite db/registration_form.db')
+        cursor=conn.cursor()
+
+        # Search for records matching the search term
+        cursor.execute(
+            "SELECT id, first_name, middle_name, last_name, contact_no, subscription_id, start_date, end_date, status FROM registration WHERE first_name LIKE ? OR last_name LIKE ?",
+            ('%' + search_term + '%', '%' + search_term + '%'))
+        records=cursor.fetchall()
+
+        # Close the database connection
+        conn.close()
+
+        # Add the matching records to the table
+        for record in records:
+            self.table.insert("", tk.END, values=record)
+
+    # function to clear the search entry and refresh the table
+    def search_entry_clear(self, search_entry):
+        # Clear the search entry
+        search_entry.delete(0, tk.END)
+
+        # Refresh the table
+        self.refresh_table()
+
+    def refresh_table(self):
+        # Clear previous search results
+        for row in self.table.get_children():
+            self.table.delete(row)
+
+        # Open database connection
+        conn=sqlite3.connect('SQLite db/registration_form.db')
+        cursor=conn.cursor()
+
+        # Retrieve all records
+        cursor.execute(
+            "SELECT id, first_name, middle_name, last_name, contact_no, subscription_id, start_date, end_date, status FROM registration")
+        records=cursor.fetchall()
+
+        # Close the database connection
+        conn.close()
+
+        # Add the records to the table
+        for record in records:
+            self.table.insert("", tk.END, values=record)
 
     def edit_record(self):
         # Check if an instance of EditForm already exists
@@ -2040,8 +2098,7 @@ class ScanFrame(ctk.CTkFrame):
         except Exception as e:
             print("failed to send message", e)
 
-    @staticmethod
-    def record_attendance(member_data, attendance_type):
+    def record_attendance(self, member_data, attendance_type):
         try:
             first_name, middle_name, last_name, contact_no, subscription_id=member_data.split(',')
             current_datetime=datetime.now().strftime("%Y-%m-%d %I:%M:%S %p")
@@ -2077,8 +2134,8 @@ class ScanFrame(ctk.CTkFrame):
                         VALUES (?, ?, ?, ?, ?, ?)
                     ''', (first_name, middle_name, last_name, contact_no, subscription_id, current_datetime))
 
-                    send_sms(contact_no,
-                             f"Hello {first_name}!, You have Successfully Time In. Subscription ID:{subscription_id}. Time In: {current_datetime}, - D'GRIT GYM")
+                    self.send_sms(contact_no,
+                                  f"Hello {first_name}!, You have Successfully Time In. Subscription ID:{subscription_id}. Time In: {current_datetime}, - D'GRIT GYM")
 
                 elif attendance_type == "Time Out":
                     cursor_attendance.execute('''
@@ -2087,12 +2144,15 @@ class ScanFrame(ctk.CTkFrame):
                         WHERE subscription_id = ? AND time_out IS NULL
                     ''', (current_datetime, subscription_id))
 
-                    send_sms(contact_no,
-                             f"Hello {first_name}!, Thank you for coming. See you again! Subscription ID:{subscription_id}. Time Out: {current_datetime}, - D'GRIT GYM")
+                    self.send_sms(contact_no,
+                                  f"Hello {first_name}!, Thank you for coming. See you again! Subscription ID:{subscription_id}. Time Out: {current_datetime}, - D'GRIT GYM")
 
                 conn_attendance.commit()
                 messagebox.showinfo("Attendance Recorded",
                                     f"{attendance_type} recorded successfully for Subscription ID: {subscription_id}")
+
+                # Display details in a top-level window
+                self.display_details_window(member_data, attendance_type, current_datetime)
 
         except sqlite3.Error as e:
             messagebox.showerror("Database Error", f"Error interacting with the database: {e}")
@@ -2123,6 +2183,106 @@ class ScanFrame(ctk.CTkFrame):
 
     def back_button_event(self):
         self.destroy()
+
+    def display_details_window(self, member_data, attendance_type, current_datetime):
+        # Check if the window is already open, if so, bring it to the front
+        if hasattr(self, 'details_window') and self.details_window.winfo_exists():
+            self.details_window.lift()
+            return
+
+        # Create the details window
+        details_window=ctk.CTkToplevel(self)
+        details_window.title("Attendance Details")
+        details_window.attributes('-topmost', True)  # Always on top
+        details_window.geometry("550x400")  # Set window size
+
+        # Set window size
+        window_width=550
+        window_height=400
+        screen_width=details_window.winfo_screenwidth()
+        screen_height=details_window.winfo_screenheight()
+        x_coordinate=(screen_width - window_width) /1.5
+        y_coordinate=(screen_height - window_height) / 2
+        details_window.geometry(f"{window_width}x{window_height}+{int(x_coordinate)}+{int(y_coordinate)}")
+
+        # Split the member data
+        member_data_fields=member_data.split(',')
+
+        # Label frame
+        label_frame=ctk.CTkFrame(details_window)
+        label_frame.pack(pady=10, padx=10)
+
+        # Attendance Type
+        attendance_type_label=ctk.CTkLabel(label_frame, text="Attendance Type:")
+        attendance_type_label.grid(row=0, column=0, padx=10, pady=5)
+
+        attendance_type_entry=ctk.CTkEntry(label_frame)
+        attendance_type_entry.grid(row=0, column=1, padx=10, pady=5)
+        attendance_type_entry.insert(0, attendance_type)  # Populate attendance type data
+
+        # QR data frame
+        qr_data_frame=ctk.CTkFrame(details_window)
+        qr_data_frame.pack(pady=10, padx=10)
+
+        # First Name
+        first_name_label=ctk.CTkLabel(qr_data_frame, text="First Name:")
+        first_name_label.grid(row=0, column=0, padx=10, pady=5)
+
+        first_name_entry=ctk.CTkEntry(qr_data_frame)
+        first_name_entry.grid(row=0, column=1, padx=10, pady=5)
+        first_name_entry.insert(0, member_data_fields[0])  # Populate first name
+
+        # Middle Name
+        middle_name_label=ctk.CTkLabel(qr_data_frame, text="Middle Name:")
+        middle_name_label.grid(row=1, column=0, padx=10, pady=5)
+
+        middle_name_entry=ctk.CTkEntry(qr_data_frame)
+        middle_name_entry.grid(row=1, column=1, padx=10, pady=5)
+        middle_name_entry.insert(0, member_data_fields[1])  # Populate middle name
+
+        # Last Name
+        last_name_label=ctk.CTkLabel(qr_data_frame, text="Last Name:")
+        last_name_label.grid(row=2, column=0, padx=10, pady=5)
+
+        last_name_entry=ctk.CTkEntry(qr_data_frame)
+        last_name_entry.grid(row=2, column=1, padx=10, pady=5)
+        last_name_entry.insert(0, member_data_fields[2])  # Populate last name
+
+        # Contact No
+        contact_no_label=ctk.CTkLabel(qr_data_frame, text="Contact No:")
+        contact_no_label.grid(row=3, column=0, padx=10, pady=5)
+
+        contact_no_entry=ctk.CTkEntry(qr_data_frame)
+        contact_no_entry.grid(row=3, column=1, padx=10, pady=5)
+        contact_no_entry.insert(0, member_data_fields[3])  # Populate contact no
+
+        # Subscription ID
+        subscription_id_label=ctk.CTkLabel(qr_data_frame, text="Subscription ID:")
+        subscription_id_label.grid(row=4, column=0, padx=10, pady=5)
+
+        subscription_id_entry=ctk.CTkEntry(qr_data_frame)
+        subscription_id_entry.grid(row=4, column=1, padx=10, pady=5)
+        subscription_id_entry.insert(0, member_data_fields[4])  # Populate subscription id
+
+        # Attendance time frame
+        time_frame=ctk.CTkFrame(details_window)
+        time_frame.pack(pady=10, padx=10)
+
+        # Attendance Time
+        time_label=ctk.CTkLabel(time_frame, text="Attendance Time:")
+        time_label.grid(row=0, column=0, padx=10, pady=5)
+
+        time_entry=ctk.CTkEntry(time_frame)
+        time_entry.grid(row=0, column=1, padx=10, pady=5)
+        time_entry.insert(0, current_datetime)  # Populate current datetime
+
+        # Button frame
+        button_frame=ctk.CTkFrame(details_window)
+        button_frame.pack(pady=10, padx=10)
+
+        # OK Button
+        ok_button=ctk.CTkButton(button_frame, text="OK", command=details_window.destroy)
+        ok_button.pack(pady=10, padx=10)
 
 
 class RecordsFrame(ctk.CTkFrame):
@@ -2532,6 +2692,23 @@ class EquipmentRecords(ctk.CTkFrame):
         label=ctk.CTkLabel(self, text="Gym Equipment Inventory", font=("Arial bold", 28))
         label.pack(pady=20, padx=10)
 
+        # Create frame to hold the search bar
+        search_frame=ctk.CTkFrame(self)
+        search_frame.pack(pady=10, padx=10, fill="x")
+
+        # Create a search bar
+        search_entry=ctk.CTkEntry(search_frame, placeholder_text="Enter a name to search")
+        search_entry.pack(padx=10, pady=10, side="left", fill="both", expand=True)
+
+        clear_button=ctk.CTkButton(search_frame, text="Clear", command=lambda: self.search_entry_clear(search_entry),
+                                   fg_color="red",
+                                   hover_color="red4", text_color=("gray10", "gray90"))
+        clear_button.pack(side="right", padx=(5, 10))  # Add padding to separate the buttons
+
+        # Create a search button
+        search_button=ctk.CTkButton(search_frame, text="Search", command=lambda: self.search_record(search_entry.get()))
+        search_button.pack(side="right")
+
         # Create a connection to the database
         conn=sqlite3.connect('SQLite db/register_equipment.db')
         cursor=conn.cursor()
@@ -2569,7 +2746,7 @@ class EquipmentRecords(ctk.CTkFrame):
         # Create a table to display the records
         self.table=ttk.Treeview(table_frame, columns=(
             "Equipment Name", "Quantity", "Type", "Status",
-            "Training Required"), show="headings", height=10)
+            "Training Required"), show="headings", height=8)
         self.table.pack(side=tk.LEFT)
 
         self.scrollbar=ttk.Scrollbar(table_frame, orient=tk.VERTICAL, command=self.table.yview)
@@ -2635,6 +2812,55 @@ class EquipmentRecords(ctk.CTkFrame):
     def back_button_event(self):
         # Switch back to the previous frame (e.g., the gym membership frame)
         self.destroy()
+
+    def search_record(self, search_term):
+        # Clear previous search results
+        for row in self.table.get_children():
+            self.table.delete(row)
+
+        # Open database connection
+        conn=sqlite3.connect('SQLite db/register_equipment.db')
+        cursor=conn.cursor()
+
+        # Search for records that match the search term
+        cursor.execute(
+            "SELECT equipment_name, equipment_quantity, equipment_type, equipment_status, equipment_training_required FROM equipment WHERE equipment_name LIKE ?",
+            ('%' + search_term + '%',))
+        records=cursor.fetchall()
+
+        # Add the search results to the table
+        for record in records:
+            self.table.insert("", tk.END, values=record)
+
+        # function to clear the search entry and refresh the table
+
+    def search_entry_clear(self, search_entry):
+        # Clear the search entry
+        search_entry.delete(0, tk.END)
+
+        # Refresh the table
+        self.refresh_table()
+
+    def refresh_table(self):
+        # Clear previous search results
+        for row in self.table.get_children():
+            self.table.delete(row)
+
+        # Open database connection
+        conn=sqlite3.connect('SQLite db/register_equipment.db')
+        cursor=conn.cursor()
+
+        # Retrieve all records
+        cursor.execute(
+            "SELECT equipment_name, equipment_quantity, equipment_type, equipment_status, equipment_training_required FROM equipment")
+        records=cursor.fetchall()
+
+        # Close the database connection
+        conn.close()
+
+        # Add the records to the table
+        for record in records:
+            self.table.insert("", tk.END, values=record)
 
     def edit_record(self):
         selected_item=self.table.selection()
@@ -3241,6 +3467,23 @@ class ViewTrainerFrame(ctk.CTkFrame):
         label=ctk.CTkLabel(self, text="Trainer Information", font=("Arial bold", 28))
         label.pack(pady=20, padx=10)
 
+        # Create frame to hold the search bar
+        search_frame=ctk.CTkFrame(self)
+        search_frame.pack(pady=10, padx=10, fill="x")
+
+        # Create a search bar
+        search_entry=ctk.CTkEntry(search_frame, placeholder_text="Enter a name to search")
+        search_entry.pack(padx=10, pady=10, side="left", fill="both", expand=True)
+
+        clear_button=ctk.CTkButton(search_frame, text="Clear", command=lambda: self.search_entry_clear(search_entry),
+                                   fg_color="red",
+                                   hover_color="red4", text_color=("gray10", "gray90"))
+        clear_button.pack(side="right", padx=(5, 10))  # Add padding to separate the buttons
+
+        # Create a search button
+        search_button=ctk.CTkButton(search_frame, text="Search", command=lambda: self.search_record(search_entry.get()))
+        search_button.pack(side="right")
+
         # Create a connection to the database
         conn=sqlite3.connect('SQLite db/register_trainer.db')
         cursor=conn.cursor()
@@ -3278,7 +3521,7 @@ class ViewTrainerFrame(ctk.CTkFrame):
         # Create a table to display the records
         self.table=ttk.Treeview(table_frame, columns=(
             "ID", "First Name", "Middle Name", "Last Name", "Age", "Sex", "Contact No", "Status"), show="headings",
-                                height=10)
+                                height=8)
         self.table.pack(side=tk.LEFT)
 
         self.scrollbar=ttk.Scrollbar(table_frame, orient=tk.VERTICAL, command=self.table.yview)
@@ -3353,6 +3596,58 @@ class ViewTrainerFrame(ctk.CTkFrame):
     def back_button_event(self):
         # Switch back to the previous frame (e.g., the gym membership frame)
         self.destroy()
+
+    def search_record(self, search_term):
+        # Clear previous search results
+        for row in self.table.get_children():
+            self.table.delete(row)
+
+        # Open database connection
+        conn=sqlite3.connect('SQLite db/register_trainer.db')
+        cursor=conn.cursor()
+
+        # Search for records that match the search term
+        cursor.execute(
+            "SELECT id, first_name, middle_name, last_name, age, sex, contact_no, status from trainer WHERE first_name LIKE ? OR last_name LIKE ?",
+            ('%' + search_term + '%', '%' + search_term + '%'))
+        records=cursor.fetchall()
+
+        # Close the database connection
+        conn.close()
+
+        # Add the matching records to the table
+        for record in records:
+            self.table.insert("", tk.END, values=record)
+
+        # function to clear the search entry and refresh the table
+
+    def search_entry_clear(self, search_entry):
+        # Clear the search entry
+        search_entry.delete(0, tk.END)
+
+        # Refresh the table
+        self.refresh_table()
+
+    def refresh_table(self):
+        # Clear previous search results
+        for row in self.table.get_children():
+            self.table.delete(row)
+
+        # Open database connection
+        conn=sqlite3.connect('SQLite db/register_trainer.db')
+        cursor=conn.cursor()
+
+        # Retrieve all records
+        cursor.execute(
+            "SELECT id, first_name, middle_name, last_name, age, sex, contact_no, status FROM trainer")
+        records=cursor.fetchall()
+
+        # Close the database connection
+        conn.close()
+
+        # Add the records to the table
+        for record in records:
+            self.table.insert("", tk.END, values=record)
 
     def edit_record(self):
         selected_item=self.table.selection()
@@ -4024,11 +4319,28 @@ class LogbookFrame(ctk.CTkFrame):
         # STEP 1: PERSONAL INFORMATION
         # Define and configure widgets within the frame
         label=ctk.CTkLabel(self, text="GYMERS DAILY LOG", font=("Arial bold", 26))
-        label.pack(pady=25, padx=10)
+        label.pack(pady=20, padx=10)
+
+        # Create frame to hold the search bar
+        search_frame=ctk.CTkFrame(self)
+        search_frame.pack(pady=10, padx=10, fill="x")
+
+        # Create a search bar
+        search_entry=ctk.CTkEntry(search_frame, placeholder_text="Enter a name to search")
+        search_entry.pack(padx=10, pady=10, side="left", fill="both", expand=True)
+
+        clear_button=ctk.CTkButton(search_frame, text="Clear", command=lambda: self.search_entry_clear(search_entry),
+                                   fg_color="red",
+                                   hover_color="red4", text_color=("gray10", "gray90"))
+        clear_button.pack(side="right", padx=(5, 10))  # Add padding to separate the buttons
+
+        # Create a search button
+        search_button=ctk.CTkButton(search_frame, text="Search", command=lambda: self.search_record(search_entry.get()))
+        search_button.pack(side="right")
 
         # outer frame
         outer_frame=ctk.CTkFrame(self)
-        outer_frame.pack(pady=20, padx=10)
+        outer_frame.pack(pady=10, padx=10)
 
         # create frame to hold all the widget frames
         widget_frames=ctk.CTkFrame(outer_frame)
@@ -4116,8 +4428,11 @@ class LogbookFrame(ctk.CTkFrame):
 
         # Create a table to display the records
         self.table=ttk.Treeview(table_frame, columns=(
-            "First Name", "M.I", "Last Name", "Contact No", "Time Start"), show="headings", height=10)
+            "First Name", "M.I", "Last Name", "Contact No", "Time Start"), show="headings", height=7)
         self.table.pack(side=tk.LEFT)
+
+        # Bind double-click event to the table
+        self.table.bind("<Double-1>", self.on_double_click)
 
         scrollbar=ttk.Scrollbar(table_frame, orient=tk.VERTICAL, command=self.table.yview)
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
@@ -4180,7 +4495,7 @@ class LogbookFrame(ctk.CTkFrame):
                 # Create a table to store registration information
                 cursor.execute('''
                     CREATE TABLE IF NOT EXISTS visitors (
-                        id INTEGER PRIMARY KEY,
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
                         first_name TEXT,
                         middle_name TEXT,
                         last_name TEXT,
@@ -4194,6 +4509,102 @@ class LogbookFrame(ctk.CTkFrame):
 
         except sqlite3.Error as e:
             print(f"SQLite error: {e}")
+
+    def on_double_click(self, event):
+        # Check if the top-level window already exists, if so, focus it
+        if hasattr(self, 'top') and self.top.winfo_exists():
+            self.top.lift()
+            return
+
+        # Get the item that was double-clicked
+        item=self.table.item(self.table.focus())
+        data=item['values']
+
+        # Create and configure the Toplevel window
+        self.top=ctk.CTkToplevel(self)
+        self.top.title("Options")
+
+        # Calculate the position to center the window
+        parent_width=self.winfo_width()
+        parent_height=self.winfo_height()
+        window_width=500  # Set your desired width
+        window_height=100  # Set your desired height
+        x=(parent_width - window_width) // 2
+        y=(parent_height - window_height) // 2
+
+        # Set the geometry to center the window
+        self.top.geometry(f"+{x}+{y}")
+
+        ctk.CTkLabel(self.top, text="Set as member?").pack()
+
+        button_frame=ctk.CTkFrame(self.top)
+        button_frame.pack(padx=10, pady=10)
+
+        ctk.CTkButton(button_frame, text="Yes", command=lambda: self.set_as_member(data)).pack(padx=10, pady=10)
+        ctk.CTkButton(button_frame, text="No", fg_color="red",
+                      text_color=("gray10", "gray90"),
+                      hover_color=("red3", "red4"),
+                      command=self.top.destroy).pack(padx=10, pady=10)
+
+    def set_as_member(self, data):
+        # Destroy the current frame
+        self.destroy()
+
+        # Create an instance of RegistrationFrame
+        registration_frame=RegistrationFrame(self.master, data)
+        registration_frame.pack(fill='both', expand=True)
+
+    def search_record(self, search_term):
+        # Clear previous search results
+        for row in self.table.get_children():
+            self.table.delete(row)
+
+        # Open database connection
+        conn=sqlite3.connect('SQLite db/visitors_log.db')
+        cursor=conn.cursor()
+
+        # Search for records matching the search term
+        cursor.execute(
+            "SELECT first_name, middle_name, last_name, contact_no, time_start FROM visitors WHERE first_name LIKE ? OR last_name LIKE ?",
+            ('%' + search_term + '%', '%' + search_term + '%'))
+        records=cursor.fetchall()
+
+        # Close the database connection
+        conn.close()
+
+        # Add the matching records to the table
+        for record in records:
+            self.table.insert("", tk.END, values=record)
+
+        # function to clear the search entry and refresh the table
+
+    def search_entry_clear(self, search_entry):
+        # Clear the search entry
+        search_entry.delete(0, tk.END)
+
+        # Refresh the table
+        self.refresh_table()
+
+    def refresh_table(self):
+        # Clear previous search results
+        for row in self.table.get_children():
+            self.table.delete(row)
+
+        # Open database connection
+        conn=sqlite3.connect('SQLite db/visitors_log.db')
+        cursor=conn.cursor()
+
+        # Retrieve all records
+        cursor.execute(
+            "SELECT first_name, middle_name, last_name, contact_no, time_start FROM visitors")
+        records=cursor.fetchall()
+
+        # Close the database connection
+        conn.close()
+
+        # Add the records to the table
+        for record in records:
+            self.table.insert("", tk.END, values=record)
 
     def load_data_to_table(self):
         try:
@@ -4760,6 +5171,23 @@ class ViewEmployeeFrame(ctk.CTkFrame):
         label=ctk.CTkLabel(self, text="Employee Information", font=("Arial bold", 28))
         label.pack(pady=20, padx=10)
 
+        # Create frame to hold the search bar
+        search_frame=ctk.CTkFrame(self)
+        search_frame.pack(pady=10, padx=10, fill="x")
+
+        # Create a search bar
+        search_entry=ctk.CTkEntry(search_frame, placeholder_text="Enter a name to search")
+        search_entry.pack(padx=10, pady=10, side="left", fill="both", expand=True)
+
+        clear_button=ctk.CTkButton(search_frame, text="Clear", command=lambda: self.search_entry_clear(search_entry),
+                                   fg_color="red",
+                                   hover_color="red4", text_color=("gray10", "gray90"))
+        clear_button.pack(side="right", padx=(5, 10))  # Add padding to separate the buttons
+
+        # Create a search button
+        search_button=ctk.CTkButton(search_frame, text="Search", command=lambda: self.search_record(search_entry.get()))
+        search_button.pack(side="right")
+
         # Create a connection to the database
         conn=sqlite3.connect('SQLite db/register_employee.db')
         cursor=conn.cursor()
@@ -4797,7 +5225,7 @@ class ViewEmployeeFrame(ctk.CTkFrame):
         # Create a table to display the records
         self.table=ttk.Treeview(table_frame, columns=(
             "ID", "First Name", "Middle Name", "Last Name", "Age", "Sex", "Contact No", "Status"), show="headings",
-                                height=10)
+                                height=8)
         self.table.pack(side=tk.LEFT)
 
         self.scrollbar=ttk.Scrollbar(table_frame, orient=tk.VERTICAL, command=self.table.yview)
@@ -4872,6 +5300,58 @@ class ViewEmployeeFrame(ctk.CTkFrame):
     def back_button_event(self):
         # Switch back to the previous frame (e.g., the gym membership frame)
         self.destroy()
+
+    def search_record(self, search_term):
+        # Clear previous search results
+        for row in self.table.get_children():
+            self.table.delete(row)
+
+        # Open database connection
+        conn=sqlite3.connect('SQLite db/register_employee.db')
+        cursor=conn.cursor()
+
+        # Search for records matching the search term
+        cursor.execute(
+            "SELECT id, first_name, middle_name, last_name, age, sex, contact_no, status FROM employees WHERE first_name LIKE ? OR last_name LIKE ?",
+            ('%' + search_term + '%', '%' + search_term + '%'))
+        records=cursor.fetchall()
+
+        # Close the database connection
+        conn.close()
+
+        # Add the matching records to the table
+        for record in records:
+            self.table.insert("", tk.END, values=record)
+
+        # function to clear the search entry and refresh the table
+
+    def search_entry_clear(self, search_entry):
+        # Clear the search entry
+        search_entry.delete(0, tk.END)
+
+        # Refresh the table
+        self.refresh_table()
+
+    def refresh_table(self):
+        # Clear previous search results
+        for row in self.table.get_children():
+            self.table.delete(row)
+
+        # Open database connection
+        conn=sqlite3.connect('SQLite db/register_employee.db')
+        cursor=conn.cursor()
+
+        # Retrieve all records
+        cursor.execute(
+            "SELECT id, first_name, middle_name, last_name, age, sex, contact_no, status FROM employees")
+        records=cursor.fetchall()
+
+        # Close the database connection
+        conn.close()
+
+        # Add the records to the table
+        for record in records:
+            self.table.insert("", tk.END, values=record)
 
     def edit_employee_record(self):  # Renamed from edit_record
         selected_item=self.table.selection()
