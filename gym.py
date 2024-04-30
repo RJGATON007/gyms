@@ -89,8 +89,31 @@ def check_date():
             send_sms_notification(contact_no, sms_message)
 
 
-# MAIN APPLICATION
+# create a function that sends sms for 3 days before expiration
+def send_sms_for_expiration():
+    current_date=datetime.now()
 
+    # Get all instances in the registration table
+    conn=sqlite3.connect('SQLite db/registration_form.db')
+    cursor=conn.cursor()
+
+    cursor.execute("SELECT * FROM registration")
+    registrations=cursor.fetchall()
+
+    for registration in registrations:
+        # Get the end_date and contact_no from the registration
+        end_date=registration[15]
+        contact_no=registration[9]
+
+        # Check if the end_date is 3 days from the current date
+        if datetime.strptime(end_date, '%Y-%m-%d') == current_date + timedelta(days=3):
+            print("3 days before expiration")
+            # Send SMS to the member
+            sms_message="Your gym membership will expire in 3 days. Renew your subscription to continue accessing D'GRIT GYM."
+            send_sms_notification(contact_no, sms_message)
+
+
+# MAIN APPLICATION
 class MainApp(ctk.CTk):
     def __init__(self):
         super().__init__()
@@ -578,7 +601,7 @@ def update_income_report(root, ax, canvas):
 
     # Plot the monthly income report with inverted colors
     ax.clear()
-    members_bar=ax.bar(months_array, member_incomes, color='#434343', alpha=0.7, label='Members')
+    members_bar=ax.bar(months_array, member_incomes, color='green', alpha=0.7, label='Members')
     ax.set_ylabel('Income (PHP)')
 
     # Update the title based on the current month
@@ -630,7 +653,7 @@ def update_visitors_income_report(root, ax, canvas):
 
     # Plot the monthly income report with inverted colors
     ax.clear()
-    visitor_bar=ax.bar(months_array, visitor_incomes, color='#434343', alpha=0.7, label='Gymers')
+    visitor_bar=ax.bar(months_array, visitor_incomes, color='orange', alpha=0.7, label='Gymers')
     ax.set_ylabel('Income (PHP)')
 
     # Update the title based on the current month
@@ -1653,6 +1676,13 @@ class EditForm(ctk.CTkToplevel):
             # If end_date is set to the expiration day, update status to "Expired"
             end_date=datetime.strptime(updated_data[14], '%Y-%m-%d').date()
             current_date=datetime.now().date()
+
+            # Check if the end_date is 3 days from the current date
+            if end_date == current_date + timedelta(days=3):
+                # Send SMS to notify the member
+                formatted_contact_no=self.entry_fields[8].get()
+                sms_message="Your gym membership will expire in 3 days. Renew your subscription to continue accessing D'GRIT GYM."
+                self.send_sms(formatted_contact_no, sms_message)
 
             print(f"end_date: {end_date}")
             print(f"current_date: {current_date}")
