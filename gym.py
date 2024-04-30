@@ -2192,7 +2192,7 @@ class ScanFrame(ctk.CTkFrame):
 
         # Create the details window
         details_window=ctk.CTkToplevel(self)
-        details_window.title("Attendance Details")
+        details_window.title("Member Details")
         details_window.attributes('-topmost', True)  # Always on top
         details_window.geometry("550x400")  # Set window size
 
@@ -2201,7 +2201,7 @@ class ScanFrame(ctk.CTkFrame):
         window_height=400
         screen_width=details_window.winfo_screenwidth()
         screen_height=details_window.winfo_screenheight()
-        x_coordinate=(screen_width - window_width) /1.5
+        x_coordinate=(screen_width - window_width) / 1.5
         y_coordinate=(screen_height - window_height) / 2
         details_window.geometry(f"{window_width}x{window_height}+{int(x_coordinate)}+{int(y_coordinate)}")
 
@@ -2213,7 +2213,7 @@ class ScanFrame(ctk.CTkFrame):
         label_frame.pack(pady=10, padx=10)
 
         # Attendance Type
-        attendance_type_label=ctk.CTkLabel(label_frame, text="Attendance Type:")
+        attendance_type_label=ctk.CTkLabel(label_frame, text="Attendance Type:", font=("Arial", 12, "bold"))
         attendance_type_label.grid(row=0, column=0, padx=10, pady=5)
 
         attendance_type_entry=ctk.CTkEntry(label_frame)
@@ -2224,52 +2224,27 @@ class ScanFrame(ctk.CTkFrame):
         qr_data_frame=ctk.CTkFrame(details_window)
         qr_data_frame.pack(pady=10, padx=10)
 
-        # First Name
-        first_name_label=ctk.CTkLabel(qr_data_frame, text="First Name:")
-        first_name_label.grid(row=0, column=0, padx=10, pady=5)
+        # Define font for labels
+        label_font=("Arial", 16)
 
-        first_name_entry=ctk.CTkEntry(qr_data_frame)
-        first_name_entry.grid(row=0, column=1, padx=10, pady=5)
-        first_name_entry.insert(0, member_data_fields[0])  # Populate first name
+        # Labels and corresponding entries
+        label_texts=["First Name:", "Middle Name:", "Last Name:", "Contact No:", "Subscription ID:"]
+        entry_contents=member_data_fields[:5]
 
-        # Middle Name
-        middle_name_label=ctk.CTkLabel(qr_data_frame, text="Middle Name:")
-        middle_name_label.grid(row=1, column=0, padx=10, pady=5)
+        for i, label_text in enumerate(label_texts):
+            label=ctk.CTkLabel(qr_data_frame, text=label_text, font=label_font)
+            label.grid(row=i, column=0, padx=10, pady=5)
 
-        middle_name_entry=ctk.CTkEntry(qr_data_frame)
-        middle_name_entry.grid(row=1, column=1, padx=10, pady=5)
-        middle_name_entry.insert(0, member_data_fields[1])  # Populate middle name
-
-        # Last Name
-        last_name_label=ctk.CTkLabel(qr_data_frame, text="Last Name:")
-        last_name_label.grid(row=2, column=0, padx=10, pady=5)
-
-        last_name_entry=ctk.CTkEntry(qr_data_frame)
-        last_name_entry.grid(row=2, column=1, padx=10, pady=5)
-        last_name_entry.insert(0, member_data_fields[2])  # Populate last name
-
-        # Contact No
-        contact_no_label=ctk.CTkLabel(qr_data_frame, text="Contact No:")
-        contact_no_label.grid(row=3, column=0, padx=10, pady=5)
-
-        contact_no_entry=ctk.CTkEntry(qr_data_frame)
-        contact_no_entry.grid(row=3, column=1, padx=10, pady=5)
-        contact_no_entry.insert(0, member_data_fields[3])  # Populate contact no
-
-        # Subscription ID
-        subscription_id_label=ctk.CTkLabel(qr_data_frame, text="Subscription ID:")
-        subscription_id_label.grid(row=4, column=0, padx=10, pady=5)
-
-        subscription_id_entry=ctk.CTkEntry(qr_data_frame)
-        subscription_id_entry.grid(row=4, column=1, padx=10, pady=5)
-        subscription_id_entry.insert(0, member_data_fields[4])  # Populate subscription id
+            entry=ctk.CTkEntry(qr_data_frame)
+            entry.grid(row=i, column=1, padx=10, pady=5)
+            entry.insert(0, entry_contents[i])
 
         # Attendance time frame
         time_frame=ctk.CTkFrame(details_window)
         time_frame.pack(pady=10, padx=10)
 
         # Attendance Time
-        time_label=ctk.CTkLabel(time_frame, text="Attendance Time:")
+        time_label=ctk.CTkLabel(time_frame, text="Attendance Time:", font=label_font)
         time_label.grid(row=0, column=0, padx=10, pady=5)
 
         time_entry=ctk.CTkEntry(time_frame)
