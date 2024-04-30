@@ -2213,7 +2213,7 @@ class ScanFrame(ctk.CTkFrame):
         label_frame.pack(pady=10, padx=10)
 
         # Attendance Type
-        attendance_type_label=ctk.CTkLabel(label_frame, text="Attendance Type:", font=("Arial", 12, "bold"))
+        attendance_type_label=ctk.CTkLabel(label_frame, text="Attendance Type:", font=("Arial", 16, "bold"))
         attendance_type_label.grid(row=0, column=0, padx=10, pady=5)
 
         attendance_type_entry=ctk.CTkEntry(label_frame)
@@ -2225,7 +2225,7 @@ class ScanFrame(ctk.CTkFrame):
         qr_data_frame.pack(pady=10, padx=10)
 
         # Define font for labels
-        label_font=("Arial", 16)
+        label_font=("Arial Bold", 16)
 
         # Labels and corresponding entries
         label_texts=["First Name:", "Middle Name:", "Last Name:", "Contact No:", "Subscription ID:"]
