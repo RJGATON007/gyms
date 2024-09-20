@@ -1,0 +1,23 @@
+As the software developer of my capstone team, i would like to mention these names:
+
+1. Kerwin Dave M. Granado - documentarian, technical writer
+2. Meilgar B. Laureta - system analyst, tester
+3. Roniel Dosujan - project manager
+
+I would like to thank them for their hard work and dedication in making this project possible.
+I would also like to thank my adviser, Mr. John Mathew Dino for guiding us throughout the development of this project.
+We may be a small team, but we have a big heart in making this project possible.
+
+Coding with limited resources is not easy,
+but with the help of my team, we were able to make this project possible.
+
+For the future developers who will be using this project,
+i hope that you will find this project useful and helpful in your future endeavors.
+
+Thank you and God bless.
+
+- Robertjames Gaton
+  Software Developer
+  Capstone Team Leader
+  BSIT 4-4
+  Class of 2024
