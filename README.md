@@ -44,8 +44,9 @@ plans,and analytics. Reduced operating costs, better communication, more satisfa
  
 # Send G-cash for donations
  - 09776324808
-# Contact:
-- FB: Robertjames Gaton (Software Engineer)
+
+# Email:
+- robertgaton2017@gmail.com
 
 # TO CONVERT THE FILE TO EXE, CONTACT ME FOR THE INSTRUCTIONS and NEGOTIATIONS
 # FEEL FREE TO CONTRIBUTE TO THIS PROJECT
